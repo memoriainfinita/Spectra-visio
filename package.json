@@ -1,0 +1,14 @@
+{
+  "name": "spectravisio",
+  "version": "0.1.0",
+  "description": "SpectraVisio - Real-time web audio visualizer",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^5.2.10"
+  }
+}
