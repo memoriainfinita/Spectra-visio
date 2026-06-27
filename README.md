@@ -3,7 +3,7 @@
 > **Professional Audio Visualizer for Web Browsers**  
 > Real-time music visualization with customizable plugins and stunning effects
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
 [![Web Audio API](https://img.shields.io/badge/Web%20Audio%20API-✓-green.svg)](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API)
 [![Canvas 2D](https://img.shields.io/badge/Canvas%202D-✓-blue.svg)](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API)
 [![Progressive Web App](https://img.shields.io/badge/PWA-Ready-purple.svg)](https://web.dev/progressive-web-apps/)
