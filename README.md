@@ -235,6 +235,12 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 ---
 
+## Credits
+
+Developed by [@memoriainfinita](https://github.com/memoriainfinita) with the assistance of Claude Sonnet 4.6 (Anthropic).
+
+---
+
 ## 📞 **Contact & Support**
 
 - 💬 **Discord:** [Join our community](https://discord.gg/spectravisio) *(Coming Soon)*
