@@ -92,6 +92,16 @@ visualizer.start();
 
 *See [Visualizations Documentation](SpectraVisio_Visualizations.md) for complete specifications*
 
+### Screenshots
+
+Current app shell, driven by a synthetic demo track.
+
+| Welcome (idle) | Tunnel |
+|---|---|
+| ![Welcome](docs/spectra-visio-welcome.png) | ![Tunnel](docs/spectra-visio-tunnel.png) |
+| **Ribbons** | **Plasma** |
+| ![Ribbons](docs/spectra-visio-ribbons.png) | ![Plasma](docs/spectra-visio-plasma.png) |
+
 ---
 
 ## 📚 **Documentation**
