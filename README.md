@@ -101,6 +101,8 @@ Current app shell, driven by a synthetic demo track.
 | ![Welcome](docs/spectra-visio-welcome.png) | ![Tunnel](docs/spectra-visio-tunnel.png) |
 | **Ribbons** | **Plasma** |
 | ![Ribbons](docs/spectra-visio-ribbons.png) | ![Plasma](docs/spectra-visio-plasma.png) |
+| **Oscilloscope** | |
+| ![Oscilloscope](docs/spectra-visio-oscilloscope.png) | |
 
 ---
 
