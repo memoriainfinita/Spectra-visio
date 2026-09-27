@@ -2,6 +2,10 @@ import { BaseVisualizer } from './baseVisualizer.js';
 
 export function oscilloscopePlugin(canvas, ctx) {
   return new (class extends BaseVisualizer {
+    constructor() {
+      super(canvas, ctx);
+    }
+
     render(data) {
       const { width, height } = this;
       this.ctx.fillStyle = '#05060f';
