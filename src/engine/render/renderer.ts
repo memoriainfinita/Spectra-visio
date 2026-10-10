@@ -1,10 +1,12 @@
 import { createStore } from '../../core/store'
 import { BEAT_SLOTS, WAVE_SIZE, type AnalysisFrame } from '../analysis/analyzer'
+import { EffectChain, type ChainStep } from '../effects/chain'
+import { getEffect } from '../effects/registry'
 import { Modulator } from '../modulation/modulation'
-import { visualSettings, type SceneState } from '../scene/scene'
+import { visualSettings, type SceneState, type VisualSettings } from '../scene/scene'
 import { Compositor, Layer } from './compositor'
 import { fromUnit, getVisual, paramsOf, toUnit } from './registry'
-import type { Params, Surface, VisualFrame } from './visual'
+import type { ParamDef, Params, Surface, VisualFrame } from './visual'
 
 // Longest frame step the visuals see; longer gaps (a hidden tab) count as this.
 const MAX_DT_S = 0.05
@@ -23,12 +25,15 @@ export class Renderer {
   readonly status = createStore<RendererStatus>({ error: null, fps: 0 })
   // Effective value of each parameter in 0–1 of its range, per layer, for the panel.
   readonly live: [Map<string, number>, Map<string, number>] = [new Map(), new Map()]
+  // The same per effect entry, by its id.
+  readonly effectLive = new Map<string, Map<string, number>>()
 
   private readonly scene: () => SceneState
   private readonly analysis: (now: number) => AnalysisFrame | null
   private readonly modulator = new Modulator()
   private canvas: HTMLCanvasElement | null = null
   private compositor: Compositor | null = null
+  private chain: EffectChain | null = null
   private layers: [Layer | null, Layer | null] = [null, null]
   private failed: [string | null, string | null] = [null, null]
   private surface: Surface = { width: 1, height: 1, dpr: 1 }
@@ -83,6 +88,8 @@ export class Renderer {
     }
     try {
       this.compositor = new Compositor(gl)
+      this.chain = new EffectChain(gl)
+      this.chain.onError = (msg) => this.status.set((s) => ({ ...s, error: msg }))
       this.status.set((s) => ({ ...s, error: null }))
       this.start()
     } catch (err) {
@@ -110,6 +117,8 @@ export class Renderer {
     this.layers = [null, null]
     this.compositor?.dispose()
     this.compositor = null
+    this.chain?.dispose()
+    this.chain = null
   }
 
   private readonly onLost = (e: Event) => {
@@ -119,6 +128,7 @@ export class Renderer {
     this.layers = [null, null]
     this.failed = [null, null]
     this.compositor = null
+    this.chain = null
   }
 
   private readonly onRestored = () => this.init()
@@ -158,23 +168,47 @@ export class Renderer {
       layer.render(f, this.params(i, scene), this.surface)
       textures[i] = layer.texture
     }
-    compositor.composite(textures[0], textures[1], x, scene.blend, this.surface.width, this.surface.height)
+    const steps = this.effectSteps(scene)
+    const chain = this.chain
+    chain?.sync(steps)
+    if (chain && steps.length) {
+      chain.resize(this.surface)
+      compositor.composite(textures[0], textures[1], x, scene.blend, this.surface.width, this.surface.height, chain.input)
+      chain.run(steps, f, this.surface)
+    } else {
+      compositor.composite(textures[0], textures[1], x, scene.blend, this.surface.width, this.surface.height)
+    }
   }
 
-  // Base values plus modulation, clamped to each parameter's range.
   private params(i: 0 | 1, scene: SceneState): Params {
     const layer = scene.layers[i]
     const def = getVisual(layer.visual)
     if (!def) return {}
-    const settings = visualSettings(layer)
+    return this.evaluate(paramsOf(def), visualSettings(layer), `${i}:${layer.visual}`, this.live[i])
+  }
+
+  private effectSteps(scene: SceneState): ChainStep[] {
+    const steps: ChainStep[] = []
+    for (const e of scene.effects) {
+      const def = getEffect(e.type)
+      if (!e.enabled || !def) continue
+      let live = this.effectLive.get(e.id)
+      if (!live) this.effectLive.set(e.id, (live = new Map()))
+      steps.push({ id: e.id, type: e.type, params: this.evaluate(def.params, e, `fx:${e.id}`, live) })
+    }
+    for (const id of this.effectLive.keys()) if (!scene.effects.some((e) => e.id === id && e.enabled)) this.effectLive.delete(id)
+    return steps
+  }
+
+  // Base values plus modulation, clamped to each parameter's range.
+  private evaluate(defs: ParamDef[], settings: VisualSettings, key: string, live: Map<string, number>): Params {
     const out: Params = {}
-    const live = this.live[i]
     live.clear()
-    for (const p of paramsOf(def)) {
+    for (const p of defs) {
       const base = settings.params[p.id] ?? p.default
       const mods = settings.mods[p.id]
       let unit = toUnit(p, base)
-      if (mods?.length) unit += this.modulator.sum(`${i}:${layer.visual}:${p.id}`, mods)
+      if (mods?.length) unit += this.modulator.sum(`${key}:${p.id}`, mods)
       out[p.id] = fromUnit(p, unit)
       live.set(p.id, toUnit(p, out[p.id]))
     }

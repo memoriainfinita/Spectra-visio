@@ -9,6 +9,7 @@ import { Queue } from './ui/Queue'
 import { Sources } from './ui/Sources'
 import { Stage } from './ui/Stage'
 import { Visuals } from './ui/Visuals'
+import { Effects } from './ui/Effects'
 import { NowPlaying, Transport } from './ui/Transport'
 import { useStore } from './ui/useStore'
 import { useT } from './ui/useT'
@@ -59,6 +60,7 @@ export function App() {
         </section>
         <Queue />
         <Visuals />
+        <Effects />
         <Sources />
         <AnalysisPanel />
         {opfsSupported && (

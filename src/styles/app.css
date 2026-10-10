@@ -361,6 +361,17 @@ input[type='range'] { accent-color: var(--accent); }
 .mod-field input[type='range'] { flex: 1; min-width: 60px; }
 .mod-field .mono { width: 64px; text-align: right; color: var(--muted); }
 .mods > .btn { align-self: flex-start; }
+.param-slider select { width: 100%; }
+
+/* Effects */
+
+.effect-list { list-style: none; margin: 0; padding: 0; }
+.effect { border-top: 1px solid var(--border); padding: 4px 0; }
+.effect:first-child { border-top: none; }
+.effect.off .effect-name { color: var(--muted); }
+.effect-row { display: flex; align-items: center; gap: 4px; }
+.effect-name { flex: 1; min-width: 0; }
+.effect .params { margin: 4px 0 4px 32px; }
 
 /* Drop */
 

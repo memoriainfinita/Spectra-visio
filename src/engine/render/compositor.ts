@@ -1,6 +1,6 @@
 import type { BlendMode } from '../scene/scene'
 import { BLEND_MODES } from '../scene/scene'
-import { drawFullscreen, program, uniforms } from './gl'
+import { drawFullscreen, program, uniforms, type Target } from './gl'
 import type { Params, Surface, VisualDef, VisualFrame, VisualInstance } from './visual'
 
 // One visualization drawn into a texture. Canvas 2D ones draw on a hidden canvas that is
@@ -125,10 +125,14 @@ export class Compositor {
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 255]))
   }
 
-  composite(a: WebGLTexture | null, b: WebGLTexture | null, crossfade: number, mode: BlendMode, width: number, height: number): void {
+  // Draws on `target`, or on the canvas when it is null.
+  composite(a: WebGLTexture | null, b: WebGLTexture | null, crossfade: number, mode: BlendMode, width: number, height: number, target: Target | null = null): void {
     const gl = this.gl
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null)
-    gl.viewport(0, 0, width, height)
+    if (target) target.bind()
+    else {
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+      gl.viewport(0, 0, width, height)
+    }
     gl.useProgram(this.prog)
     gl.activeTexture(gl.TEXTURE0)
     gl.bindTexture(gl.TEXTURE_2D, a ?? this.black)
