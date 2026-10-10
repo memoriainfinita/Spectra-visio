@@ -13,6 +13,7 @@ import {
   type Modulation,
 } from '../modulation/modulation'
 import { MAX_EFFECTS, getEffect } from '../effects/registry'
+import { defaultOverlays, normalizeOverlays, type OverlaySettings } from '../overlay/settings'
 import { clampParam, defaultParams, getVisual, paramsOf } from '../render/registry'
 import type { ParamDef, Params } from '../render/visual'
 
@@ -22,8 +23,8 @@ import type { ParamDef, Params } from '../render/visual'
 export const BLEND_MODES = ['normal', 'add', 'screen', 'multiply', 'difference', 'lighten'] as const
 export type BlendMode = (typeof BLEND_MODES)[number]
 
-// 2 added the effect chain; version 1 scenes load with an empty one.
-export const SCENE_VERSION = 2
+// 2 added the effect chain, 3 the overlays; older scenes load without them.
+export const SCENE_VERSION = 3
 
 // Tweaks per visualization, kept when the layer switches away and back.
 export interface VisualSettings {
@@ -56,6 +57,7 @@ export interface SceneState {
   effects: EffectState[]
   // Seconds a layer takes to fade from one visualization to the next; 0 cuts.
   transition: number
+  overlays: OverlaySettings
 }
 
 export const TRANSITION_MAX = 10
@@ -72,6 +74,7 @@ export function defaultScene(): SceneState {
     selected: 0,
     effects: [],
     transition: 1.5,
+    overlays: defaultOverlays(),
   }
 }
 
@@ -187,6 +190,7 @@ export function normalizeScene(raw: unknown): SceneState {
     selected: raw.selected === 1 ? 1 : 0,
     effects: normalizeEffects(raw.effects),
     transition: num(raw.transition, 0, TRANSITION_MAX, d.transition),
+    overlays: normalizeOverlays(raw.overlays),
   }
 }
 

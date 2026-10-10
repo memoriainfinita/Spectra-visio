@@ -3,6 +3,7 @@ import { BEAT_SLOTS, WAVE_SIZE, type AnalysisFrame } from '../analysis/analyzer'
 import { EffectChain, type ChainStep } from '../effects/chain'
 import { getEffect } from '../effects/registry'
 import { Modulator } from '../modulation/modulation'
+import { OverlayRenderer, anyOverlay, type OverlayData } from '../overlay/overlay'
 import { visualSettings, type SceneState, type VisualSettings } from '../scene/scene'
 import { Compositor, Layer, type LayerImage } from './compositor'
 import { fromUnit, getVisual, paramsOf, toUnit } from './registry'
@@ -36,6 +37,8 @@ export class Renderer {
   readonly live: [Map<string, number>, Map<string, number>] = [new Map(), new Map()]
   // The same per effect entry, by its id.
   readonly effectLive = new Map<string, Map<string, number>>()
+  // What the overlays show; set by the app, which knows the player.
+  overlaySource: (() => OverlayData) | null = null
 
   private readonly scene: () => SceneState
   private readonly analysis: (now: number) => AnalysisFrame | null
@@ -43,6 +46,7 @@ export class Renderer {
   private canvas: HTMLCanvasElement | null = null
   private compositor: Compositor | null = null
   private chain: EffectChain | null = null
+  private overlay: OverlayRenderer | null = null
   private layers: [Layer | null, Layer | null] = [null, null]
   private failed: [string | null, string | null] = [null, null]
   // Visualization a layer is fading out of, per layer.
@@ -102,6 +106,7 @@ export class Renderer {
       this.compositor = new Compositor(gl)
       this.chain = new EffectChain(gl)
       this.chain.onError = (msg) => this.status.set((s) => ({ ...s, error: msg }))
+      this.overlay = new OverlayRenderer(gl)
       this.status.set((s) => ({ ...s, error: null }))
       this.start()
     } catch (err) {
@@ -133,6 +138,8 @@ export class Renderer {
     this.compositor = null
     this.chain?.dispose()
     this.chain = null
+    this.overlay?.dispose()
+    this.overlay = null
   }
 
   private readonly onLost = (e: Event) => {
@@ -144,6 +151,7 @@ export class Renderer {
     this.failed = [null, null]
     this.compositor = null
     this.chain = null
+    this.overlay = null
   }
 
   private readonly onRestored = () => this.init()
@@ -213,6 +221,7 @@ export class Renderer {
     } else {
       compositor.composite(images[0], images[1], x, scene.blend, this.surface.width, this.surface.height)
     }
+    if (this.overlay && this.overlaySource && anyOverlay(scene.overlays)) this.overlay.draw(scene.overlays, this.overlaySource(), this.surface, f.time)
   }
 
   private params(i: 0 | 1, scene: SceneState): Params {
