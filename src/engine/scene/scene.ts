@@ -12,21 +12,31 @@ import {
   type ModSource,
   type Modulation,
 } from '../modulation/modulation'
+import { MAX_EFFECTS, getEffect } from '../effects/registry'
 import { clampParam, defaultParams, getVisual, paramsOf } from '../render/registry'
-import type { Params } from '../render/visual'
+import type { ParamDef, Params } from '../render/visual'
 
-// What is on screen: two layers, the crossfader between them and how they blend.
+// What is on screen: two layers, the crossfader between them, how they blend and the
+// effects applied to the result.
 
 export const BLEND_MODES = ['normal', 'add', 'screen', 'multiply', 'difference', 'lighten'] as const
 export type BlendMode = (typeof BLEND_MODES)[number]
 
-export const SCENE_VERSION = 1
+// 2 added the effect chain; version 1 scenes load with an empty one.
+export const SCENE_VERSION = 2
 
 // Tweaks per visualization, kept when the layer switches away and back.
 export interface VisualSettings {
   params: Params
   // Parameter id → modulations.
   mods: Record<string, Modulation[]>
+}
+
+// One entry of the effect chain. `id` tells two entries of the same effect apart.
+export interface EffectState extends VisualSettings {
+  id: string
+  type: string
+  enabled: boolean
 }
 
 export interface LayerState {
@@ -42,6 +52,8 @@ export interface SceneState {
   blend: BlendMode
   // Layer whose parameters the panel shows.
   selected: 0 | 1
+  // Applied in order after the layers are blended.
+  effects: EffectState[]
 }
 
 export function defaultScene(): SceneState {
@@ -54,6 +66,7 @@ export function defaultScene(): SceneState {
     crossfade: 0,
     blend: 'normal',
     selected: 0,
+    effects: [],
   }
 }
 
@@ -95,14 +108,13 @@ export function normalizeModulation(raw: unknown): Modulation | null {
   }
 }
 
-function normalizeVisualSettings(visualId: string, raw: unknown): VisualSettings | null {
-  const def = getVisual(visualId)
-  if (!def || !isObj(raw)) return null
-  const params = defaultParams(def)
+// Parameters clamped to their ranges and modulations checked, against `defs`.
+function normalizeSettings(defs: ParamDef[], raw: Record<string, unknown>): VisualSettings {
+  const params: Params = Object.fromEntries(defs.map((p) => [p.id, p.default]))
   const mods: Record<string, Modulation[]> = {}
   const rawParams = isObj(raw.params) ? raw.params : {}
   const rawMods = isObj(raw.mods) ? raw.mods : {}
-  for (const p of paramsOf(def)) {
+  for (const p of defs) {
     const v = rawParams[p.id]
     if (typeof v === 'number' && Number.isFinite(v)) params[p.id] = clampParam(p, v)
     const list = rawMods[p.id]
@@ -112,6 +124,36 @@ function normalizeVisualSettings(visualId: string, raw: unknown): VisualSettings
     }
   }
   return { params, mods }
+}
+
+export function normalizeVisualSettings(visualId: string, raw: unknown): VisualSettings | null {
+  const def = getVisual(visualId)
+  if (!def || !isObj(raw)) return null
+  return normalizeSettings(paramsOf(def), raw)
+}
+
+export function normalizeEffect(raw: unknown): EffectState | null {
+  if (!isObj(raw) || typeof raw.id !== 'string' || typeof raw.type !== 'string') return null
+  const def = getEffect(raw.type)
+  if (!def) return null
+  return { id: raw.id, type: raw.type, enabled: raw.enabled !== false, ...normalizeSettings(def.params, raw) }
+}
+
+// Unknown effects and repeated ids are dropped.
+export function normalizeEffects(raw: unknown): EffectState[] {
+  if (!Array.isArray(raw)) return []
+  const out: EffectState[] = []
+  for (const r of raw) {
+    const e = normalizeEffect(r)
+    if (e && !out.some((x) => x.id === e.id)) out.push(e)
+    if (out.length === MAX_EFFECTS) break
+  }
+  return out
+}
+
+export function defaultEffectParams(type: string): Params {
+  const def = getEffect(type)
+  return def ? Object.fromEntries(def.params.map((p) => [p.id, p.default])) : {}
 }
 
 function normalizeLayer(raw: unknown, fallback: LayerState): LayerState {
@@ -137,6 +179,7 @@ export function normalizeScene(raw: unknown): SceneState {
     crossfade: num(raw.crossfade, 0, 1, d.crossfade),
     blend: oneOf(raw.blend, BLEND_MODES, d.blend),
     selected: raw.selected === 1 ? 1 : 0,
+    effects: normalizeEffects(raw.effects),
   }
 }
 

@@ -11,6 +11,8 @@ export interface ParamDef {
   max: number
   default: number
   int?: boolean
+  // Names for the integer values min…max: the panel shows a list instead of a slider.
+  options?: MessageKey[]
 }
 
 export type Params = Record<string, number>

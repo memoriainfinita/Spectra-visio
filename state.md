@@ -24,6 +24,9 @@ Visualizador de audio en tiempo real para navegador, en reconstrucción desde ce
 - Sin probar: fase 3 en Safari (si informa `outputLatency`; sin él, la app ofrece solo el ajuste manual)
 - Fase 4 (`src/engine/render/`, `src/engine/modulation/`, `src/engine/scene/`, paneles `Stage` y `Visuals`): canvas WebGL2 de salida con capas A y B, crossfader y 6 modos de fusión (normal, suma, trama, multiplicar, diferencia, aclarar); las 8 visualizaciones de la v0 portadas (plasma como shader GLSL, el resto en Canvas 2D subido como textura); parámetros comunes (velocidad, sensibilidad, intensidad, tono) y propios por visualización; modulación por banda, golpe (envolvente con caída) u oscilador (libre o al tempo), con cantidad, curva y suavizado, varias por parámetro y marca del valor efectivo en vivo; escena guardada en IndexedDB; pantalla completa con doble clic o botón
 - Comprobado el 2026-10-10, silenciado, en Firefox (Playwright) y Chrome del sistema (Playwright, headless) con un WAV de 60 s: las 8 visualizaciones pintan y se mueven, los 6 modos de fusión dan resultados distintos, el crossfader en B muestra solo B, la modulación mueve su marca, la escena se recupera al recargar, sin errores. 69 tests unitarios en verde
+- Fase 5, diseño aprobado por mykl el 2026-10-10: cuatro partes (efectos y paletas, transiciones, presets, navegador). Preset = una visualización con sus valores y modulaciones más la cadena de efectos; al cargarlo va a la capa seleccionada y sustituye los efectos
+- Fase 5, parte 1 (`src/engine/effects/`, panel `src/ui/Effects.tsx`): cadena global tras el compositor, hasta 12 entradas, cada una activable, reordenable y modulable como los parámetros de las visualizaciones. Efectos: brillo difuso, realimentación, estelas, espejo, caleidoscopio, corrección de color, paleta (8 paletas, recolorea por brillo). Escena en versión 2; la 1 carga con la cadena vacía
+- Comprobado el 2026-10-10, silenciado, en Firefox (Playwright) y Chrome del sistema (Playwright, headless): los 7 efectos pintan sin errores, espejo simétrico exacto en cada modo, paleta monocromo y saturación 0 sin color, orden, desactivar, modulación con marca en vivo y recuperación tras recargar. 76 tests unitarios en verde
 - La versión anterior (canvas, 8 visualizaciones) está en `.archive/v0/`, fuera de git, y en el historial hasta `7a63da1`
 - Repo privado en GitHub, Pages sin activar. Se publicará al terminar la app (decisión de mykl, 2026-10-10)
 
@@ -43,4 +46,4 @@ Visualizador de audio en tiempo real para navegador, en reconstrucción desde ce
 - [ ] Al terminar la app: repo público, activar Pages con origen GitHub Actions (`gh api -X POST repos/memoriainfinita/Spectra-visio/pages -f build_type=workflow`) y push
 - [ ] Probar la captura de pestaña en Chrome o Edge
 - [ ] Probar stream con CORS real de otro dominio
-- [ ] Fase 5: efectos, paletas, transiciones, presets, navegador de visualizaciones
+- [ ] Fase 5: transiciones, presets, navegador de visualizaciones

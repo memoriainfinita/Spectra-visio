@@ -51,3 +51,81 @@ vec3 hsl2rgb(float h, float s, float l) {
   vec3 k = clamp(abs(mod(h * 6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0);
   return l + s * (k - 0.5) * (1.0 - abs(2.0 * l - 1.0));
 }`
+
+// A texture with its framebuffer, cleared to black whenever its size changes.
+export class Target {
+  readonly texture: WebGLTexture
+  private readonly gl: WebGL2RenderingContext
+  private readonly fbo: WebGLFramebuffer
+  width = 0
+  height = 0
+
+  constructor(gl: WebGL2RenderingContext) {
+    this.gl = gl
+    this.texture = gl.createTexture()!
+    this.fbo = gl.createFramebuffer()!
+    gl.bindTexture(gl.TEXTURE_2D, this.texture)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+  }
+
+  // Returns true when the size changed and the content was cleared.
+  size(width: number, height: number): boolean {
+    if (width === this.width && height === this.height) return false
+    const gl = this.gl
+    this.width = width
+    this.height = height
+    gl.bindTexture(gl.TEXTURE_2D, this.texture)
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null)
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo)
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texture, 0)
+    gl.clearColor(0, 0, 0, 1)
+    gl.clear(gl.COLOR_BUFFER_BIT)
+    return true
+  }
+
+  bind(): void {
+    this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.fbo)
+    this.gl.viewport(0, 0, this.width, this.height)
+  }
+
+  dispose(): void {
+    this.gl.deleteTexture(this.texture)
+    this.gl.deleteFramebuffer(this.fbo)
+  }
+}
+
+// Binds `textures` to units 0, 1, … and points the sampler uniforms at them.
+export function bindTextures(gl: WebGL2RenderingContext, samplers: (WebGLUniformLocation | null)[], textures: WebGLTexture[]): void {
+  textures.forEach((t, i) => {
+    gl.activeTexture(gl.TEXTURE0 + i)
+    gl.bindTexture(gl.TEXTURE_2D, t)
+    gl.uniform1i(samplers[i], i)
+  })
+  gl.activeTexture(gl.TEXTURE0)
+}
+
+export const COPY_FS = `#version 300 es
+precision highp float;
+in vec2 vUv;
+uniform sampler2D uSrc;
+out vec4 outColor;
+void main() {
+  outColor = vec4(texture(uSrc, vUv).rgb, 1.0);
+}`
+
+export const LUMA_GLSL = `
+float luma(vec3 c) { return dot(c, vec3(0.2126, 0.7152, 0.0722)); }`
+
+// Hue rotation in YIQ space, angle in radians.
+export const HUE_GLSL = `
+vec3 hueRotate(vec3 c, float a) {
+  const mat3 toYiq = mat3(0.299, 0.596, 0.211, 0.587, -0.274, -0.523, 0.114, -0.322, 0.312);
+  const mat3 toRgb = mat3(1.0, 1.0, 1.0, 0.956, -0.272, -1.106, 0.621, -0.647, 1.703);
+  vec3 yiq = toYiq * c;
+  float s = sin(a), k = cos(a);
+  yiq.yz = vec2(yiq.y * k - yiq.z * s, yiq.y * s + yiq.z * k);
+  return toRgb * yiq;
+}`
