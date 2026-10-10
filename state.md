@@ -1,6 +1,6 @@
 ---
 created: 2026-09-29
-last_updated: 2026-10-10
+last_updated: 2026-10-11
 ---
 
 # Spectra-visio — state
@@ -13,7 +13,7 @@ Visualizador de audio en tiempo real para navegador, en reconstrucción desde ce
 
 ## Status
 
-- Fases 1 a 6 de 10 hechas. Fases 4 y 5 probadas por mykl en su Firefox (2026-10-10); fase 6 pendiente de su revisión. Base: TypeScript 7, React 19, Vite 8, Vitest 5, store propio, español e inglés, ajustes en IndexedDB, CI con despliegue a Pages
+- Fases 1 a 6 de 10 hechas. Fases 4 y 5 probadas por mykl en su Firefox (2026-10-10), fase 6 el 2026-10-11 (Milkdrop, cámara, letras con pista de prueba). Base: TypeScript 7, React 19, Vite 8, Vitest 5, store propio, español e inglés, ajustes en IndexedDB, CI con despliegue a Pages
 - Fase 2: reproductor con gapless y fundido, lista con archivos, carpetas y arrastre, etiquetas y carátula (`music-metadata`), Media Session; fuentes micrófono, pestaña o sistema y stream; ganancia de entrada y medidor de nivel; sesión que sobrevive a recargar (copias en OPFS opcionales, referencias en Chrome)
 - Comprobado el 2026-10-10, silenciado, en Chrome headless (CDP) y Firefox (Playwright): gapless al sample, fundido de 2 s, pausa, atajos, micrófono falso, stream del mismo origen y error CORS, archivo roto, restauración tras recargar. 26 tests unitarios en verde
 - Probado por mykl en su Firefox (2026-10-10): añadir carpeta, arrastrar archivos, reordenar y teclas multimedia funcionan. La captura de pestaña no existe en Firefox ni Safari (sin audio); la app ahora lo explica en vez de intentarlo
@@ -64,5 +64,4 @@ Visualizador de audio en tiempo real para navegador, en reconstrucción desde ce
 - [ ] Al terminar la app: repo público, activar Pages con origen GitHub Actions (`gh api -X POST repos/memoriainfinita/Spectra-visio/pages -f build_type=workflow`) y push
 - [ ] Probar la captura de pestaña en Chrome o Edge
 - [ ] Probar stream con CORS real de otro dominio
-- [ ] Revisión de la fase 6 por mykl en su Firefox
 - [ ] Fase 7: análisis previo y modo automático
