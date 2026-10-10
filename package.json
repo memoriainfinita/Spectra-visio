@@ -14,6 +14,8 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "butterchurn": "2.6.7",
+    "butterchurn-presets": "2.4.7",
     "idb-keyval": "^6.3.0",
     "lucide-react": "^1.53.0",
     "music-metadata": "^12.1.0",

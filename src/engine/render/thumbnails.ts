@@ -66,6 +66,7 @@ export async function renderThumbnails(defs: VisualDef[], done: (id: string, png
     for (const def of defs) {
       let layer: Layer | null = null
       try {
+        await def.prepare?.()
         layer = new Layer(gl, def)
         const params = defaultParams(def)
         const seen = new Uint32Array(BEAT_SLOTS)

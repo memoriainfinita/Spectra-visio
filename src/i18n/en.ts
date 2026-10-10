@@ -125,6 +125,7 @@ export const en: Messages = {
   'visual.ribbons': 'Ribbons',
   'visual.oscilloscope': 'Oscilloscope',
 'visual.bars': 'Spectrum bars',  'visual.radialBars': 'Circular bars',  'visual.spectrogram': 'Waterfall spectrogram',  'visual.lissajous': 'Stereo goniometer',  'visual.radialWave': 'Circular wave',  'visual.starfield': 'Starfield',  'visual.fireworks': 'Fireworks',  'visual.terrain': 'Terrain',  'visual.warpTunnel': 'Warp tunnel',  'visual.polygons': 'Polygons',  'visual.cells': 'Cells',  'visual.julia': 'Julia set',  'visual.kifs': 'Kaleidoscopic fractal',
+'visual.milkdrop': 'Milkdrop',
 
   'param.speed': 'Speed',
   'param.sensitivity': 'Sensitivity',
@@ -145,6 +146,7 @@ export const en: Messages = {
   'param.flash': 'Flash',
   'param.scale': 'Scale',
 'param.gap': 'Gap',  'param.layout': 'Layout',  'param.gravity': 'Gravity',  'param.sides': 'Sides',  'param.depth': 'Depth',  'layout.bottom': 'From the bottom',  'layout.mirror': 'Mirrored',
+'param.preset': 'Preset',  'param.blend': 'Blend',
 
   'param.length': 'Length',
   'param.zoom': 'Zoom',

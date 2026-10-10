@@ -124,6 +124,7 @@ export const es = {
   'visual.ribbons': 'Cintas',
   'visual.oscilloscope': 'Osciloscopio',
 'visual.bars': 'Barras de espectro',  'visual.radialBars': 'Barras circulares',  'visual.spectrogram': 'Espectrograma en cascada',  'visual.lissajous': 'Goniómetro estéreo',  'visual.radialWave': 'Onda circular',  'visual.starfield': 'Campo de estrellas',  'visual.fireworks': 'Fuegos artificiales',  'visual.terrain': 'Terreno',  'visual.warpTunnel': 'Túnel de velocidad',  'visual.polygons': 'Polígonos',  'visual.cells': 'Celdas',  'visual.julia': 'Conjunto de Julia',  'visual.kifs': 'Fractal caleidoscópico',
+'visual.milkdrop': 'Milkdrop',
 
   'param.speed': 'Velocidad',
   'param.sensitivity': 'Sensibilidad',
@@ -144,6 +145,7 @@ export const es = {
   'param.flash': 'Destello',
   'param.scale': 'Escala',
 'param.gap': 'Separación',  'param.layout': 'Disposición',  'param.gravity': 'Gravedad',  'param.sides': 'Lados',  'param.depth': 'Profundidad',  'layout.bottom': 'Desde abajo',  'layout.mirror': 'En espejo',
+'param.preset': 'Preset',  'param.blend': 'Fundido',
 
   'param.length': 'Duración',
   'param.zoom': 'Zoom',
