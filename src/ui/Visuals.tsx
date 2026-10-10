@@ -1,8 +1,8 @@
 import { RotateCcw } from 'lucide-react'
 import { renderer } from '../app/engine'
-import { addModulation, removeModulation, resetParams, sceneStore, selectLayer, setBlend, setCrossfade, setParam, setVisual, updateModulation } from '../app/scene'
+import { addModulation, removeModulation, resetParams, sceneStore, selectLayer, setBlend, setCrossfade, setParam, setTransition, setVisual, updateModulation } from '../app/scene'
 import { VISUALS, getVisual, paramsOf } from '../engine/render/registry'
-import { BLEND_MODES, visualSettings } from '../engine/scene/scene'
+import { BLEND_MODES, TRANSITION_MAX, visualSettings } from '../engine/scene/scene'
 import type { MessageKey } from '../i18n'
 import { ParamList } from './ParamList'
 import { useStore } from './useStore'
@@ -47,6 +47,12 @@ export function Visuals() {
           ))}
         </select>
       </div>
+
+      <label className="field">
+        <span>{t('visuals.transition')}</span>
+        <input type="range" min={0} max={TRANSITION_MAX} step={0.1} value={scene.transition} onChange={(e) => setTransition(Number(e.target.value))} />
+        <span className="mono">{scene.transition > 0 ? `${scene.transition.toFixed(1)} s` : t('visuals.cut')}</span>
+      </label>
 
       <div className="field">
         <span>{t('visuals.layer', { n: LAYER_NAMES[sel] })}</span>

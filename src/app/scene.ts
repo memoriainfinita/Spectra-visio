@@ -8,6 +8,7 @@ import {
   defaultScene,
   normalizeScene,
   visualSettings,
+  TRANSITION_MAX,
   type BlendMode,
   type EffectState,
   type SceneState,
@@ -93,6 +94,10 @@ export function setCrossfade(x: number): void {
 
 export function setBlend(blend: BlendMode): void {
   sceneStore.set((s) => ({ ...s, blend }))
+}
+
+export function setTransition(seconds: number): void {
+  sceneStore.set((s) => ({ ...s, transition: Math.max(0, Math.min(TRANSITION_MAX, seconds)) }))
 }
 
 export function selectLayer(layer: LayerIndex): void {

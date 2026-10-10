@@ -106,6 +106,8 @@ export const es = {
   'visuals.crossfade': 'Mezcla A/B',
   'visuals.blend': 'Fusión',
   'visuals.reset': 'Restablecer',
+  'visuals.transition': 'Transición',
+  'visuals.cut': 'Corte',
   'blend.normal': 'Normal',
   'blend.add': 'Suma',
   'blend.screen': 'Trama',

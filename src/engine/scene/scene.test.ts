@@ -69,6 +69,13 @@ describe('scene normalization', () => {
     expect(v.mods.twist).toEqual([{ id: 'a', source: { kind: 'lfo', shape: 'sine', rate: 1, sync: true }, amount: 1, curve: 'linear', smoothing: 0 }])
   })
 
+  test('transition time clamped; missing in older scenes gives the default', () => {
+    expect(normalizeScene({ transition: 3 }).transition).toBe(3)
+    expect(normalizeScene({ transition: 99 }).transition).toBe(10)
+    expect(normalizeScene({ transition: -1 }).transition).toBe(0)
+    expect(normalizeScene({ version: 1 }).transition).toBe(defaultScene().transition)
+  })
+
   test('a layer without saved settings uses the defaults', () => {
     const layer = defaultScene().layers[0]
     expect(visualSettings(layer)).toEqual({ params: defaultParams(getVisual(layer.visual)!), mods: {} })
