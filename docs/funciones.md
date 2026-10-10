@@ -88,7 +88,7 @@ Lista de funciones confirmada por mykl el 2026-10-10. Es el contrato del redise�
 
 ## I. Proyecto
 
-- Despliegue en GitHub Pages con GitHub Actions; ruta base `/Spectra-visio/` en Vite
+- Despliegue en GitHub Pages con GitHub Actions; ruta base relativa en Vite
 - Tests de la lógica de audio y análisis
 
 ## Fuera de alcance

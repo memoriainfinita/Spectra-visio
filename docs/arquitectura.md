@@ -50,7 +50,8 @@ Diseño técnico confirmado por mykl el 2026-10-10. Implementa la lista de `docs
 - PWA con `vite-plugin-pwa` 2.0.0, MIT, compatible con Vite 8
 - Dos idiomas con diccionarios propios, sin librería
 - Wake Lock y Media Session
-- Despliegue en GitHub Pages con GitHub Actions, ruta base `/Spectra-visio/`, activo desde la fase 1 (I)
+- Despliegue en GitHub Pages con GitHub Actions, ruta base relativa `./` como nona, activo desde la fase 1 (I)
+- Código anterior a la reconstrucción en `.archive/v0/`, fuera de git; en el historial hasta el commit `7a63da1`
 - Tests con Vitest: análisis, modulación, lectores ISF y LRC, presets (I)
 
 ## Orden de implementación

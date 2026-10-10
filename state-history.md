@@ -7,3 +7,10 @@
 - Fundido de estelas a negro: con alfa baja el redondeo de 8 bits deja residuo que sobre `#05060f` se veía como fantasmas azulados
 - Kaleido, orbitals, gridwarp y strobe bloom portados del prototipo `psychedelic_audio_visualizer_canvas_fullscreen.html`, que tenía mejores prácticas que la app (micrófono sin filtros, animación por tiempo)
 - Los nueve `SpectraVisio_*.md` y `claude.md` describían un producto no construido (MIDI, capas, escenas, PWA, Webpack, Jest). Movidos a `docs/archive/`; `claude.md` renombrado a `prompting-guide.md` porque Claude Code lo cargaba como instrucciones del proyecto
+
+### 2026-10-10 — Reconstrucción desde cero
+
+- La lista de funciones de `docs/funciones.md` cambia la base entera (compositor WebGL2, React, parámetros modulables, TypeScript); del código canvas solo valía la matemática de las visualizaciones
+- La app anterior, sus capturas, la especificación de enero y el prototipo pasan a `.archive/v0/`, fuera de git como en nona; siguen en el historial hasta `7a63da1`
+- Patterns retirados por referirse a código archivado: `BaseVisualizer` y `MODES` de `src/main.js`. Las ideas de animación por tiempo y fundido a negro siguen en Patterns
+- Ruta base de Vite: `./` en lugar de `/Spectra-visio/`, por el patrón de nona
