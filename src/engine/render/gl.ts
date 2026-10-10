@@ -52,16 +52,19 @@ vec3 hsl2rgb(float h, float s, float l) {
   return l + s * (k - 0.5) * (1.0 - abs(2.0 * l - 1.0));
 }`
 
-// A texture with its framebuffer, cleared to black whenever its size changes.
+// A texture with its framebuffer, cleared to black whenever its size changes. Float targets
+// are half float where the browser can render to them, 8 bits otherwise.
 export class Target {
   readonly texture: WebGLTexture
   private readonly gl: WebGL2RenderingContext
   private readonly fbo: WebGLFramebuffer
+  private readonly float: boolean
   width = 0
   height = 0
 
-  constructor(gl: WebGL2RenderingContext) {
+  constructor(gl: WebGL2RenderingContext, float = false) {
     this.gl = gl
+    this.float = float && !!gl.getExtension('EXT_color_buffer_float')
     this.texture = gl.createTexture()!
     this.fbo = gl.createFramebuffer()!
     gl.bindTexture(gl.TEXTURE_2D, this.texture)
@@ -78,7 +81,8 @@ export class Target {
     this.width = width
     this.height = height
     gl.bindTexture(gl.TEXTURE_2D, this.texture)
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null)
+    if (this.float) gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, width, height, 0, gl.RGBA, gl.HALF_FLOAT, null)
+    else gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null)
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo)
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texture, 0)
     gl.clearColor(0, 0, 0, 1)
@@ -128,4 +132,18 @@ vec3 hueRotate(vec3 c, float a) {
   float s = sin(a), k = cos(a);
   yiq.yz = vec2(yiq.y * k - yiq.z * s, yiq.y * s + yiq.z * k);
   return toRgb * yiq;
+}`
+
+// Copies a texture with the common hue (radians) and intensity applied, for visualizations
+// whose image comes from elsewhere: Milkdrop, imported shaders.
+export const TONE_FS = `#version 300 es
+precision highp float;
+in vec2 vUv;
+uniform sampler2D uSrc;
+uniform float uHue, uIntensity;
+out vec4 outColor;
+${HUE_GLSL}
+void main() {
+  vec3 c = texture(uSrc, vUv).rgb;
+  outColor = vec4(clamp(hueRotate(c, uHue), 0.0, 1.0) * uIntensity, 1.0);
 }`

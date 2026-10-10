@@ -6,10 +6,13 @@ import { initLibrary } from './app/library'
 import { initPresets } from './app/presets'
 import { initScene } from './app/scene'
 import { initSettings } from './app/settings'
+import { initShaders } from './app/shaders'
 import './styles/tokens.css'
 import './styles/app.css'
 
 await initSettings()
+// Imported shaders first: the scene and the presets may point at them.
+await initShaders()
 await initScene()
 await initPresets()
 await initLibrary()

@@ -7,6 +7,8 @@ export const TAU = Math.PI * 2
 export interface ParamDef {
   id: string
   label: MessageKey
+  // A name that is not translated, shown instead of the label (imported shaders).
+  name?: string
   min: number
   max: number
   default: number
@@ -48,12 +50,16 @@ export type VisualCategory = (typeof CATEGORIES)[number]
 interface VisualBase {
   id: string
   label: MessageKey
+  // A name that is not translated, shown instead of the label (imported shaders).
+  name?: string
   category: VisualCategory
   // Specific parameters; the common ones are added by the registry.
   params: ParamDef[]
   // Loads what the visualization needs before its first frame. Without it, an instance
   // that loads on its own draws black until ready; thumbnails wait for it.
   prepare?(): Promise<void>
+  // Source of an imported shader: its code changes the thumbnail, not create()'s.
+  source?: string
 }
 
 export interface Visual2D extends VisualBase {
@@ -68,6 +74,11 @@ export interface VisualGL extends VisualBase {
 }
 
 export type VisualDef = Visual2D | VisualGL
+
+// Display name of a visualization or parameter in the current language.
+export function nameOf(x: { label: MessageKey; name?: string }, t: (key: MessageKey) => string): string {
+  return x.name ?? t(x.label)
+}
 
 export const COMMON_PARAMS: ParamDef[] = [
   { id: 'speed', label: 'param.speed', min: 0, max: 3, default: 1 },

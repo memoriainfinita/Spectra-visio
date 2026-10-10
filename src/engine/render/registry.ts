@@ -1,3 +1,4 @@
+import { createStore } from '../../core/store'
 import { COMMON_PARAMS, type ParamDef, type Params, type VisualDef } from './visual'
 import { bars, radialBars } from './visuals/bars'
 import { julia, kifs } from './visuals/fractals'
@@ -17,7 +18,8 @@ import { warpTunnel } from './visuals/warpTunnel'
 import { milkdrop } from './visuals/milkdrop'
 import { lissajous, radialWave } from './visuals/waves'
 
-export const VISUALS: VisualDef[] = [
+// Built-in visualizations, in browser order.
+export const VISUALS: readonly VisualDef[] = [
   kaleido,
   orbitals,
   gridWarp,
@@ -42,10 +44,18 @@ export const VISUALS: VisualDef[] = [
   milkdrop,
 ]
 
-const BY_ID = new Map(VISUALS.map((v) => [v.id, v]))
+// Built-in ones followed by the user's imported shaders.
+export const visualsStore = createStore<readonly VisualDef[]>(VISUALS)
+let byId = new Map(VISUALS.map((v) => [v.id, v]))
+
+export function setUserVisuals(defs: VisualDef[]): void {
+  const all = [...VISUALS, ...defs]
+  byId = new Map(all.map((v) => [v.id, v]))
+  visualsStore.set(all)
+}
 
 export function getVisual(id: string): VisualDef | undefined {
-  return BY_ID.get(id)
+  return byId.get(id)
 }
 
 // Common parameters first, then the visualization's own.
