@@ -6,18 +6,37 @@ import { peekGraph } from '../engine/audio/graph'
 import { useStore } from './useStore'
 import { useT } from './useT'
 
+// The highlighted tab is the one being looked at (its controls are shown); the dot marks
+// the source actually feeding the analysis. They differ while a stream URL is being
+// typed, or after a source failed and the analysis fell back to the player.
 export function Sources() {
   const t = useT()
   const s = useStore(inputs.state)
   const [url, setUrl] = useState(s.streamUrl)
-  const [showStream, setShowStream] = useState(false)
+  const [view, setView] = useState<InputKind>(s.kind)
 
-  const tabs: { kind: InputKind; icon: ReactNode; label: string; supported: boolean; onSelect: () => void }[] = [
-    { kind: 'player', icon: <ListMusic size={16} />, label: t('input.player'), supported: true, onSelect: () => inputs.usePlayer() },
-    { kind: 'mic', icon: <Mic size={16} />, label: t('input.mic'), supported: inputs.micSupported, onSelect: () => void inputs.useMic() },
-    { kind: 'screen', icon: <Monitor size={16} />, label: t('input.screen'), supported: inputs.screenSupported, onSelect: () => void inputs.useScreen() },
-    { kind: 'stream', icon: <Radio size={16} />, label: t('input.stream'), supported: true, onSelect: () => setShowStream(true) },
+  // Follow source switches, including those made elsewhere (pressing play takes the
+  // analysis back), but stay on a tab whose source just failed so its error stays in view.
+  useEffect(() => {
+    const now = inputs.state.get()
+    if (!now.error) setView(now.kind)
+  }, [s.switches])
+
+  const select = (kind: InputKind) => {
+    setView(kind)
+    inputs.clearError()
+    if (kind === 'player') inputs.usePlayer()
+    else if (kind === 'mic') void inputs.useMic()
+    else if (kind === 'screen' && inputs.screenAudioSupported) void inputs.useScreen()
+  }
+
+  const tabs: { kind: InputKind; icon: ReactNode; label: string; supported: boolean }[] = [
+    { kind: 'player', icon: <ListMusic size={16} />, label: t('input.player'), supported: true },
+    { kind: 'mic', icon: <Mic size={16} />, label: t('input.mic'), supported: inputs.micSupported },
+    { kind: 'screen', icon: <Monitor size={16} />, label: t('input.screen'), supported: inputs.screenSupported },
+    { kind: 'stream', icon: <Radio size={16} />, label: t('input.stream'), supported: true },
   ]
+  const live = (kind: InputKind) => s.kind === kind && (kind === 'player' || s.status === 'active')
 
   return (
     <section className="panel sources">
@@ -28,13 +47,14 @@ export function Sources() {
         {tabs.map((tab) => (
           <button
             key={tab.kind}
-            className={`seg${s.kind === tab.kind ? ' on' : ''}`}
-            aria-pressed={s.kind === tab.kind}
+            className={`seg${view === tab.kind ? ' on' : ''}`}
+            aria-pressed={view === tab.kind}
             disabled={!tab.supported}
             title={tab.supported ? tab.label : t('input.unsupported')}
-            onClick={tab.onSelect}
+            onClick={() => select(tab.kind)}
           >
             {tab.icon} <span>{tab.label}</span>
+            {live(tab.kind) && <span className="live-dot" aria-label={t('input.live')} />}
           </button>
         ))}
       </div>
@@ -42,7 +62,7 @@ export function Sources() {
       {s.status === 'connecting' && <p className="muted">{t('input.connecting')}</p>}
       {s.error && <p className="error">{t(s.error)}</p>}
 
-      {s.kind === 'mic' && (
+      {view === 'mic' && s.kind === 'mic' && (
         <label className="field">
           <span>{t('input.device')}</span>
           <select value={s.deviceId} onChange={(e) => void inputs.useMic(e.target.value)}>
@@ -57,9 +77,21 @@ export function Sources() {
           </select>
         </label>
       )}
-      {s.kind === 'screen' && s.status !== 'active' && <p className="muted">{t('input.screenHint')}</p>}
+      {view === 'screen' &&
+        (inputs.screenAudioSupported ? (
+          <div className="view-row">
+            <p className="muted">{t('input.screenHint')}</p>
+            {!(s.kind === 'screen' && s.status === 'active') && (
+              <button className="btn" onClick={() => select('screen')}>
+                {t('input.screenPick')}
+              </button>
+            )}
+          </div>
+        ) : (
+          <p className="muted">{t('input.error.screenUnsupported')}</p>
+        ))}
 
-      {(showStream || s.kind === 'stream') && (
+      {view === 'stream' && (
         <form
           className="stream-form"
           onSubmit={(e) => {

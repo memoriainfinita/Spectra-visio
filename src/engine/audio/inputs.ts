@@ -21,6 +21,8 @@ export interface InputsState {
   gain: number
   streamUrl: string
   error: MessageKey | null
+  // Incremented on every source switch (not on error changes), so the UI can follow it.
+  switches: number
 }
 
 export const MAX_INPUT_GAIN = 4
@@ -41,6 +43,7 @@ export class Inputs {
     gain: 1,
     streamUrl: '',
     error: null,
+    switches: 0,
   })
 
   private stream: MediaStream | null = null
@@ -131,10 +134,14 @@ export class Inputs {
     })
   }
 
+  clearError(): void {
+    if (this.state.get().error) this.state.set((s) => ({ ...s, error: null }))
+  }
+
   // Back to the player as the analysed source.
   usePlayer(): void {
     this.release()
-    this.state.set((s) => ({ ...s, kind: 'player', status: 'idle', error: null }))
+    this.state.set((s) => ({ ...s, kind: 'player', status: 'idle', error: null, switches: s.switches + 1 }))
   }
 
   setGain(gain: number): void {
@@ -149,7 +156,7 @@ export class Inputs {
     await graph.resume()
     this.player.pause()
     this.release()
-    this.state.set((s) => ({ ...s, kind, status: 'connecting', error: null }))
+    this.state.set((s) => ({ ...s, kind, status: 'connecting', error: null, switches: s.switches + 1 }))
     try {
       const stream = await open()
       if (stream) {
