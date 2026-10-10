@@ -13,7 +13,7 @@ Visualizador de audio en tiempo real para navegador, en reconstrucción desde ce
 
 ## Status
 
-- Fases 1 a 4 de 10 hechas. Fase 4 probada por mykl en su Firefox (2026-10-10). Base: TypeScript 7, React 19, Vite 8, Vitest 5, store propio, español e inglés, ajustes en IndexedDB, CI con despliegue a Pages
+- Fases 1 a 5 de 10 hechas. Fase 4 probada por mykl en su Firefox (2026-10-10); fase 5 pendiente de su revisión. Base: TypeScript 7, React 19, Vite 8, Vitest 5, store propio, español e inglés, ajustes en IndexedDB, CI con despliegue a Pages
 - Fase 2: reproductor con gapless y fundido, lista con archivos, carpetas y arrastre, etiquetas y carátula (`music-metadata`), Media Session; fuentes micrófono, pestaña o sistema y stream; ganancia de entrada y medidor de nivel; sesión que sobrevive a recargar (copias en OPFS opcionales, referencias en Chrome)
 - Comprobado el 2026-10-10, silenciado, en Chrome headless (CDP) y Firefox (Playwright): gapless al sample, fundido de 2 s, pausa, atajos, micrófono falso, stream del mismo origen y error CORS, archivo roto, restauración tras recargar. 26 tests unitarios en verde
 - Probado por mykl en su Firefox (2026-10-10): añadir carpeta, arrastrar archivos, reordenar y teclas multimedia funcionan. La captura de pestaña no existe en Firefox ni Safari (sin audio); la app ahora lo explica en vez de intentarlo
@@ -31,6 +31,8 @@ Visualizador de audio en tiempo real para navegador, en reconstrucción desde ce
 - Comprobado el 2026-10-10, silenciado, en Firefox y Chrome (Playwright): fundido de 2 s continuo, inversión sin salto, corte inmediato, capa B oculta sin fundido al mostrarla, duración guardada tras recargar, sin errores. 77 tests unitarios en verde
 - Fase 5, parte 3 (`src/engine/scene/preset.ts`, `src/app/presets.ts`, panel `src/ui/Presets.tsx`): guardar con nombre, cargar en la capa seleccionada, borrar, exportar uno o todos a `.spectravisio.json` (formato `spectravisio-presets`, versión 1) e importar; lo importado recibe ids nuevos y se normaliza como la escena. Guardados en IndexedDB (clave `presets`)
 - Comprobado el 2026-10-10 en Firefox y Chrome (Playwright): guardar, cargar en la otra capa sin tocar la primera, exportar, borrar, importar dos veces, archivo ajeno rechazado con aviso, lista recuperada tras recargar, sin errores. 82 tests unitarios en verde
+- Fase 5, parte 4 (`src/engine/render/thumbnails.ts`, `src/app/library.ts`, panel `src/ui/Browser.tsx`): tarjetas con miniatura, nombre y categoría; filtros Todas, Favoritas y por categoría (geométricas, espectro y onda, partículas, shader); búsqueda sin acentos en los dos idiomas; clic pone la visualización en la capa seleccionada. Miniaturas de 192 × 108 con valores por defecto y 1,5 s de audio sintético a 120 BPM, en un contexto WebGL2 propio que se libera al acabar; caché en IndexedDB (clave `thumbnails`) por un hash del código y los parámetros de cada visualización. Favoritas en IndexedDB (clave `favorites`)
+- Comprobado el 2026-10-10 en Firefox y Chrome (Playwright): 8 miniaturas dibujadas (66 ms Firefox, 540 ms Chrome headless) y luego leídas de caché, filtros, búsqueda "tunel" y por id en inglés, favoritas tras recargar, elegir en la capa B. Firefox avisa "WebGL context was lost" una vez al dibujarlas: es el contexto de las miniaturas al liberarse. 85 tests unitarios en verde
 - La versión anterior (canvas, 8 visualizaciones) está en `.archive/v0/`, fuera de git, y en el historial hasta `7a63da1`
 - Repo privado en GitHub, Pages sin activar. Se publicará al terminar la app (decisión de mykl, 2026-10-10)
 
@@ -50,4 +52,5 @@ Visualizador de audio en tiempo real para navegador, en reconstrucción desde ce
 - [ ] Al terminar la app: repo público, activar Pages con origen GitHub Actions (`gh api -X POST repos/memoriainfinita/Spectra-visio/pages -f build_type=workflow`) y push
 - [ ] Probar la captura de pestaña en Chrome o Edge
 - [ ] Probar stream con CORS real de otro dominio
-- [ ] Fase 5: navegador de visualizaciones
+- [ ] Revisión de la fase 5 por mykl en su Firefox
+- [ ] Fase 6: familias nuevas, Butterchurn, ISF, entradas visuales, capas y letras

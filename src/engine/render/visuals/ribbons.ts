@@ -3,6 +3,7 @@ import { drive, fade, type Visual2D } from '../visual'
 export const ribbons: Visual2D = {
   id: 'ribbons',
   label: 'visual.ribbons',
+  category: 'spectrum',
   kind: '2d',
   params: [
     { id: 'rows', label: 'param.rows', min: 1, max: 12, default: 5, int: true },

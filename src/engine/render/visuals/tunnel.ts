@@ -3,6 +3,7 @@ import { TAU, clear, drive, type Visual2D } from '../visual'
 export const tunnel: Visual2D = {
   id: 'tunnel',
   label: 'visual.tunnel',
+  category: 'geometric',
   kind: '2d',
   params: [
     { id: 'rings', label: 'param.rings', min: 6, max: 40, default: 18, int: true },

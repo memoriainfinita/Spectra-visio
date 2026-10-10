@@ -40,9 +40,13 @@ export interface VisualInstance {
   dispose?(): void
 }
 
+export const CATEGORIES = ['geometric', 'spectrum', 'particles', 'shader'] as const
+export type VisualCategory = (typeof CATEGORIES)[number]
+
 interface VisualBase {
   id: string
   label: MessageKey
+  category: VisualCategory
   // Specific parameters; the common ones are added by the registry.
   params: ParamDef[]
 }

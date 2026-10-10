@@ -3,6 +3,7 @@ import { clear, drive, type Visual2D } from '../visual'
 export const oscilloscope: Visual2D = {
   id: 'oscilloscope',
   label: 'visual.oscilloscope',
+  category: 'spectrum',
   kind: '2d',
   params: [
     { id: 'gain', label: 'param.gain', min: 0.2, max: 3, default: 1 },

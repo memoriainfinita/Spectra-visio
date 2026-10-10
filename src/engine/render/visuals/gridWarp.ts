@@ -3,6 +3,7 @@ import { TAU, drift, drive, fade, type Visual2D } from '../visual'
 export const gridWarp: Visual2D = {
   id: 'gridWarp',
   label: 'visual.gridWarp',
+  category: 'geometric',
   kind: '2d',
   params: [
     { id: 'density', label: 'param.density', min: 0.5, max: 2.5, default: 1 },
