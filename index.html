@@ -1,16 +1,61 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SpectraVisio</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   </head>
   <body>
-    <div id="app"></div>
+    <div id="app">
+      <canvas id="stage"></canvas>
+
+      <div class="overlay" id="overlay">
+        <div class="overlay-card">
+          <h1>SpectraVisio</h1>
+          <div id="overlay-text"></div>
+          <div class="row">
+            <button class="btn" id="overlay-mic">Micrófono</button>
+            <button class="btn secondary" id="overlay-file">Abrir archivo</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="ui" id="controls">
+        <div class="control-bar">
+          <button class="btn secondary" id="btn-mic">Micrófono</button>
+          <button class="btn secondary" id="btn-file">Archivo</button>
+          <button class="btn secondary" id="btn-stream">Stream</button>
+          <select id="mode" aria-label="Visualización"></select>
+          <button class="btn secondary" id="btn-fullscreen">Pantalla completa</button>
+          <button class="btn secondary" id="btn-hide">Ocultar UI</button>
+        </div>
+        <form class="stream-form hidden" id="stream-form">
+          <input type="url" id="stream-url" placeholder="URL del stream (https://...)" required>
+          <button class="btn" type="submit">Conectar</button>
+        </form>
+      </div>
+
+      <div class="ui hint-panel" id="hints">
+        <div class="hint-title">Teclado</div>
+        <div class="hint-body">
+          <span class="badge"><kbd>M</kbd> micrófono</span>
+          <span class="badge"><kbd>O</kbd> archivo</span>
+          <span class="badge"><kbd>U</kbd> stream</span>
+          <span class="badge"><kbd>Espacio</kbd> pausa</span>
+          <span class="badge"><kbd>S</kbd> parar</span>
+          <span class="badge"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> modo</span>
+          <span class="badge"><kbd>F</kbd> pantalla completa</span>
+          <span class="badge"><kbd>H</kbd> ocultar UI</span>
+        </div>
+      </div>
+
+      <div class="toast" id="toast" role="status"></div>
+      <input type="file" id="file-input" accept="audio/*" hidden>
+    </div>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

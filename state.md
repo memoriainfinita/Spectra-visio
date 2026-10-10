@@ -13,13 +13,20 @@ Visualizador de audio en tiempo real para navegador, con arquitectura de plugins
 
 ## Status
 
-- Implementado: `audioEngine`, `pluginManager`, `capabilities` y `baseVisualizer`, más cinco plugins: `idle`, `tunnel`, `plasma`, `ribbons` y `oscilloscope`
-- `oscilloscope` arreglado el 2026-09-27: no recibía `canvas` y `ctx`
-- Capturas del README en `docs/`, generadas con una pista sintética
-- Los `SpectraVisio_*.md` son la especificación (PRD, TDD, API, visualizaciones), no lo implementado. El README describe 18+ visualizaciones y un stack con Webpack 5 y Jest que no coinciden con `package.json`
-- `claude.md` es una guía de prompts, no de estado
-- Remoto público en GitHub, `main` sincronizada
+- Fuentes: micrófono (sin filtros de voz), archivo y stream por URL (exige CORS). Pausa, parada y fin de archivo gestionados
+- Ocho visualizaciones: `tunnel`, `ribbons`, `plasma`, `oscilloscope`, `kaleido`, `orbitals`, `gridwarp`, `strobebloom`, más `idle` sin fuente
+- Probado en Chrome headless por CDP (2026-10-10): todos los modos a ~60 fps en 1600x900, salvo `gridwarp` (~50); fuentes, teclado y errores sin excepciones en consola
+- Sin probar en Firefox ni con audio real
+- README reescrito según lo implementado; especificación original y prototipo en `docs/archive/`
+- Cambios de la revisión del 2026-10-10 sin commit, pendientes de revisión de mykl
+
+## Patterns
+
+- [render] Animación por tiempo: los plugins usan `data.dt`; velocidades que dependen del audio van en acumuladores de fase. Confirmed 2026-10.
+- [render] Estelas con `fade()` de `BaseVisualizer`, siempre a negro. Confirmed 2026-10.
+- [plugins] Visualización nueva: clase que extiende `BaseVisualizer` y entrada en `MODES` de `src/main.js`. Confirmed 2026-10.
 
 ## TODO
 
-- [ ] Revisar el slop: el README describe 18+ visualizaciones y Webpack/Jest que no existen
+- [ ] Revisión de mykl de los cambios del 2026-10-10 y commit
+- [ ] Probar en Firefox y con música real (micrófono, archivo y stream con CORS)
