@@ -17,7 +17,7 @@ Visualizador de audio en tiempo real para navegador, en reconstrucción desde ce
 - Comprobado el 2026-10-10: typecheck, 9 tests y build en verde; en Chrome headless el idioma se detecta, cambia y persiste tras recargar, sin errores
 - Aún no hay visualizador: la página es un armazón con selector de idioma
 - La versión anterior (canvas, 8 visualizaciones) está en `.archive/v0/`, fuera de git, y en el historial hasta `7a63da1`
-- Sin push: GitHub Pages aún no está activado en el repo
+- Repo privado en GitHub, Pages sin activar. Se publicará al terminar la app (decisión de mykl, 2026-10-10)
 
 ## Patterns
 
@@ -28,6 +28,6 @@ Visualizador de audio en tiempo real para navegador, en reconstrucción desde ce
 
 ## TODO
 
-- [ ] Activar GitHub Pages (origen: GitHub Actions) y hacer push
+- [ ] Al terminar la app: repo público, activar Pages con origen GitHub Actions (`gh api -X POST repos/memoriainfinita/Spectra-visio/pages -f build_type=workflow`) y push
 - [ ] Fase 2: motor de audio nuevo, reproductor completo, metadatos, fuentes
 - [ ] Probar stream con CORS real (fase 2)
