@@ -103,7 +103,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-select, input[type='url'] {
+select, input[type='url'], input[type='text'] {
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid var(--border);
   color: var(--text);
@@ -362,6 +362,30 @@ input[type='range'] { accent-color: var(--accent); }
 .mod-field .mono { width: 64px; text-align: right; color: var(--muted); }
 .mods > .btn { align-self: flex-start; }
 .param-slider select { width: 100%; }
+
+/* Presets */
+
+.preset-form { display: flex; gap: 8px; }
+.preset-form input { flex: 1; min-width: 0; }
+.presets p { margin: 8px 0 0; }
+.preset-list { list-style: none; margin: 12px 0 0; padding: 0; }
+.preset { display: flex; align-items: center; gap: 4px; border-top: 1px solid var(--border); padding: 4px 0; }
+.preset-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 8px;
+  cursor: pointer;
+  text-align: left;
+}
+.preset-main:hover { background: rgba(255, 255, 255, 0.05); }
+.preset-name, .preset-sub { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.preset-sub { font-size: 12px; color: var(--muted); }
 
 /* Effects */
 
