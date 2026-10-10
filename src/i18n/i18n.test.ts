@@ -11,8 +11,8 @@ test('detectLang takes the first supported language', () => {
 })
 
 test('translate fills params and leaves unknown placeholders', () => {
-  expect(translate('es', 'app.rebuilding', { phase: 1, total: 10 })).toBe('Reconstrucción en curso: fase 1 de 10.')
-  expect(translate('en', 'app.rebuilding', { phase: 2 })).toBe('Rebuild in progress: phase 2 of {total}.')
+  expect(translate('es', 'queue.regain', { n: 3 })).toBe('Recuperar el acceso a 3 archivos de la sesión anterior')
+  expect(translate('en', 'app.rebuilding', { phase: 2 })).toBe('Rebuild in progress: phase 2 of {total}. No visualizations yet.')
 })
 
 test('every language has the same keys and no empty messages', () => {

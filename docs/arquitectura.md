@@ -11,7 +11,8 @@ Diseño técnico confirmado por mykl el 2026-10-10. Implementa la lista de `docs
 ## Audio
 
 - Grafo: fuente → ganancia de entrada → analizadores izquierdo y derecho. En paralelo: fuente → volumen → salida. El volumen no afecta al análisis (A)
-- Reproductor con dos `<audio>` alternos para precarga y fundido. Según Gapless 5, el elemento `<audio>` corta el final del archivo; el gapless exacto exige audio decodificado en memoria. [PENDIENTE: prototipo que compare memoria y método]
+- Reproductor sobre audio decodificado: la pista siguiente se programa al sample exacto, o antes con fundido cruzado. Solo se guardan decodificadas la actual y la siguiente (unos 23 MB por minuto estéreo a 48 kHz). Pistas de más de 20 min, o de más de 100 MB sin duración conocida: `<audio>`, sin gapless
+- Prototipo del 2026-10-10 en Chrome, dos mitades de un mismo tono: con dos `<audio>` alternos quedan 3,9 ms (WAV), 12,6 ms (MP3), 3,9 ms (AAC) y 5,4 ms (Opus) de silencio en la unión; con audio decodificado, ninguno. El decodificador recorta el relleno del codificador (mitades de 1,5000 s exactos)
 - Metadatos y carátula: `music-metadata` 12.1.0, MIT
 - Análisis previo (C): decodificación en el hilo principal, cálculo en un Web Worker. BPM con `web-audio-beat-detector` 8.2.39, MIT, sobre el audio decodificado. Secciones y sonoridad para la normalización, con cálculo propio
 - Essentia.js descartado: AGPL v3
@@ -37,7 +38,9 @@ Diseño técnico confirmado por mykl el 2026-10-10. Implementa la lista de `docs
 ## Almacenamiento
 
 - Ajustes y presets en IndexedDB con `idb-keyval` 6.3.0, Apache-2.0
-- Archivos copiados, solo si el usuario lo elige, en OPFS. En Chrome, además, referencias a los archivos originales (A). [PENDIENTE: soporte de OPFS en Firefox y Safari]
+- Archivos copiados, solo si el usuario lo elige, en OPFS. En Chrome, además, referencias a los archivos originales (A)
+- OPFS con `createWritable`: Chrome, Firefox 111 y Safari 26. La copia va por stream porque Firefox carga en memoria un Blob escrito de una vez. Probado en Firefox el 2026-10-10
+- `navigator.storage.persist()` no se espera: Firefox pregunta al usuario y la copia no puede quedar parada hasta la respuesta
 
 ## Salidas
 
@@ -49,7 +52,7 @@ Diseño técnico confirmado por mykl el 2026-10-10. Implementa la lista de `docs
 
 - PWA con `vite-plugin-pwa` 2.0.0, MIT, compatible con Vite 8
 - Dos idiomas con diccionarios propios, sin librería
-- Wake Lock y Media Session
+- Wake Lock y Media Session. Firefox solo activa las teclas multimedia con un elemento multimedia sonando (bug 2067534): un `<audio>` silencioso en bucle mientras reproduce. [PENDIENTE: comprobar las teclas en el Firefox real de mykl]
 - Despliegue en GitHub Pages con GitHub Actions, ruta base relativa `./` como nona, activo desde la fase 1 (I)
 - Código anterior a la reconstrucción en `.archive/v0/`, fuera de git; en el historial hasta el commit `7a63da1`
 - Tests con Vitest: análisis, modulación, lectores ISF y LRC, presets (I)

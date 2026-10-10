@@ -6,7 +6,12 @@ Real-time audio visualizer for the browser, being rebuilt from scratch.
 
 ## Status
 
-Phase 1 of 10: TypeScript, React and Vite base, settings storage, Spanish and English interface, deployment to GitHub Pages. There is no visualizer in this version yet.
+Phase 2 of 10: audio engine and player. There is no visualizer in this version yet.
+
+- Player: queue from files, folders or drag and drop; gapless playback and optional crossfade; seek, volume, shuffle, repeat; tags and cover art; media keys
+- Sources: microphone (device choice, no voice processing), tab or system audio, stream URL (needs CORS)
+- Input gain and a level meter of what the analysers receive; volume does not change the analysis
+- The queue, position and player options survive a reload: files can be kept in the app's storage (opt-in), and Chrome can also reopen the originals
 
 - Features: [docs/funciones.md](docs/funciones.md) (Spanish)
 - Technical design and phases: [docs/arquitectura.md](docs/arquitectura.md) (Spanish)
