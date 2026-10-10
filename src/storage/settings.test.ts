@@ -12,6 +12,8 @@ test('missing or malformed data falls back to the defaults', () => {
 test('valid fields are kept, invalid ones replaced', () => {
   expect(normalizeSettings({ lang: 'en' }, defaults).lang).toBe('en')
   expect(normalizeSettings({ lang: 'fr' }, defaults).lang).toBe('es')
+  expect(normalizeSettings({ keepFiles: true }, defaults).keepFiles).toBe(true)
+  expect(normalizeSettings({ keepFiles: 'yes' }, defaults).keepFiles).toBe(false)
 })
 
 test('result always carries the current version', () => {

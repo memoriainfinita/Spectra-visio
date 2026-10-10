@@ -14,3 +14,9 @@
 - La app anterior, sus capturas, la especificación de enero y el prototipo pasan a `.archive/v0/`, fuera de git como en nona; siguen en el historial hasta `7a63da1`
 - Patterns retirados por referirse a código archivado: `BaseVisualizer` y `MODES` de `src/main.js`. Las ideas de animación por tiempo y fundido a negro siguen en Patterns
 - Ruta base de Vite: `./` en lugar de `/Spectra-visio/`, por el patrón de nona
+
+### 2026-10-10 — Fase 2: decisiones del reproductor
+
+- Gapless: se midió antes de elegir. Con dos `<audio>` alternos quedaban de 4 a 13 ms de silencio en la unión según el formato; con audio decodificado y programado, ninguno. Por eso se reproduce desde memoria y `<audio>` queda solo para pistas largas
+- Firefox encontró dos fallos que Chrome headless no mostraba: el deslizador de posición buscaba dos veces (por el valor que React repone entre `input` y `change`) y `navigator.storage.persist()` dejaba esperando la copia de archivos tras una pregunta que solo hace Firefox
+- Las primeras pruebas headless en Chrome sonaron por los altavoces; desde entonces van silenciadas
