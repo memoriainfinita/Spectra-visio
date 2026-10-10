@@ -1,6 +1,6 @@
 import type { AudioLevels, Butterchurn, MilkdropVisualizer } from 'butterchurn'
 import { WAVE_SIZE } from '../../analysis/analyzer'
-import { HUE_GLSL, drawFullscreen, program, uniforms } from '../gl'
+import { TONE_FS, drawFullscreen, program, uniforms } from '../gl'
 import type { VisualGL } from '../visual'
 import { MILKDROP_PRESETS } from './milkdropPresets'
 
@@ -46,18 +46,6 @@ function load(): Promise<Library> {
   return loading
 }
 
-const FS = `#version 300 es
-precision highp float;
-in vec2 vUv;
-uniform sampler2D uSrc;
-uniform float uHue, uIntensity;
-out vec4 outColor;
-${HUE_GLSL}
-void main() {
-  vec3 c = texture(uSrc, vUv).rgb;
-  outColor = vec4(clamp(hueRotate(c, uHue), 0.0, 1.0) * uIntensity, 1.0);
-}`
-
 const toByte = (v: number) => 128 + Math.max(-1, Math.min(1, v)) * 127
 
 export const milkdrop: VisualGL = {
@@ -71,7 +59,7 @@ export const milkdrop: VisualGL = {
   ],
   prepare: () => load().then(() => undefined),
   create(gl) {
-    const prog = program(gl, FS)
+    const prog = program(gl, TONE_FS)
     const u = uniforms(gl, prog, ['uSrc', 'uHue', 'uIntensity'] as const)
     const vao = gl.createVertexArray()!
     const tex = gl.createTexture()!

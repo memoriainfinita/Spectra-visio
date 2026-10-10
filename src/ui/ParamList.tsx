@@ -15,7 +15,7 @@ import {
   type Modulation,
   type SourceKind,
 } from '../engine/modulation/modulation'
-import type { ParamDef, Params } from '../engine/render/visual'
+import { nameOf, type ParamDef, type Params } from '../engine/render/visual'
 import type { MessageKey } from '../i18n'
 import { useT } from './useT'
 
@@ -69,7 +69,7 @@ export function ParamList({ defs, values, mods, scope, live, onParam, onAddMod, 
       {defs.map((p) => {
         const list = mods[p.id] ?? []
         const value = values[p.id] ?? p.default
-        const name = t(p.label)
+        const name = nameOf(p, t)
         const key = `${scope}:${p.id}`
         const choices = p.options ? p.options.map((o) => t(o)) : p.labels
         return (

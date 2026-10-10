@@ -1,9 +1,9 @@
 import { Star } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { favoritesStore, loadThumbnails, thumbsStore, toggleFavorite } from '../app/library'
 import { sceneStore, setVisual } from '../app/scene'
-import { VISUALS } from '../engine/render/registry'
-import { CATEGORIES, type VisualCategory } from '../engine/render/visual'
+import { visualsStore } from '../engine/render/registry'
+import { CATEGORIES, nameOf, type VisualCategory } from '../engine/render/visual'
 import { LANGS, translate, type MessageKey } from '../i18n'
 import { useStore } from './useStore'
 import { useT } from './useT'
@@ -15,12 +15,11 @@ const LAYER_NAMES = ['A', 'B'] as const
 // Lower case without accents, so "tunel" finds "Túnel".
 const fold = (s: string) => s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase()
 
-// Names in every language, so a search in either finds it.
-const SEARCH_TEXT = new Map(VISUALS.map((v) => [v.id, fold([v.id, ...LANGS.map((l) => translate(l, v.label))].join(' '))]))
 
 export function Browser() {
   const t = useT()
   const favorites = useStore(favoritesStore)
+  const visuals = useStore(visualsStore)
   const thumbs = useStore(thumbsStore)
   const selected = useStore(sceneStore, (s) => s.selected)
   const current = useStore(sceneStore, (s) => s.layers[s.selected].visual)
@@ -31,11 +30,13 @@ export function Browser() {
     void loadThumbnails()
   }, [])
 
+  // Names in every language, so a search in either finds it.
+  const searchText = useMemo(() => new Map(visuals.map((v) => [v.id, fold([v.id, ...LANGS.map((l) => nameOf(v, (k) => translate(l, k)))].join(' '))])), [visuals])
   const q = fold(query.trim())
-  const shown = VISUALS.filter((v) => {
+  const shown = visuals.filter((v) => {
     if (filter === 'favorites' && !favorites.includes(v.id)) return false
     if (filter !== 'all' && filter !== 'favorites' && v.category !== filter) return false
-    return !q || SEARCH_TEXT.get(v.id)!.includes(q)
+    return !q || searchText.get(v.id)!.includes(q)
   })
 
   return (
@@ -58,7 +59,7 @@ export function Browser() {
       ) : (
         <ul className="visual-grid">
           {shown.map((v) => {
-            const name = t(v.label)
+            const name = nameOf(v, t)
             const fav = favorites.includes(v.id)
             return (
               <li key={v.id} className={`visual-card${v.id === current ? ' current' : ''}`}>

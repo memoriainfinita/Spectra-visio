@@ -3,6 +3,7 @@ import { useRef, useState } from 'react'
 import { deletePreset, downloadPresets, importPresets, loadPreset, presetsStore, savePreset } from '../app/presets'
 import { sceneStore } from '../app/scene'
 import { getVisual } from '../engine/render/registry'
+import { nameOf } from '../engine/render/visual'
 import { NAME_MAX } from '../engine/scene/preset'
 import { useStore } from './useStore'
 import { useT } from './useT'
@@ -79,7 +80,7 @@ export function Presets() {
                 <button className="preset-main" title={t('presets.load', { n: layer })} onClick={() => loadPreset(p.id)}>
                   <span className="preset-name">{p.name}</span>
                   <span className="preset-sub">
-                    {v ? t(v.label) : p.visual}
+                    {v ? nameOf(v, t) : p.visual}
                     {fx > 0 && ` · ${fx === 1 ? t('presets.effect') : t('presets.effects', { n: fx })}`}
                   </span>
                 </button>

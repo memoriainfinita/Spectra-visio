@@ -17,7 +17,7 @@ const AUDIO_VERSION = 1
 
 // Cache key: changes with the visualization's code and parameters.
 export function thumbKey(def: VisualDef): string {
-  const text = `${AUDIO_VERSION}|${def.create.toString()}|${JSON.stringify(def.params)}`
+  const text = `${AUDIO_VERSION}|${def.source ?? def.create.toString()}|${JSON.stringify(def.params)}`
   let h = 2166136261
   for (let i = 0; i < text.length; i++) h = Math.imul(h ^ text.charCodeAt(i), 16777619)
   return `${def.id}:${(h >>> 0).toString(36)}`

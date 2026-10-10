@@ -1,7 +1,8 @@
 import { RotateCcw } from 'lucide-react'
 import { renderer } from '../app/engine'
 import { addModulation, removeModulation, resetParams, sceneStore, selectLayer, setBlend, setCrossfade, setParam, setTransition, setVisual, updateModulation } from '../app/scene'
-import { VISUALS, getVisual, paramsOf } from '../engine/render/registry'
+import { getVisual, paramsOf, visualsStore } from '../engine/render/registry'
+import { nameOf } from '../engine/render/visual'
 import { BLEND_MODES, TRANSITION_MAX, visualSettings } from '../engine/scene/scene'
 import type { MessageKey } from '../i18n'
 import { ParamList } from './ParamList'
@@ -13,6 +14,7 @@ const LAYER_NAMES = ['A', 'B'] as const
 export function Visuals() {
   const t = useT()
   const scene = useStore(sceneStore)
+  const visuals = useStore(visualsStore)
   const sel = scene.selected
   const layer = scene.layers[sel]
   const def = getVisual(layer.visual)
@@ -29,7 +31,7 @@ export function Visuals() {
           const v = getVisual(scene.layers[i].visual)
           return (
             <button key={i} className={`seg${sel === i ? ' on' : ''}`} aria-pressed={sel === i} onClick={() => selectLayer(i)}>
-              <strong>{LAYER_NAMES[i]}</strong> <span>{v ? t(v.label) : ''}</span>
+              <strong>{LAYER_NAMES[i]}</strong> <span>{v ? nameOf(v, t) : ''}</span>
             </button>
           )
         })}
@@ -57,9 +59,9 @@ export function Visuals() {
       <div className="field">
         <span>{t('visuals.layer', { n: LAYER_NAMES[sel] })}</span>
         <select value={layer.visual} onChange={(e) => setVisual(sel, e.target.value)}>
-          {VISUALS.map((v) => (
+          {visuals.map((v) => (
             <option key={v.id} value={v.id}>
-              {t(v.label)}
+              {nameOf(v, t)}
             </option>
           ))}
         </select>
