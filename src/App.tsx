@@ -3,6 +3,7 @@ import { setKeepFiles } from './app/engine'
 import { settingsStore } from './app/settings'
 import { LANGS, isLang } from './i18n'
 import { AnalysisPanel } from './ui/Analysis'
+import { Browser } from './ui/Browser'
 import { opfsSupported } from './storage/opfs'
 import { useFileDrop, usePlayerShortcuts } from './ui/hooks'
 import { Queue } from './ui/Queue'
@@ -15,7 +16,7 @@ import { NowPlaying, Transport } from './ui/Transport'
 import { useStore } from './ui/useStore'
 import { useT } from './ui/useT'
 
-const PHASE = 4
+const PHASE = 5
 const TOTAL_PHASES = 10
 
 export function App() {
@@ -60,6 +61,7 @@ export function App() {
           <Transport />
         </section>
         <Queue />
+        <Browser />
         <Visuals />
         <Effects />
         <Presets />

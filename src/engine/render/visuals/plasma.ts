@@ -26,6 +26,7 @@ void main() {
 export const plasma: VisualGL = {
   id: 'plasma',
   label: 'visual.plasma',
+  category: 'shader',
   kind: 'gl',
   params: [{ id: 'scale', label: 'param.scale', min: 0.3, max: 3, default: 1 }],
   create(gl) {

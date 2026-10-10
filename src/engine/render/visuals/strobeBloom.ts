@@ -8,6 +8,7 @@ const FLASH_ALPHA_CAP = 0.22
 export const strobeBloom: Visual2D = {
   id: 'strobeBloom',
   label: 'visual.strobeBloom',
+  category: 'particles',
   kind: '2d',
   params: [
     { id: 'petals', label: 'param.petals', min: 4, max: 30, default: 10, int: true },

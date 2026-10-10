@@ -3,6 +3,7 @@ import { TAU, drift, drive, fade, type Visual2D } from '../visual'
 export const orbitals: Visual2D = {
   id: 'orbitals',
   label: 'visual.orbitals',
+  category: 'particles',
   kind: '2d',
   params: [{ id: 'particles', label: 'param.particles', min: 40, max: 600, default: 140, int: true }],
   create(ctx) {

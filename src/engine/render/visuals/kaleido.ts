@@ -3,6 +3,7 @@ import { TAU, drift, drive, fade, type Visual2D } from '../visual'
 export const kaleido: Visual2D = {
   id: 'kaleido',
   label: 'visual.kaleido',
+  category: 'geometric',
   kind: '2d',
   params: [
     { id: 'segments', label: 'param.segments', min: 4, max: 24, default: 12, int: true },
