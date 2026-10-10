@@ -73,3 +73,14 @@ export class InputTexture {
     this.gl.deleteTexture(this.texture)
   }
 }
+
+// Where a pixel of an output of size `res` falls in the input of size `src`: cover fills the
+// output and crops, contain shows the whole input with bars. `flip` mirrors it.
+export const FIT_GLSL = `
+vec2 fitUv(vec2 frag, vec2 res, vec2 src, float cover, float flip) {
+  float s = cover > 0.5 ? max(res.x / src.x, res.y / src.y) : min(res.x / src.x, res.y / src.y);
+  vec2 uv = (frag - 0.5 * res) / (src * s) + 0.5;
+  if (flip > 0.5) uv.x = 1.0 - uv.x;
+  return uv;
+}
+float inside(vec2 uv) { return step(0.0, uv.x) * step(uv.x, 1.0) * step(0.0, uv.y) * step(uv.y, 1.0); }`
