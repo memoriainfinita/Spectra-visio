@@ -12,6 +12,7 @@ describe('registry', () => {
       for (const p of paramsOf(v)) {
         expect(p.default).toBeGreaterThanOrEqual(p.min), expect(p.default).toBeLessThanOrEqual(p.max)
         if (p.options) expect(p.options.length).toBe(p.max - p.min + 1)
+        if (p.labels) expect(p.labels.length).toBe(p.max - p.min + 1)
       }
     }
   })

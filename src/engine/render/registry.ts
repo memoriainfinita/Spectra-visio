@@ -14,6 +14,7 @@ import { strobeBloom } from './visuals/strobeBloom'
 import { terrain } from './visuals/terrain'
 import { tunnel } from './visuals/tunnel'
 import { warpTunnel } from './visuals/warpTunnel'
+import { milkdrop } from './visuals/milkdrop'
 import { lissajous, radialWave } from './visuals/waves'
 
 export const VISUALS: VisualDef[] = [
@@ -38,6 +39,7 @@ export const VISUALS: VisualDef[] = [
   cells,
   julia,
   kifs,
+  milkdrop,
 ]
 
 const BY_ID = new Map(VISUALS.map((v) => [v.id, v]))

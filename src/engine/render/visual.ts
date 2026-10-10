@@ -13,6 +13,8 @@ export interface ParamDef {
   int?: boolean
   // Names for the integer values min…max: the panel shows a list instead of a slider.
   options?: MessageKey[]
+  // The same with names that are not translated, such as Milkdrop preset names.
+  labels?: readonly string[]
 }
 
 export type Params = Record<string, number>
@@ -49,6 +51,9 @@ interface VisualBase {
   category: VisualCategory
   // Specific parameters; the common ones are added by the registry.
   params: ParamDef[]
+  // Loads what the visualization needs before its first frame. Without it, an instance
+  // that loads on its own draws black until ready; thumbnails wait for it.
+  prepare?(): Promise<void>
 }
 
 export interface Visual2D extends VisualBase {

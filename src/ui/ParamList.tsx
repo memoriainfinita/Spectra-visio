@@ -71,23 +71,24 @@ export function ParamList({ defs, values, mods, scope, live, onParam, onAddMod, 
         const value = values[p.id] ?? p.default
         const name = t(p.label)
         const key = `${scope}:${p.id}`
+        const choices = p.options ? p.options.map((o) => t(o)) : p.labels
         return (
           <li key={key} className="param">
             <div className="param-row">
               <span className="param-name">{name}</span>
               <div className="param-slider">
-                {p.options ? (
+                {choices ? (
                   <select aria-label={name} value={Math.round(value)} onChange={(e) => onParam(p.id, Number(e.target.value))}>
-                    {p.options.map((o, i) => (
-                      <option key={o} value={p.min + i}>
-                        {t(o)}
+                    {choices.map((o, i) => (
+                      <option key={i} value={p.min + i}>
+                        {o}
                       </option>
                     ))}
                   </select>
                 ) : (
                   <input type="range" aria-label={name} min={p.min} max={p.max} step={p.int ? 1 : (p.max - p.min) / 200} value={value} onChange={(e) => onParam(p.id, Number(e.target.value))} />
                 )}
-                {!p.options && (
+                {!choices && (
                   <span
                     className="live-mark"
                     aria-hidden="true"
@@ -98,7 +99,7 @@ export function ParamList({ defs, values, mods, scope, live, onParam, onAddMod, 
                   />
                 )}
               </div>
-              <span className="mono param-value">{p.options ? '' : formatValue(p, value)}</span>
+              <span className="mono param-value">{choices ? '' : formatValue(p, value)}</span>
               <button
                 className={`icon-btn small${list.length ? ' on' : ''}`}
                 title={t('mod.toggle', { name })}
