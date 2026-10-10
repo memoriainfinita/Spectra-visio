@@ -107,6 +107,8 @@ export const en: Messages = {
   'visuals.crossfade': 'A/B mix',
   'visuals.blend': 'Blend',
   'visuals.reset': 'Reset',
+  'visuals.transition': 'Transition',
+  'visuals.cut': 'Cut',
   'blend.normal': 'Normal',
   'blend.add': 'Add',
   'blend.screen': 'Screen',

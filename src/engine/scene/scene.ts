@@ -54,7 +54,11 @@ export interface SceneState {
   selected: 0 | 1
   // Applied in order after the layers are blended.
   effects: EffectState[]
+  // Seconds a layer takes to fade from one visualization to the next; 0 cuts.
+  transition: number
 }
+
+export const TRANSITION_MAX = 10
 
 export function defaultScene(): SceneState {
   return {
@@ -67,13 +71,15 @@ export function defaultScene(): SceneState {
     blend: 'normal',
     selected: 0,
     effects: [],
+    transition: 1.5,
   }
 }
 
-export function visualSettings(layer: LayerState): VisualSettings {
-  const saved = layer.perVisual[layer.visual]
+// Settings of `visual` in this layer: the current one unless told otherwise.
+export function visualSettings(layer: LayerState, visual = layer.visual): VisualSettings {
+  const saved = layer.perVisual[visual]
   if (saved) return saved
-  const def = getVisual(layer.visual)
+  const def = getVisual(visual)
   return { params: def ? defaultParams(def) : {}, mods: {} }
 }
 
@@ -180,6 +186,7 @@ export function normalizeScene(raw: unknown): SceneState {
     blend: oneOf(raw.blend, BLEND_MODES, d.blend),
     selected: raw.selected === 1 ? 1 : 0,
     effects: normalizeEffects(raw.effects),
+    transition: num(raw.transition, 0, TRANSITION_MAX, d.transition),
   }
 }
 

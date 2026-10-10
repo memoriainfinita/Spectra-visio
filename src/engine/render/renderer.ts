@@ -4,7 +4,7 @@ import { EffectChain, type ChainStep } from '../effects/chain'
 import { getEffect } from '../effects/registry'
 import { Modulator } from '../modulation/modulation'
 import { visualSettings, type SceneState, type VisualSettings } from '../scene/scene'
-import { Compositor, Layer } from './compositor'
+import { Compositor, Layer, type LayerImage } from './compositor'
 import { fromUnit, getVisual, paramsOf, toUnit } from './registry'
 import type { ParamDef, Params, Surface, VisualFrame } from './visual'
 
@@ -12,6 +12,15 @@ import type { ParamDef, Params, Surface, VisualFrame } from './visual'
 const MAX_DT_S = 0.05
 // Internal resolution cap: 2560 × 1440 worth of pixels.
 const MAX_PIXELS = 2560 * 1440
+
+interface Fade {
+  layer: Layer
+  // Seconds, in frame time.
+  start: number
+  duration: number
+}
+
+const smoothstep = (p: number) => p * p * (3 - 2 * p)
 
 export interface RendererStatus {
   // Error key or message when WebGL2 is missing or a visualization failed to start.
@@ -36,6 +45,9 @@ export class Renderer {
   private chain: EffectChain | null = null
   private layers: [Layer | null, Layer | null] = [null, null]
   private failed: [string | null, string | null] = [null, null]
+  // Visualization a layer is fading out of, per layer.
+  private outgoing: [Fade | null, Fade | null] = [null, null]
+  private readonly outgoingLive = new Map<string, number>()
   private surface: Surface = { width: 1, height: 1, dpr: 1 }
   private readonly seen = new Uint32Array(BEAT_SLOTS)
   private seenValid = false
@@ -114,7 +126,9 @@ export class Renderer {
 
   private release(): void {
     for (const l of this.layers) l?.dispose()
+    for (const o of this.outgoing) o?.layer.dispose()
     this.layers = [null, null]
+    this.outgoing = [null, null]
     this.compositor?.dispose()
     this.compositor = null
     this.chain?.dispose()
@@ -126,6 +140,7 @@ export class Renderer {
     e.preventDefault()
     this.stop()
     this.layers = [null, null]
+    this.outgoing = [null, null]
     this.failed = [null, null]
     this.compositor = null
     this.chain = null
@@ -160,23 +175,43 @@ export class Renderer {
 
     const scene = this.scene()
     const x = scene.crossfade
-    const textures: [WebGLTexture | null, WebGLTexture | null] = [null, null]
+    const images: [LayerImage, LayerImage] = [
+      { texture: null, outgoing: null, progress: 1 },
+      { texture: null, outgoing: null, progress: 1 },
+    ]
     for (const i of [0, 1] as const) {
-      if (i === 0 ? x >= 1 : x <= 0) continue
-      const layer = this.layerFor(i, scene.layers[i].visual)
+      if (i === 0 ? x >= 1 : x <= 0) {
+        this.hidden(i, scene.layers[i].visual)
+        continue
+      }
+      const layer = this.layerFor(i, scene.layers[i].visual, f.time, scene.transition)
       if (!layer) continue
       layer.render(f, this.params(i, scene), this.surface)
-      textures[i] = layer.texture
+      images[i].texture = layer.texture
+      const fade = this.outgoing[i]
+      if (!fade) continue
+      const p = (f.time - fade.start) / fade.duration
+      if (p >= 1) {
+        fade.layer.dispose()
+        this.outgoing[i] = null
+        continue
+      }
+      const def = getVisual(fade.layer.visualId)
+      const settings = visualSettings(scene.layers[i], fade.layer.visualId)
+      const params = def ? this.evaluate(paramsOf(def), settings, `${i}:${fade.layer.visualId}`, this.outgoingLive) : {}
+      fade.layer.render(f, params, this.surface)
+      images[i].outgoing = fade.layer.texture
+      images[i].progress = smoothstep(p)
     }
     const steps = this.effectSteps(scene)
     const chain = this.chain
     chain?.sync(steps)
     if (chain && steps.length) {
       chain.resize(this.surface)
-      compositor.composite(textures[0], textures[1], x, scene.blend, this.surface.width, this.surface.height, chain.input)
+      compositor.composite(images[0], images[1], x, scene.blend, this.surface.width, this.surface.height, chain.input)
       chain.run(steps, f, this.surface)
     } else {
-      compositor.composite(textures[0], textures[1], x, scene.blend, this.surface.width, this.surface.height)
+      compositor.composite(images[0], images[1], x, scene.blend, this.surface.width, this.surface.height)
     }
   }
 
@@ -215,12 +250,23 @@ export class Renderer {
     return out
   }
 
-  private layerFor(i: 0 | 1, visualId: string): Layer | null {
+  // A change of visualization starts a fade of `duration` seconds from the current one.
+  private layerFor(i: 0 | 1, visualId: string, time: number, duration: number): Layer | null {
     const current = this.layers[i]
     if (current?.visualId === visualId) return current
     // A visualization that failed to start is not retried every frame.
     if (this.failed[i] === visualId) return null
-    current?.dispose()
+    const fade = this.outgoing[i]
+    // Back to the one fading out: the fade turns round from where it is.
+    if (fade && current && fade.layer.visualId === visualId) {
+      const p = Math.min(1, (time - fade.start) / fade.duration)
+      this.layers[i] = fade.layer
+      this.outgoing[i] = { layer: current, start: time - (1 - p) * fade.duration, duration: fade.duration }
+      return fade.layer
+    }
+    fade?.layer.dispose()
+    this.outgoing[i] = current && duration > 0 ? { layer: current, start: time, duration } : null
+    if (!this.outgoing[i]) current?.dispose()
     this.layers[i] = null
     const def = getVisual(visualId)
     if (!def || !this.compositor) return null
@@ -229,9 +275,22 @@ export class Renderer {
       this.failed[i] = null
     } catch (err) {
       this.failed[i] = visualId
+      this.outgoing[i]?.layer.dispose()
+      this.outgoing[i] = null
       this.status.set((s) => ({ ...s, error: String(err) }))
     }
     return this.layers[i]
+  }
+
+  // A layer the crossfader hides changes visualization without a fade: nobody would see it,
+  // and it would play when the layer comes back.
+  private hidden(i: 0 | 1, visualId: string): void {
+    this.outgoing[i]?.layer.dispose()
+    this.outgoing[i] = null
+    if (this.layers[i] && this.layers[i]!.visualId !== visualId) {
+      this.layers[i]!.dispose()
+      this.layers[i] = null
+    }
   }
 
   private countFps(now: number): void {

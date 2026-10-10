@@ -1,6 +1,6 @@
 import type { BlendMode } from '../scene/scene'
 import { BLEND_MODES } from '../scene/scene'
-import { drawFullscreen, program, uniforms, type Target } from './gl'
+import { bindTextures, drawFullscreen, program, uniforms, type Target } from './gl'
 import type { Params, Surface, VisualDef, VisualFrame, VisualInstance } from './visual'
 
 // One visualization drawn into a texture. Canvas 2D ones draw on a hidden canvas that is
@@ -85,11 +85,12 @@ export class Layer {
 
 // Crossfade with a blend mode: at 0 only A, at 1 only B, and at 0.5 the blend of both.
 // Between them it fades linearly, so "normal" is a plain crossfade.
+// Each layer may be changing visualization: its outgoing image fades into the new one first.
 const COMPOSITE_FS = `#version 300 es
 precision highp float;
 in vec2 vUv;
-uniform sampler2D uA, uB;
-uniform float uX;
+uniform sampler2D uA, uB, uAOut, uBOut;
+uniform float uX, uTA, uTB;
 uniform int uMode;
 out vec4 outColor;
 vec3 blend(vec3 a, vec3 b) {
@@ -101,24 +102,32 @@ vec3 blend(vec3 a, vec3 b) {
   return (a + b) * 0.5;
 }
 void main() {
-  vec3 a = texture(uA, vUv).rgb;
-  vec3 b = texture(uB, vUv).rgb;
+  vec3 a = mix(texture(uAOut, vUv).rgb, texture(uA, vUv).rgb, uTA);
+  vec3 b = mix(texture(uBOut, vUv).rgb, texture(uB, vUv).rgb, uTB);
   vec3 m = blend(a, b);
   vec3 c = uX < 0.5 ? mix(a, m, uX * 2.0) : mix(m, b, uX * 2.0 - 1.0);
   outColor = vec4(c, 1.0);
 }`
 
+// What one layer contributes: its image and, while it changes visualization, the outgoing
+// image with the progress of the fade (0 outgoing only, 1 new only).
+export interface LayerImage {
+  texture: WebGLTexture | null
+  outgoing: WebGLTexture | null
+  progress: number
+}
+
 export class Compositor {
   readonly gl: WebGL2RenderingContext
   private readonly prog: WebGLProgram
-  private readonly u: Record<'uA' | 'uB' | 'uX' | 'uMode', WebGLUniformLocation | null>
+  private readonly u: Record<'uA' | 'uB' | 'uAOut' | 'uBOut' | 'uX' | 'uTA' | 'uTB' | 'uMode', WebGLUniformLocation | null>
   private readonly vao: WebGLVertexArrayObject
   private readonly black: WebGLTexture
 
   constructor(gl: WebGL2RenderingContext) {
     this.gl = gl
     this.prog = program(gl, COMPOSITE_FS)
-    this.u = uniforms(gl, this.prog, ['uA', 'uB', 'uX', 'uMode'] as const)
+    this.u = uniforms(gl, this.prog, ['uA', 'uB', 'uAOut', 'uBOut', 'uX', 'uTA', 'uTB', 'uMode'] as const)
     this.vao = gl.createVertexArray()!
     this.black = gl.createTexture()!
     gl.bindTexture(gl.TEXTURE_2D, this.black)
@@ -126,7 +135,7 @@ export class Compositor {
   }
 
   // Draws on `target`, or on the canvas when it is null.
-  composite(a: WebGLTexture | null, b: WebGLTexture | null, crossfade: number, mode: BlendMode, width: number, height: number, target: Target | null = null): void {
+  composite(a: LayerImage, b: LayerImage, crossfade: number, mode: BlendMode, width: number, height: number, target: Target | null = null): void {
     const gl = this.gl
     if (target) target.bind()
     else {
@@ -134,16 +143,16 @@ export class Compositor {
       gl.viewport(0, 0, width, height)
     }
     gl.useProgram(this.prog)
-    gl.activeTexture(gl.TEXTURE0)
-    gl.bindTexture(gl.TEXTURE_2D, a ?? this.black)
-    gl.activeTexture(gl.TEXTURE1)
-    gl.bindTexture(gl.TEXTURE_2D, b ?? this.black)
-    gl.uniform1i(this.u.uA, 0)
-    gl.uniform1i(this.u.uB, 1)
+    bindTextures(
+      gl,
+      [this.u.uA, this.u.uB, this.u.uAOut, this.u.uBOut],
+      [a.texture ?? this.black, b.texture ?? this.black, a.outgoing ?? this.black, b.outgoing ?? this.black],
+    )
+    gl.uniform1f(this.u.uTA, a.outgoing ? a.progress : 1)
+    gl.uniform1f(this.u.uTB, b.outgoing ? b.progress : 1)
     gl.uniform1f(this.u.uX, crossfade)
     gl.uniform1i(this.u.uMode, BLEND_MODES.indexOf(mode))
     drawFullscreen(gl, this.vao)
-    gl.activeTexture(gl.TEXTURE0)
   }
 
   dispose(): void {
