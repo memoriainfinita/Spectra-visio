@@ -54,13 +54,13 @@ The same actions are available as buttons, except pause and stop.
 
 ## Run
 
-Requires Node.js 18 or later.
+Requires Node.js 18 or later and pnpm.
 
 ```bash
-npm install
-npm run dev       # development server
-npm run build     # production build in dist/
-npm run preview   # serve the build
+pnpm install
+pnpm dev       # development server
+pnpm build     # production build in dist/
+pnpm preview   # serve the build
 ```
 
 ## Structure
