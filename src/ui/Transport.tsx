@@ -41,7 +41,11 @@ function SeekBar({ position, duration, label }: { position: number; duration: nu
         step={0.1}
         value={shown}
         disabled={!duration}
-        onChange={(e) => setDrag(Number(e.target.value))}
+        // React also calls this on `change`, after the commit above has re-rendered the old
+        // position into the input: that would start a new drag stuck at the old point.
+        onChange={(e) => {
+          if (e.nativeEvent.type === 'input') setDrag(Number(e.target.value))
+        }}
       />
       <span className="time">{formatTime(duration || null)}</span>
     </div>
