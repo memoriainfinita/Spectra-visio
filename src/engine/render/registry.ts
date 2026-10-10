@@ -1,14 +1,44 @@
 import { COMMON_PARAMS, type ParamDef, type Params, type VisualDef } from './visual'
+import { bars, radialBars } from './visuals/bars'
+import { julia, kifs } from './visuals/fractals'
+import { cells, polygons } from './visuals/geometry'
 import { gridWarp } from './visuals/gridWarp'
 import { kaleido } from './visuals/kaleido'
 import { orbitals } from './visuals/orbitals'
 import { oscilloscope } from './visuals/oscilloscope'
 import { plasma } from './visuals/plasma'
 import { ribbons } from './visuals/ribbons'
+import { spectrogram } from './visuals/spectrogram'
+import { fireworks, starfield } from './visuals/starfield'
 import { strobeBloom } from './visuals/strobeBloom'
+import { terrain } from './visuals/terrain'
 import { tunnel } from './visuals/tunnel'
+import { warpTunnel } from './visuals/warpTunnel'
+import { lissajous, radialWave } from './visuals/waves'
 
-export const VISUALS: VisualDef[] = [kaleido, orbitals, gridWarp, strobeBloom, tunnel, plasma, ribbons, oscilloscope]
+export const VISUALS: VisualDef[] = [
+  kaleido,
+  orbitals,
+  gridWarp,
+  strobeBloom,
+  tunnel,
+  plasma,
+  ribbons,
+  oscilloscope,
+  bars,
+  radialBars,
+  spectrogram,
+  lissajous,
+  radialWave,
+  starfield,
+  fireworks,
+  terrain,
+  warpTunnel,
+  polygons,
+  cells,
+  julia,
+  kifs,
+]
 
 const BY_ID = new Map(VISUALS.map((v) => [v.id, v]))
 
