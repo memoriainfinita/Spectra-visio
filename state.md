@@ -1,6 +1,6 @@
 ---
 created: 2026-09-29
-last_updated: 2026-09-29
+last_updated: 2026-10-10
 ---
 
 # Spectra-visio — state
@@ -19,3 +19,7 @@ Visualizador de audio en tiempo real para navegador, con arquitectura de plugins
 - Los `SpectraVisio_*.md` son la especificación (PRD, TDD, API, visualizaciones), no lo implementado. El README describe 18+ visualizaciones y un stack con Webpack 5 y Jest que no coinciden con `package.json`
 - `claude.md` es una guía de prompts, no de estado
 - Remoto público en GitHub, `main` sincronizada
+
+## TODO
+
+- [ ] Revisar el slop: el README describe 18+ visualizaciones y Webpack/Jest que no existen
