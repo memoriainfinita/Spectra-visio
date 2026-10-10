@@ -18,7 +18,7 @@ Visualizador de audio en tiempo real para navegador, con arquitectura de plugins
 - Probado en Chrome headless por CDP (2026-10-10): todos los modos a ~60 fps en 1600x900, salvo `gridwarp` (~50); fuentes, teclado y errores sin excepciones en consola
 - README reescrito según lo implementado; especificación original y prototipo en `docs/archive/`
 - Revisión del 2026-10-10 probada por mykl en Firefox y en commit
-- Rediseño en curso: lista de funciones confirmada en `docs/funciones.md`; orden de implementación sin decidir
+- Rediseño en curso: lista de funciones confirmada y ampliada en `docs/funciones.md`; se publicará en GitHub Pages; falta el diseño técnico antes de implementar
 
 ## Patterns
 
@@ -29,6 +29,5 @@ Visualizador de audio en tiempo real para navegador, con arquitectura de plugins
 
 ## TODO
 
-- [ ] Decidir el orden de implementación de `docs/funciones.md`
-- [ ] Decidir si se publica en web o queda en uso local
+- [ ] Diseño técnico de la base (motor de render, parámetros y modulación, almacenamiento, i18n) y orden de implementación
 - [ ] Probar stream con CORS real
