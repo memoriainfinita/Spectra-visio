@@ -29,6 +29,8 @@ Visualizador de audio en tiempo real para navegador, en reconstrucción desde ce
 - Comprobado el 2026-10-10, silenciado, en Firefox (Playwright) y Chrome del sistema (Playwright, headless): los 7 efectos pintan sin errores, espejo simétrico exacto en cada modo, paleta monocromo y saturación 0 sin color, orden, desactivar, modulación con marca en vivo y recuperación tras recargar. 76 tests unitarios en verde
 - Fase 5, parte 2: al cambiar la visualización de una capa, la anterior sigue pintando y se funde con la nueva (curva suave) durante la duración de la escena, de 0 (corte) a 10 s, 1,5 s por defecto. Volver a la saliente a mitad de fundido lo invierte desde donde está. Una capa oculta por el crossfader cambia sin fundido
 - Comprobado el 2026-10-10, silenciado, en Firefox y Chrome (Playwright): fundido de 2 s continuo, inversión sin salto, corte inmediato, capa B oculta sin fundido al mostrarla, duración guardada tras recargar, sin errores. 77 tests unitarios en verde
+- Fase 5, parte 3 (`src/engine/scene/preset.ts`, `src/app/presets.ts`, panel `src/ui/Presets.tsx`): guardar con nombre, cargar en la capa seleccionada, borrar, exportar uno o todos a `.spectravisio.json` (formato `spectravisio-presets`, versión 1) e importar; lo importado recibe ids nuevos y se normaliza como la escena. Guardados en IndexedDB (clave `presets`)
+- Comprobado el 2026-10-10 en Firefox y Chrome (Playwright): guardar, cargar en la otra capa sin tocar la primera, exportar, borrar, importar dos veces, archivo ajeno rechazado con aviso, lista recuperada tras recargar, sin errores. 82 tests unitarios en verde
 - La versión anterior (canvas, 8 visualizaciones) está en `.archive/v0/`, fuera de git, y en el historial hasta `7a63da1`
 - Repo privado en GitHub, Pages sin activar. Se publicará al terminar la app (decisión de mykl, 2026-10-10)
 
@@ -48,4 +50,4 @@ Visualizador de audio en tiempo real para navegador, en reconstrucción desde ce
 - [ ] Al terminar la app: repo público, activar Pages con origen GitHub Actions (`gh api -X POST repos/memoriainfinita/Spectra-visio/pages -f build_type=workflow`) y push
 - [ ] Probar la captura de pestaña en Chrome o Edge
 - [ ] Probar stream con CORS real de otro dominio
-- [ ] Fase 5: presets, navegador de visualizaciones
+- [ ] Fase 5: navegador de visualizaciones
