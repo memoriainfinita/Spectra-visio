@@ -40,7 +40,7 @@ export interface VisualInstance {
   dispose?(): void
 }
 
-export const CATEGORIES = ['geometric', 'spectrum', 'particles', 'shader'] as const
+export const CATEGORIES = ['geometric', 'spectrum', 'particles', 'space', 'fractal', 'shader'] as const
 export type VisualCategory = (typeof CATEGORIES)[number]
 
 interface VisualBase {

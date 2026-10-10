@@ -123,6 +123,7 @@ export const es = {
   'visual.plasma': 'Plasma',
   'visual.ribbons': 'Cintas',
   'visual.oscilloscope': 'Osciloscopio',
+'visual.bars': 'Barras de espectro',  'visual.radialBars': 'Barras circulares',  'visual.spectrogram': 'Espectrograma en cascada',  'visual.lissajous': 'Goniómetro estéreo',  'visual.radialWave': 'Onda circular',  'visual.starfield': 'Campo de estrellas',  'visual.fireworks': 'Fuegos artificiales',  'visual.terrain': 'Terreno',  'visual.warpTunnel': 'Túnel de velocidad',  'visual.polygons': 'Polígonos',  'visual.cells': 'Celdas',  'visual.julia': 'Conjunto de Julia',  'visual.kifs': 'Fractal caleidoscópico',
 
   'param.speed': 'Velocidad',
   'param.sensitivity': 'Sensibilidad',
@@ -142,6 +143,7 @@ export const es = {
   'param.petals': 'Pétalos',
   'param.flash': 'Destello',
   'param.scale': 'Escala',
+'param.gap': 'Separación',  'param.layout': 'Disposición',  'param.gravity': 'Gravedad',  'param.sides': 'Lados',  'param.depth': 'Profundidad',  'layout.bottom': 'Desde abajo',  'layout.mirror': 'En espejo',
 
   'param.length': 'Duración',
   'param.zoom': 'Zoom',
@@ -166,6 +168,7 @@ export const es = {
   'browser.geometric': 'Geométricas',
   'browser.spectrum': 'Espectro y onda',
   'browser.particles': 'Partículas',
+'browser.space': '3D',  'browser.fractal': 'Fractales',
   'browser.shader': 'Shader',
   'browser.none': 'Ninguna visualización coincide.',
   'browser.noFavorites': 'Sin favoritas. Marca la estrella de una visualización.',

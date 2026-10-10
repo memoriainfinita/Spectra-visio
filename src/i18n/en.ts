@@ -124,6 +124,7 @@ export const en: Messages = {
   'visual.plasma': 'Plasma',
   'visual.ribbons': 'Ribbons',
   'visual.oscilloscope': 'Oscilloscope',
+'visual.bars': 'Spectrum bars',  'visual.radialBars': 'Circular bars',  'visual.spectrogram': 'Waterfall spectrogram',  'visual.lissajous': 'Stereo goniometer',  'visual.radialWave': 'Circular wave',  'visual.starfield': 'Starfield',  'visual.fireworks': 'Fireworks',  'visual.terrain': 'Terrain',  'visual.warpTunnel': 'Warp tunnel',  'visual.polygons': 'Polygons',  'visual.cells': 'Cells',  'visual.julia': 'Julia set',  'visual.kifs': 'Kaleidoscopic fractal',
 
   'param.speed': 'Speed',
   'param.sensitivity': 'Sensitivity',
@@ -143,6 +144,7 @@ export const en: Messages = {
   'param.petals': 'Petals',
   'param.flash': 'Flash',
   'param.scale': 'Scale',
+'param.gap': 'Gap',  'param.layout': 'Layout',  'param.gravity': 'Gravity',  'param.sides': 'Sides',  'param.depth': 'Depth',  'layout.bottom': 'From the bottom',  'layout.mirror': 'Mirrored',
 
   'param.length': 'Length',
   'param.zoom': 'Zoom',
@@ -167,6 +169,7 @@ export const en: Messages = {
   'browser.geometric': 'Geometric',
   'browser.spectrum': 'Spectrum and wave',
   'browser.particles': 'Particles',
+'browser.space': '3D',  'browser.fractal': 'Fractals',
   'browser.shader': 'Shader',
   'browser.none': 'No visualization matches.',
   'browser.noFavorites': 'No favourites. Star a visualization to add it.',

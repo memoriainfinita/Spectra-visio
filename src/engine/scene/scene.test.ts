@@ -3,13 +3,16 @@ import { VISUALS, clampParam, defaultParams, fromUnit, getVisual, paramsOf, toUn
 import { defaultScene, normalizeScene, visualSettings } from './scene'
 
 describe('registry', () => {
-  test('eight visualizations, unique ids, defaults inside their ranges', () => {
-    expect(VISUALS.length).toBe(8)
-    expect(new Set(VISUALS.map((v) => v.id)).size).toBe(8)
+  test('unique ids, defaults inside their ranges, a name for every option', () => {
+    expect(VISUALS.length).toBeGreaterThanOrEqual(20)
+    expect(new Set(VISUALS.map((v) => v.id)).size).toBe(VISUALS.length)
     for (const v of VISUALS) {
       const ids = paramsOf(v).map((p) => p.id)
       expect(new Set(ids).size).toBe(ids.length)
-      for (const p of paramsOf(v)) expect(p.default).toBeGreaterThanOrEqual(p.min), expect(p.default).toBeLessThanOrEqual(p.max)
+      for (const p of paramsOf(v)) {
+        expect(p.default).toBeGreaterThanOrEqual(p.min), expect(p.default).toBeLessThanOrEqual(p.max)
+        if (p.options) expect(p.options.length).toBe(p.max - p.min + 1)
+      }
     }
   })
 
