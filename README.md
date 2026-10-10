@@ -1,273 +1,93 @@
-# 🌈 SpectraVisio
+# SpectraVisio
 
-> **Professional Audio Visualizer for Web Browsers**  
-> Real-time music visualization with customizable plugins and stunning effects
+Real-time audio visualizer for the browser. Canvas 2D and the Web Audio API, plain JavaScript, built with Vite.
 
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
-[![Web Audio API](https://img.shields.io/badge/Web%20Audio%20API-✓-green.svg)](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API)
-[![Canvas 2D](https://img.shields.io/badge/Canvas%202D-✓-blue.svg)](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API)
-[![Progressive Web App](https://img.shields.io/badge/PWA-Ready-purple.svg)](https://web.dev/progressive-web-apps/)
 
----
+| Welcome (idle) | Tunnel | Ribbons |
+|---|---|---|
+| ![Welcome](docs/spectra-visio-welcome.png) | ![Tunnel](docs/spectra-visio-tunnel.png) | ![Ribbons](docs/spectra-visio-ribbons.png) |
+| **Plasma** | **Oscilloscope** | **Kaleido** |
+| ![Plasma](docs/spectra-visio-plasma.png) | ![Oscilloscope](docs/spectra-visio-oscilloscope.png) | ![Kaleido](docs/spectra-visio-kaleido.png) |
+| **Orbitals** | **Grid Warp** | **Strobe Bloom** |
+| ![Orbitals](docs/spectra-visio-orbitals.png) | ![Grid Warp](docs/spectra-visio-gridwarp.png) | ![Strobe Bloom](docs/spectra-visio-strobebloom.png) |
 
-## ✨ **Features**
+Screenshots taken with a synthetic test track.
 
-### 🎵 **Audio Processing**
-- **Real-time frequency analysis** with 7-band splitting
-- **Stereo channel processing** for immersive effects  
-- **Beat detection** with tempo synchronization
-- **Dynamic range compression** for consistent visuals
-- **Low-latency processing** optimized for live performance
+## Features
 
-### 🎨 **Visualization Engine**
-- **18+ Built-in visualizations** from simple to complex
-- **Plugin-based architecture** for easy extensibility
-- **Layer system** with blending modes and effects
-- **Scene management** with snapshot/restore functionality
-- **Performance scaling** adapts to device capabilities
+- Audio sources: microphone, local audio file, or stream URL
+- Microphone input with echo cancellation, noise suppression and auto gain turned off, so music reaches the analyser unaltered
+- Streams must be served with CORS headers; without them the browser blocks analysis
+- Bass, mid and treble bands, overall energy and a simple beat detector
+- Eight visualizations, switchable while playing
+- Animation speed independent of the display refresh rate; HiDPI rendering capped at 2x
+- Fullscreen and hideable interface
 
-### 🔧 **Professional Tools**
-- **Live parameter control** with MIDI mapping support
-- **Preset management** with import/export
-- **Performance monitoring** with FPS and load metrics
-- **Fullscreen mode** optimized for live performances
-- **Mobile responsive** design for all devices
+## Visualizations
 
----
+| Name | What it draws | Driven by |
+|---|---|---|
+| Tunnel | Dashed rings flying towards the viewer | Energy (speed), bass (size), mid (rotation), treble (hue) |
+| Ribbons | Five wave lines with trails | Low spectrum, energy, bass (width) |
+| Plasma | Sine interference field | Mid (speed), bass and treble (hue) |
+| Oscilloscope | Waveform | Waveform, energy, bass, beat (colour and glow) |
+| Kaleido | Mirrored radial spectrum bars | Spectrum, bass, mid, treble (segments) |
+| Orbitals | Particles on Lissajous-like orbits | Waveform, bass, mid, treble (count and size) |
+| Grid Warp | Distorted line grid | Bass and mid (amplitude), treble (swirl) |
+| Strobe Bloom | Petal arcs with a soft flash on transients | Energy jumps; the flash is capped well below a hard strobe |
 
-## 🚀 **Quick Start**
+## Controls
 
-### 🌐 **Try It Live**
-**Demo:** [spectravisio.github.io](https://spectravisio.github.io) *(Coming Soon)*
+| Key | Action |
+|---|---|
+| `M` | Microphone |
+| `O` | Open audio file |
+| `U` | Stream URL |
+| `Space` | Pause / resume |
+| `S` | Stop the source |
+| `Left` / `Right` | Previous / next visualization |
+| `F` | Fullscreen |
+| `H` | Hide / show the interface |
 
-### 📦 **Installation**
+The same actions are available as buttons, except pause and stop.
+
+## Run
+
+Requires Node.js 18 or later.
 
 ```bash
-# Clone the repository
-git clone https://github.com/username/spectravisio.git
-cd spectravisio
-
-# Install dependencies
 npm install
-
-# Start development server
-npm run dev
-
-# Build for production
-npm run build
+npm run dev       # development server
+npm run build     # production build in dist/
+npm run preview   # serve the build
 ```
 
-### 🎯 **Basic Usage**
+## Structure
 
-```javascript
-import { SpectraVisio } from './src/core/SpectraVisio.js';
-
-// Initialize visualizer
-const visualizer = new SpectraVisio({
-    canvas: document.getElementById('canvas'),
-    width: 1920,
-    height: 1080
-});
-
-// Load a plugin
-await visualizer.pluginManager.loadPlugin('tunnel');
-
-// Start visualization
-visualizer.start();
+```
+index.html                 Page markup
+src/main.js                UI wiring, keyboard, render loop
+src/core/audioEngine.js    Sources, analyser, bands, beat detection
+src/core/pluginManager.js  Registry and active visualization
+src/core/capabilities.js   Browser feature checks
+src/plugins/               One file per visualization
 ```
 
----
+## Adding a visualization
 
-## 🎨 **Available Visualizations**
+Extend `BaseVisualizer`, implement `render(data)` and add the class to `MODES` in `src/main.js`.
 
-| Plugin | Complexity | Performance | Description |
-|--------|------------|-------------|-------------|
-| **Tunnel** | Medium | High | 3D tunnel effect with frequency-responsive geometry |
-| **Plasma** | High | Medium | Fluid plasma simulation with color morphing |
-| **Ribbons** | Low | Very High | Flowing ribbon particles with smooth trails |
-| **Oscilloscope** | Low | Very High | Classic waveform display with customizable styles |
-| **Spectrum Bars** | Low | Very High | Traditional frequency bars with 3D effects |
-| **Particle Storm** | Medium | Medium | Dynamic particle system with physics |
-| **Kaleidoscope** | Medium | High | Symmetric mandala patterns with rotation |
+`data` carries `frequencyData` (1024 bins), `timedomainData` (2048 samples), `bass`, `mid`, `treble` and `energy` (0 to 1), `beat`, `dt` (seconds since the last frame) and `time`. `BaseVisualizer` provides `width`, `height`, `dpr`, `clear()`, `fade(alpha, dt)` and `driftHue(data)`.
 
-*See [Visualizations Documentation](SpectraVisio_Visualizations.md) for complete specifications*
+## Original specification
 
-### Screenshots
+`docs/archive/` holds the January 2026 specification documents and the single-file prototype the app grew from. They describe a much larger product (MIDI, layers, scenes, presets, PWA) that was never built.
 
-Current app shell, driven by a synthetic demo track.
+## License
 
-| Welcome (idle) | Tunnel |
-|---|---|
-| ![Welcome](docs/spectra-visio-welcome.png) | ![Tunnel](docs/spectra-visio-tunnel.png) |
-| **Ribbons** | **Plasma** |
-| ![Ribbons](docs/spectra-visio-ribbons.png) | ![Plasma](docs/spectra-visio-plasma.png) |
-| **Oscilloscope** | |
-| ![Oscilloscope](docs/spectra-visio-oscilloscope.png) | |
-
----
-
-## 📚 **Documentation**
-
-### 📖 **Core Documentation**
-- [📋 Product Requirements](SpectraVisio_PRD.md) - Project vision and roadmap
-- [⚙️ Technical Design](SpectraVisio_TDD.md) - Architecture and implementation details
-- [🔌 API Reference](SpectraVisio_API_Reference.md) - Complete API documentation
-- [🎨 Visualizations Spec](SpectraVisio_Visualizations.md) - All visualization details
-
-### 🛠️ **Development Guides**
-- [🔧 Plugin Development](SpectraVisio_Plugin_Development_Guide.md) - Create custom visualizations
-- [🚀 Deployment Guide](SpectraVisio_Deployment_Guide.md) - Production deployment setup
-- [🤖 AI Development Practices](claude.md) - Claude-assisted development workflow
-
-### 👥 **Community**
-- [📖 User Manual](SpectraVisio_User_Manual.md) - Complete user guide
-- [🤝 Contributing Guidelines](SpectraVisio_Contributing_Guidelines.md) - How to contribute
-- [💬 Discord Community](https://discord.gg/spectravisio) *(Coming Soon)*
-
----
-
-## 🏗️ **Architecture Overview**
-
-```mermaid
-graph TB
-    A[SpectraVisio Core] --> B[Audio Engine]
-    A --> C[Plugin Manager]
-    A --> D[UI Controller]
-    A --> E[Scene Manager]
-    
-    B --> F[Web Audio API]
-    B --> G[Frequency Analyzer]
-    B --> H[Beat Detector]
-    
-    C --> I[Plugin Loader]
-    C --> J[Base Visualizer]
-    
-    J --> K[Tunnel Plugin]
-    J --> L[Plasma Plugin]
-    J --> M[Custom Plugins]
-    
-    E --> N[Layer System]
-    E --> O[Preset Manager]
-```
-
-### 🔧 **Tech Stack**
-- **Framework:** Vanilla JavaScript ES6+ with Web Components
-- **Audio:** Web Audio API with stereo processing
-- **Graphics:** Canvas 2D (WebGL optional for advanced effects)
-- **Architecture:** Plugin-based with event-driven communication
-- **Build:** Webpack 5 with Babel for browser compatibility
-- **Testing:** Jest with Puppeteer for integration tests
-
----
-
-## 🎯 **Performance**
-
-### ⚡ **Benchmarks**
-- **60 FPS** at 1920x1080 on mid-range hardware
-- **<50ms latency** from audio input to visual output
-- **<5% CPU usage** for simple visualizations
-- **<200MB memory** footprint with 10+ plugins loaded
-- **Mobile optimized** with adaptive quality scaling
-
-### 📊 **Browser Support**
-- ✅ **Chrome 80+** (Recommended)
-- ✅ **Firefox 75+**
-- ✅ **Safari 14+**
-- ✅ **Edge 80+**
-- ⚠️ **Mobile browsers** (Limited WebGL support)
-
----
-
-## 🚧 **Development Status**
-
-### 🎯 **Current Phase: Foundation Development**
-
-- [x] **Phase 0:** Complete Documentation Suite *(100%)*
-- [ ] **Phase 1:** Core Framework *(In Progress)*
-- [ ] **Phase 2:** Base Plugins
-- [ ] **Phase 3:** Advanced Features
-- [ ] **Phase 4:** Production Release
-
-### 📅 **Roadmap 2026**
-
-| Quarter | Milestone | Features |
-|---------|-----------|----------|
-| **Q1** | Alpha Release | Core framework + 3 base plugins |
-| **Q2** | Beta Release | Full plugin suite + mobile support |
-| **Q3** | V1.0 Release | Production-ready + community features |
-| **Q4** | V1.1 Release | Advanced effects + MIDI integration |
-
-*See [Product Requirements](SpectraVisio_PRD.md) for detailed roadmap*
-
----
-
-## 🤝 **Contributing**
-
-We welcome contributions from the community! 
-
-### 🔰 **Quick Start for Contributors**
-1. **Fork** the repository
-2. **Read** our [Contributing Guidelines](SpectraVisio_Contributing_Guidelines.md)
-3. **Setup** development environment
-4. **Create** feature branch: `git checkout -b feature/amazing-visualization`
-5. **Follow** our [coding standards](SpectraVisio_Contributing_Guidelines.md#coding-standards)
-6. **Submit** pull request with detailed description
-
-### 🎨 **Ways to Contribute**
-- 🔌 **Create new visualization plugins**
-- 🐛 **Report bugs and issues**
-- 📚 **Improve documentation**
-- 🧪 **Write tests and benchmarks**
-- 🎵 **Test with different audio sources**
-- 💬 **Help in community discussions**
-
----
-
-## 🏆 **Recognition**
-
-### 🌟 **Featured In**
-- *Coming Soon* - Web Audio Conference 2026
-- *Coming Soon* - Chrome Developer Blog
-- *Coming Soon* - JavaScript Weekly
-
-### 🏅 **Awards**
-- *Coming Soon* - Best Open Source Audio Tool 2026
-
----
-
-## 📄 **License**
-
-This project is licensed under the **GPL-3.0 License** - see the [LICENSE](LICENSE) file for details.
-
-### 🙏 **Acknowledgments**
-- **Web Audio API** team for the amazing browser audio capabilities
-- **Canvas API** developers for high-performance 2D graphics
-- **Open source community** for inspiration and feedback
-- **Audio visualization pioneers** who paved the way
-
----
+GPL-3.0. See [LICENSE](LICENSE).
 
 ## Credits
 
 Developed by [@memoriainfinita](https://github.com/memoriainfinita) with the assistance of Claude Sonnet 4.6 (Anthropic).
-
----
-
-## 📞 **Contact & Support**
-
-- 💬 **Discord:** [Join our community](https://discord.gg/spectravisio) *(Coming Soon)*
-- 🐛 **Issues:** [GitHub Issues](https://github.com/username/spectravisio/issues)
-- 📧 **Email:** spectravisio@example.com *(Coming Soon)*
-- 🐦 **Twitter:** [@SpectraVisio](https://twitter.com/spectravisio) *(Coming Soon)*
-
----
-
-<div align="center">
-
-**Made with ❤️ by the SpectraVisio Community**
-
-⭐ **Star us on GitHub if you like this project!** ⭐
-
-*Transform your music into visual art*
-
-</div>

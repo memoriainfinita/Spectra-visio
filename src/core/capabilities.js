@@ -2,40 +2,23 @@ export function detectCapabilities() {
   const support = {
     audio: !!(window.AudioContext || window.webkitAudioContext),
     canvas: !!document.createElement('canvas').getContext('2d'),
-    media: !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia),
-    fullscreen: !!(document.fullscreenEnabled || document.webkitFullscreenEnabled),
-    storage: (() => {
-      try {
-        const key = '__spectra_probe__';
-        localStorage.setItem(key, key);
-        localStorage.removeItem(key);
-        return true;
-      } catch (err) {
-        return false;
-      }
-    })(),
+    media: !!navigator.mediaDevices?.getUserMedia,
+    fullscreen: !!document.fullscreenEnabled,
   };
 
-  const blockers = [];
+  const notices = [];
   if (!support.audio || !support.canvas) {
-    blockers.push({
-      title: '❌ Navegador no compatible',
-      body:
-        'Este navegador no soporta las características necesarias. Prueba con Chrome 90+, Firefox 88+, Safari 14+ o Edge 90+. ',
+    notices.push({
+      title: 'Navegador no compatible',
+      body: 'Este navegador no tiene Web Audio o Canvas 2D.',
     });
   }
   if (!support.media) {
-    blockers.push({
-      title: '⚠️ Funcionalidad limitada',
-      body: 'El micrófono no está disponible, pero puedes usar archivos de audio.',
-    });
-  }
-  if (!support.storage) {
-    blockers.push({
-      title: 'ℹ️ Sin almacenamiento local',
-      body: 'Los presets no se guardarán entre sesiones.',
+    notices.push({
+      title: 'Sin micrófono',
+      body: 'El micrófono no está disponible aquí. Puedes usar archivos o streams.',
     });
   }
 
-  return { support, blockers };
+  return { support, notices };
 }

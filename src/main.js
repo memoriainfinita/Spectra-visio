@@ -2,248 +2,254 @@ import './style.css';
 import { detectCapabilities } from './core/capabilities.js';
 import { AudioEngine } from './core/audioEngine.js';
 import { PluginManager } from './core/pluginManager.js';
-import { idlePlugin } from './plugins/idle.js';
-import { tunnelPlugin } from './plugins/tunnel.js';
-import { ribbonsPlugin } from './plugins/ribbons.js';
-import { plasmaPlugin } from './plugins/plasma.js';
-import { oscilloscopePlugin } from './plugins/oscilloscope.js';
+import { IdleVisualizer } from './plugins/idle.js';
+import { TunnelVisualizer } from './plugins/tunnel.js';
+import { RibbonsVisualizer } from './plugins/ribbons.js';
+import { PlasmaVisualizer } from './plugins/plasma.js';
+import { OscilloscopeVisualizer } from './plugins/oscilloscope.js';
+import { KaleidoVisualizer } from './plugins/kaleido.js';
+import { OrbitalsVisualizer } from './plugins/orbitals.js';
+import { GridWarpVisualizer } from './plugins/gridWarp.js';
+import { StrobeBloomVisualizer } from './plugins/strobeBloom.js';
 
-const app = document.getElementById('app');
-const canvasWrap = document.createElement('div');
-canvasWrap.className = 'canvas-wrap';
-const canvas = document.createElement('canvas');
-canvasWrap.appendChild(canvas);
-app.appendChild(canvasWrap);
+const MODES = {
+  tunnel: ['Tunnel', TunnelVisualizer],
+  ribbons: ['Ribbons', RibbonsVisualizer],
+  plasma: ['Plasma', PlasmaVisualizer],
+  oscilloscope: ['Oscilloscope', OscilloscopeVisualizer],
+  kaleido: ['Kaleido', KaleidoVisualizer],
+  orbitals: ['Orbitals', OrbitalsVisualizer],
+  gridwarp: ['Grid Warp', GridWarpVisualizer],
+  strobebloom: ['Strobe Bloom', StrobeBloomVisualizer],
+};
+const MODE_NAMES = Object.keys(MODES);
+const MAX_DPR = 2;
 
-const overlay = document.createElement('div');
-overlay.className = 'overlay';
-const overlayCard = document.createElement('div');
-overlayCard.className = 'overlay-card';
-overlay.appendChild(overlayCard);
-const blockerTitle = document.createElement('h1');
-blockerTitle.textContent = 'Bienvenido a SpectraVisio';
-overlayCard.appendChild(blockerTitle);
-const blockerBody = document.createElement('p');
-overlayCard.appendChild(blockerBody);
-const blockerBtns = document.createElement('div');
-blockerBtns.className = 'row';
-overlayCard.appendChild(blockerBtns);
-const startButtonOverlay = document.createElement('button');
-startButtonOverlay.className = 'btn';
-startButtonOverlay.textContent = 'Start';
-blockerBtns.appendChild(startButtonOverlay);
-const overlaySecondary = document.createElement('button');
-overlaySecondary.className = 'btn secondary';
-overlaySecondary.textContent = 'Probar con archivo';
-blockerBtns.appendChild(overlaySecondary);
-app.appendChild(overlay);
+const $ = (id) => document.getElementById(id);
+const canvas = $('stage');
+const overlay = $('overlay');
+const controls = $('controls');
+const hints = $('hints');
+const micBtn = $('btn-mic');
+const fileBtn = $('btn-file');
+const streamBtn = $('btn-stream');
+const modeSelect = $('mode');
+const fullscreenBtn = $('btn-fullscreen');
+const hideBtn = $('btn-hide');
+const streamForm = $('stream-form');
+const streamUrl = $('stream-url');
+const fileInput = $('file-input');
+const toast = $('toast');
 
-const controlBar = document.createElement('div');
-controlBar.className = 'control-bar';
-const startBtn = document.createElement('button');
-startBtn.className = 'btn';
-startBtn.textContent = 'Start';
-const modeSelect = document.createElement('select');
-['tunnel', 'ribbons', 'plasma', 'oscilloscope'].forEach((m) => {
-  const opt = document.createElement('option');
-  opt.value = m;
-  opt.textContent = m.toUpperCase();
-  modeSelect.appendChild(opt);
-});
-const fullscreenBtn = document.createElement('button');
-fullscreenBtn.className = 'btn secondary';
-fullscreenBtn.textContent = 'Fullscreen';
-const hideBtn = document.createElement('button');
-hideBtn.className = 'btn secondary';
-hideBtn.textContent = 'Hide UI';
-controlBar.append(startBtn, modeSelect, fullscreenBtn, hideBtn);
-app.appendChild(controlBar);
-
-const hintPanel = document.createElement('div');
-hintPanel.className = 'hint-panel';
-hintPanel.innerHTML = `
-  <div class="hint-title">⚡ Controles rápidos</div>
-  <div class="hint-body">
-    <div class="badge">Start: Mic</div>
-    <div class="badge">Ctrl + O: Archivo</div>
-    <div class="badge">Ctrl + U: Stream URL</div>
-    <div class="badge">Espacio: Play/Pause</div>
-  </div>
-`;
-app.appendChild(hintPanel);
-
-const toast = document.createElement('div');
-toast.className = 'toast';
-app.appendChild(toast);
-
-const fileInput = document.createElement('input');
-fileInput.type = 'file';
-fileInput.accept = '.mp3,.wav,.ogg,.m4a';
-fileInput.style.display = 'none';
-document.body.appendChild(fileInput);
-
-const { support, blockers } = detectCapabilities();
+const { support, notices } = detectCapabilities();
 const audio = new AudioEngine();
 const plugins = new PluginManager(canvas);
-plugins.register('idle', idlePlugin);
-plugins.register('tunnel', tunnelPlugin);
-plugins.register('ribbons', ribbonsPlugin);
-plugins.register('plasma', plasmaPlugin);
-plugins.register('oscilloscope', oscilloscopePlugin);
-plugins.use('idle');
+plugins.register('idle', IdleVisualizer);
+for (const [name, [label, Visualizer]] of Object.entries(MODES)) {
+  plugins.register(name, Visualizer);
+  modeSelect.add(new Option(label, name));
+}
 modeSelect.value = 'tunnel';
 
 let uiHidden = false;
-let playing = false;
-let raf;
+let toastTimer;
 
 function showToast(message) {
+  clearTimeout(toastTimer);
   toast.textContent = message;
   toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 1600);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 1800);
 }
 
 function resize() {
-  const dpr = window.devicePixelRatio || 1;
-  const w = window.innerWidth * dpr;
-  const h = window.innerHeight * dpr;
-  plugins.resize(w, h);
+  const dpr = Math.min(MAX_DPR, window.devicePixelRatio || 1);
+  plugins.resize(Math.floor(window.innerWidth * dpr), Math.floor(window.innerHeight * dpr), dpr);
 }
-window.addEventListener('resize', resize);
-resize();
 
-function renderLoop(ts) {
-  const data = audio.update(ts);
-  plugins.render(data);
-  raf = requestAnimationFrame(renderLoop);
+// Idle animation until a source is playing.
+function syncVisual() {
+  plugins.use(audio.active ? modeSelect.value : 'idle');
+}
+
+function syncSourceButtons() {
+  micBtn.classList.toggle('active', audio.kind === 'mic');
+  fileBtn.classList.toggle('active', audio.kind === 'file');
+  streamBtn.classList.toggle('active', audio.kind === 'stream');
+}
+
+function sourceStarted(message) {
+  overlay.classList.add('hidden');
+  syncVisual();
+  syncSourceButtons();
+  showToast(message);
 }
 
 async function startMic() {
+  if (!support.media) {
+    showToast('Micrófono no disponible');
+    return;
+  }
   try {
     await audio.useMic();
-    plugins.use(modeSelect.value || 'tunnel');
-    playing = true;
-    startBtn.textContent = 'Mic OK';
-    startBtn.style.background = 'linear-gradient(135deg, #35d49a, #79f2c0)';
-    startBtn.disabled = true;
-    startButtonOverlay.textContent = 'Mic OK';
-    showToast('Micrófono activo');
-    overlay.style.display = 'none';
-    if (!raf) raf = requestAnimationFrame(renderLoop);
+    micBtn.classList.remove('danger');
+    sourceStarted('Micrófono activo');
   } catch (err) {
-    startBtn.textContent = 'Mic Blocked';
-    startBtn.classList.add('danger');
-    showToast('Micrófono bloqueado. Usa Ctrl+O para archivo');
+    micBtn.classList.add('danger');
+    showToast(err.name === 'NotAllowedError' ? 'Permiso de micrófono denegado' : 'No se pudo abrir el micrófono');
   }
+}
+
+function openFile() {
+  fileInput.click();
 }
 
 async function startFile(file) {
   if (!file) return;
-  await audio.useFile(file);
-  plugins.use(modeSelect.value || 'tunnel');
-  playing = true;
-  startBtn.textContent = 'Archivo';
-  startBtn.disabled = false;
-  overlay.style.display = 'none';
-  showToast(`Reproduciendo ${file.name}`);
-  if (!raf) raf = requestAnimationFrame(renderLoop);
+  try {
+    await audio.useFile(file);
+    sourceStarted(`Reproduciendo ${file.name}`);
+  } catch (err) {
+    showToast(`No se puede reproducir ${file.name}`);
+  }
+}
+
+function toggleStreamForm(show = streamForm.classList.contains('hidden')) {
+  streamForm.classList.toggle('hidden', !show);
+  if (show) streamUrl.focus();
 }
 
 async function startStream(url) {
-  if (!url) return;
   try {
     await audio.useStream(url);
-    plugins.use(modeSelect.value || 'tunnel');
-    playing = true;
-    startBtn.textContent = 'Stream';
-    overlay.style.display = 'none';
-    showToast('Stream conectado');
-    if (!raf) raf = requestAnimationFrame(renderLoop);
+    toggleStreamForm(false);
+    sourceStarted('Stream conectado');
   } catch (err) {
-    showToast('No se pudo conectar al stream');
+    showToast('No se pudo conectar. El servidor tiene que permitir CORS');
   }
 }
 
-function toggleFullscreen() {
-  if (!support.fullscreen) {
-    showToast('Fullscreen no disponible');
-    return;
-  }
-  if (!document.fullscreenElement) {
-    document.documentElement.requestFullscreen();
-  } else {
-    document.exitFullscreen();
+function stopAudio() {
+  if (!audio.active) return;
+  audio.stop();
+  syncVisual();
+  syncSourceButtons();
+  showToast('Audio detenido');
+}
+
+async function togglePause() {
+  if (!audio.active) return;
+  const paused = await audio.togglePause();
+  showToast(paused ? 'Pausa' : 'Reanudado');
+}
+
+function stepMode(delta) {
+  const i = MODE_NAMES.indexOf(modeSelect.value);
+  modeSelect.value = MODE_NAMES[(i + delta + MODE_NAMES.length) % MODE_NAMES.length];
+  syncVisual();
+  showToast(MODES[modeSelect.value][0]);
+}
+
+async function toggleFullscreen() {
+  if (!support.fullscreen) return;
+  try {
+    if (document.fullscreenElement) await document.exitFullscreen();
+    else await document.documentElement.requestFullscreen({ navigationUI: 'hide' });
+  } catch (err) {
+    showToast('No se pudo cambiar a pantalla completa');
   }
 }
 
 function toggleUI() {
   uiHidden = !uiHidden;
-  controlBar.classList.toggle('hidden', uiHidden);
-  hintPanel.classList.toggle('hidden', uiHidden);
-  hideBtn.textContent = uiHidden ? 'Show UI' : 'Hide UI';
+  if (uiHidden) toggleStreamForm(false);
+  controls.classList.toggle('ui-hidden', uiHidden);
+  hints.classList.toggle('ui-hidden', uiHidden);
+  hideBtn.textContent = uiHidden ? 'Mostrar UI' : 'Ocultar UI';
 }
+
+const KEY_ACTIONS = {
+  m: startMic,
+  o: openFile,
+  u: () => toggleStreamForm(),
+  s: stopAudio,
+  f: toggleFullscreen,
+  h: toggleUI,
+  ' ': togglePause,
+  ArrowRight: () => stepMode(1),
+  ArrowLeft: () => stepMode(-1),
+};
 
 function handleKey(e) {
-  if (e.shiftKey && e.code === 'Space') {
-    e.preventDefault();
-    audio.stop();
-    playing = false;
-    if (raf) {
-      cancelAnimationFrame(raf);
-      raf = null;
-    }
-    return;
-  }
-  if (e.ctrlKey && e.key.toLowerCase() === 'o') {
-    e.preventDefault();
-    fileInput.click();
-  }
-  if (e.ctrlKey && e.key.toLowerCase() === 'u') {
-    e.preventDefault();
-    const url = prompt('Ingresa URL de streaming');
-    startStream(url);
-  }
-  if (e.code === 'Space') {
-    e.preventDefault();
-    playing = !playing;
-    if (playing && !raf) raf = requestAnimationFrame(renderLoop);
-    if (!playing && raf) {
-      cancelAnimationFrame(raf);
-      raf = null;
-    }
-  }
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.target.closest?.('input, select, textarea')) return;
+  const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+  const action = KEY_ACTIONS[key];
+  if (!action) return;
+  e.preventDefault();
+  // A focused button would also be clicked by the Space keyup.
+  if (document.activeElement instanceof HTMLButtonElement) document.activeElement.blur();
+  action();
 }
 
+function frame(ts) {
+  const data = audio.update(ts);
+  if (!audio.paused) plugins.render(data);
+  requestAnimationFrame(frame);
+}
+
+audio.onEnded = () => {
+  syncVisual();
+  syncSourceButtons();
+  showToast('Fin del archivo');
+};
+
+window.addEventListener('resize', resize);
 document.addEventListener('keydown', handleKey);
-fileInput.addEventListener('change', (e) => startFile(e.target.files?.[0]));
-startBtn.addEventListener('click', startMic);
-startButtonOverlay.addEventListener('click', startMic);
-overlaySecondary.addEventListener('click', () => fileInput.click());
-modeSelect.addEventListener('change', (e) => {
-  plugins.use(e.target.value);
+document.addEventListener('fullscreenchange', () => {
+  fullscreenBtn.textContent = document.fullscreenElement ? 'Salir de pantalla completa' : 'Pantalla completa';
 });
+fileInput.addEventListener('change', () => {
+  startFile(fileInput.files[0]);
+  fileInput.value = '';
+});
+micBtn.addEventListener('click', startMic);
+$('overlay-mic').addEventListener('click', startMic);
+fileBtn.addEventListener('click', openFile);
+$('overlay-file').addEventListener('click', openFile);
+streamBtn.addEventListener('click', () => toggleStreamForm());
+streamForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  startStream(streamUrl.value.trim());
+});
+streamUrl.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') toggleStreamForm(false);
+});
+modeSelect.addEventListener('change', syncVisual);
 fullscreenBtn.addEventListener('click', toggleFullscreen);
 hideBtn.addEventListener('click', toggleUI);
 
-if (blockers.length) {
-  blockerBody.innerHTML = blockers.map((b) => `<strong>${b.title}</strong><br>${b.body}`).join('<br><br>');
-} else {
-  blockerBody.textContent = 'Listo para visualizar audio en tiempo real. Usa Start para activar el micrófono.';
+const overlayText = $('overlay-text');
+for (const { title, body } of notices) {
+  const p = document.createElement('p');
+  const strong = document.createElement('strong');
+  strong.textContent = title;
+  p.append(strong, document.createElement('br'), body);
+  overlayText.append(p);
+}
+if (!notices.length) {
+  const p = document.createElement('p');
+  p.textContent = 'Elige una fuente de audio: micrófono, un archivo o un stream (tecla U).';
+  overlayText.append(p);
 }
 
 if (!support.audio || !support.canvas) {
-  startBtn.disabled = true;
-  startButtonOverlay.disabled = true;
-  startBtn.textContent = 'No compatible';
-  startButtonOverlay.textContent = 'No compatible';
+  for (const btn of [micBtn, fileBtn, streamBtn, $('overlay-mic'), $('overlay-file')]) btn.disabled = true;
+} else if (!support.media) {
+  micBtn.disabled = true;
+  $('overlay-mic').disabled = true;
 }
+if (!support.fullscreen) fullscreenBtn.hidden = true;
 
-if (!support.media) {
-  startBtn.textContent = 'Mic no disponible';
-  startButtonOverlay.textContent = 'Mic no disponible';
-  startBtn.disabled = true;
-  startButtonOverlay.disabled = true;
-}
-
-// start idle render
-raf = requestAnimationFrame(renderLoop);
+resize();
+syncVisual();
+requestAnimationFrame(frame);
