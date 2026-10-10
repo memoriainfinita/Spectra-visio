@@ -55,6 +55,8 @@ export const en: Messages = {
   'input.connect': 'Connect',
   'input.connecting': 'Connecting…',
   'input.screenHint': 'Pick a tab or the screen and turn on audio sharing.',
+  'input.screenPick': 'Share a tab or screen',
+  'input.live': 'Active source',
   'input.unsupported': 'Not available in this browser',
   'input.error.denied': 'Permission denied.',
   'input.error.notFound': 'Device not found.',

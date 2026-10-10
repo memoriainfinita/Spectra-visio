@@ -218,6 +218,17 @@ input[type='range'] { accent-color: var(--accent); }
 
 .seg.on { background: rgba(110, 247, 255, 0.15); color: var(--accent); }
 
+.live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent-2);
+  box-shadow: 0 0 6px var(--accent-2);
+}
+
+.view-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+.view-row p { margin: 0; }
+
 .stream-form { display: flex; gap: 8px; margin-top: 12px; }
 .stream-form input { flex: 1; min-width: 0; }
 

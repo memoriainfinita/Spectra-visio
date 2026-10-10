@@ -54,6 +54,8 @@ export const es = {
   'input.connect': 'Conectar',
   'input.connecting': 'Conectando…',
   'input.screenHint': 'Elige una pestaña o la pantalla y activa compartir audio.',
+  'input.screenPick': 'Compartir pestaña o pantalla',
+  'input.live': 'Fuente activa',
   'input.unsupported': 'No disponible en este navegador',
   'input.error.denied': 'Permiso denegado.',
   'input.error.notFound': 'No se encontró el dispositivo.',
