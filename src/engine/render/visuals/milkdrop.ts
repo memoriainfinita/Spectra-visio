@@ -1,12 +1,16 @@
 import type { AudioLevels, Butterchurn, MilkdropVisualizer } from 'butterchurn'
 import { WAVE_SIZE } from '../../analysis/analyzer'
-import { TONE_FS, drawFullscreen, program, uniforms } from '../gl'
+import { TONE_FS, Target, drawFullscreen, program, uniforms } from '../gl'
 import type { VisualGL } from '../visual'
 import { MILKDROP_PRESETS } from './milkdropPresets'
 
-// Milkdrop through Butterchurn, on its own canvas and WebGL context. It reads the app's
-// analysis (delayed like every visualization) instead of an audio node, so latency
-// compensation, thumbnails and the sensitivity parameter work as for the others.
+// Milkdrop through Butterchurn. It reads the app's analysis (delayed like every
+// visualization) instead of an audio node, so latency compensation, thumbnails and the
+// sensitivity parameter work as for the others.
+//
+// It draws with the app's own WebGL context, through a proxy that sends its screen output
+// to a texture of ours. On a canvas of its own, copying each frame across contexts cost
+// Firefox 18-19 ms (a read back from the GPU) and held it near 30 fps.
 
 // Largest internal size; above it the layer scales the image up.
 const MAX_PIXELS = 1920 * 1080
@@ -46,6 +50,62 @@ function load(): Promise<Library> {
   return loading
 }
 
+type GLObject = WebGLTexture | WebGLBuffer | WebGLFramebuffer | WebGLRenderbuffer | WebGLProgram | WebGLShader | WebGLSampler | WebGLVertexArrayObject
+
+// GL objects Butterchurn creates, with the call that deletes each kind.
+const DELETERS = {
+  createTexture: 'deleteTexture',
+  createBuffer: 'deleteBuffer',
+  createFramebuffer: 'deleteFramebuffer',
+  createRenderbuffer: 'deleteRenderbuffer',
+  createProgram: 'deleteProgram',
+  createShader: 'deleteShader',
+  createSampler: 'deleteSampler',
+  createVertexArray: 'deleteVertexArray',
+} as const
+type Created = [(typeof DELETERS)[keyof typeof DELETERS], GLObject]
+
+// The app's context as Butterchurn sees it: the default framebuffer (its screen) becomes
+// `screen()`, and every object it creates is recorded so it can be deleted.
+function sharedContext(gl: WebGL2RenderingContext, screen: () => WebGLFramebuffer, created: Created[]): WebGL2RenderingContext {
+  const fns = new Map<PropertyKey, unknown>()
+  return new Proxy(gl, {
+    get(target, key) {
+      const hit = fns.get(key)
+      if (hit) return hit
+      const value: unknown = Reflect.get(target, key, target)
+      if (typeof value !== 'function') return value
+      let fn: unknown
+      if (key === 'bindFramebuffer') {
+        fn = (kind: number, fb: WebGLFramebuffer | null) => target.bindFramebuffer(kind, fb ?? screen())
+      } else if (typeof key === 'string' && key in DELETERS) {
+        const del = DELETERS[key as keyof typeof DELETERS]
+        fn = (...args: unknown[]) => {
+          const obj = (value as (...a: unknown[]) => GLObject | null).apply(target, args)
+          if (obj) created.push([del, obj])
+          return obj
+        }
+      } else {
+        fn = (value as (...a: unknown[]) => unknown).bind(target)
+      }
+      fns.set(key, fn)
+      return fn
+    },
+  })
+}
+
+// What Butterchurn leaves behind that the rest of the app does not expect: blending on,
+// samplers bound to texture units (they override the textures' own filtering), and
+// changed unpack settings.
+function restoreState(gl: WebGL2RenderingContext): void {
+  gl.bindVertexArray(null)
+  gl.disable(gl.BLEND)
+  for (let unit = 0; unit < 16; unit++) gl.bindSampler(unit, null)
+  gl.activeTexture(gl.TEXTURE0)
+  gl.pixelStorei(gl.UNPACK_ALIGNMENT, 4)
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false)
+}
+
 const toByte = (v: number) => 128 + Math.max(-1, Math.min(1, v)) * 127
 
 export const milkdrop: VisualGL = {
@@ -62,50 +122,45 @@ export const milkdrop: VisualGL = {
     const prog = program(gl, TONE_FS)
     const u = uniforms(gl, prog, ['uSrc', 'uHue', 'uIntensity'] as const)
     const vao = gl.createVertexArray()!
-    const tex = gl.createTexture()!
-    gl.bindTexture(gl.TEXTURE_2D, tex)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
-    const canvas = document.createElement('canvas')
+    // Butterchurn sets vertex attributes as if it had the default vertex array; it gets
+    // one of its own so they never land in ours.
+    const bcVao = gl.createVertexArray()!
+    // Butterchurn's screen.
+    const out = new Target(gl)
+    const created: Created[] = []
+    const shared = sharedContext(gl, () => out.framebuffer, created)
+    const canvas = { getContext: () => shared } as unknown as HTMLCanvasElement
     const levels: AudioLevels = {
       timeByteArray: new Uint8Array(WAVE_SIZE).fill(128),
       timeByteArrayL: new Uint8Array(WAVE_SIZE).fill(128),
       timeByteArrayR: new Uint8Array(WAVE_SIZE).fill(128),
     }
     let viz: MilkdropVisualizer | null = null
-    let disposed = false
     let preset = -1
     let width = 0
     let height = 0
-    const start = (lib: Library) => {
-      if (disposed) return
-      canvas.width = Math.max(1, width)
-      canvas.height = Math.max(1, height)
-      viz = lib.butterchurn.createVisualizer(null, canvas, { width: canvas.width, height: canvas.height, pixelRatio: 1, textureRatio: 1 })
-    }
-    if (library) start(library)
-    else load().then(start, () => undefined)
+    if (!library) void load().catch(() => undefined)
 
     return {
       render(f, p, s) {
-        const k = Math.min(1, Math.sqrt(MAX_PIXELS / (s.width * s.height)))
-        const w = Math.max(1, Math.round(s.width * k))
-        const h = Math.max(1, Math.round(s.height * k))
-        if (w !== width || h !== height) {
-          width = w
-          height = h
-          if (viz) {
-            canvas.width = w
-            canvas.height = h
-            viz.setRendererSize(w, h, { pixelRatio: 1, textureRatio: 1 })
-          }
-        }
-        if (!viz || !library) {
+        const layerFbo = gl.getParameter(gl.FRAMEBUFFER_BINDING) as WebGLFramebuffer | null
+        if (!library) {
           gl.clearColor(0, 0, 0, 1)
           gl.clear(gl.COLOR_BUFFER_BIT)
           return
+        }
+        out.size(s.width, s.height)
+        gl.bindVertexArray(bcVao)
+        // Butterchurn's own textures stay within MAX_PIXELS; its output is full size.
+        const ratio = Math.min(1, Math.sqrt(MAX_PIXELS / (s.width * s.height)))
+        if (!viz) {
+          viz = library.butterchurn.createVisualizer(null, canvas, { width: s.width, height: s.height, pixelRatio: 1, textureRatio: ratio })
+          width = s.width
+          height = s.height
+        } else if (s.width !== width || s.height !== height) {
+          width = s.width
+          height = s.height
+          viz.setRendererSize(width, height, { pixelRatio: 1, textureRatio: ratio })
         }
         const index = Math.round(p.preset)
         if (index !== preset) {
@@ -125,25 +180,25 @@ export const milkdrop: VisualGL = {
         }
         // Speed scales Milkdrop's clock; zero would make it read the wall clock instead.
         viz.render({ audioLevels: levels, elapsedTime: Math.max(1e-4, f.dt * (p.speed ?? 1)) })
+        restoreState(gl)
 
-        gl.activeTexture(gl.TEXTURE0)
-        gl.bindTexture(gl.TEXTURE_2D, tex)
-        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true)
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas)
-        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false)
+        gl.bindFramebuffer(gl.FRAMEBUFFER, layerFbo)
+        gl.viewport(0, 0, s.width, s.height)
         gl.useProgram(prog)
+        gl.bindTexture(gl.TEXTURE_2D, out.texture)
         gl.uniform1i(u.uSrc, 0)
         gl.uniform1f(u.uHue, ((p.hue ?? 0) * Math.PI) / 180)
         gl.uniform1f(u.uIntensity, p.intensity ?? 1)
         drawFullscreen(gl, vao)
       },
       dispose() {
-        disposed = true
         gl.deleteProgram(prog)
         gl.deleteVertexArray(vao)
-        gl.deleteTexture(tex)
-        // Contexts are scarce: free Milkdrop's at once instead of waiting for collection.
-        if (viz) canvas.getContext('webgl2')?.getExtension('WEBGL_lose_context')?.loseContext()
+        gl.deleteVertexArray(bcVao)
+        out.dispose()
+        // Butterchurn has no dispose: everything it created goes here.
+        for (const [del, obj] of created) (gl[del] as (o: GLObject) => void).call(gl, obj)
+        created.length = 0
         viz = null
       },
     }

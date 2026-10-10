@@ -90,6 +90,10 @@ export class Target {
     return true
   }
 
+  get framebuffer(): WebGLFramebuffer {
+    return this.fbo
+  }
+
   bind(): void {
     this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.fbo)
     this.gl.viewport(0, 0, this.width, this.height)
