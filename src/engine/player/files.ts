@@ -19,3 +19,19 @@ export function baseName(name: string): string {
 export function byName<T extends { name: string }>(a: T, b: T): number {
   return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' })
 }
+
+export function isLyricsFile(file: { name: string }): boolean {
+  return file.name.toLowerCase().endsWith('.lrc')
+}
+
+// Lyrics file for each audio file with the same name, ignoring case and extension:
+// audio index → lyrics index.
+export function matchLyrics(audio: readonly { name: string }[], lyrics: readonly { name: string }[]): Map<number, number> {
+  const byBase = new Map(lyrics.map((l, i) => [baseName(l.name).toLowerCase(), i]))
+  const out = new Map<number, number>()
+  audio.forEach((a, i) => {
+    const j = byBase.get(baseName(a.name).toLowerCase())
+    if (j !== undefined) out.set(i, j)
+  })
+  return out
+}

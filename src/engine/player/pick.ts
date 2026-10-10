@@ -1,10 +1,12 @@
-import { byName, isAudioFile } from './files'
+import { byName, isAudioFile, isLyricsFile } from './files'
 
 // Files chosen by the user, with their handles when the browser provides them (Chrome).
-// Handles let the list come back after a reload without copying the files.
+// Handles let the list come back after a reload without copying the files. Lyrics (.lrc)
+// picked along are matched to the audio by name.
 export interface Picked {
   files: File[]
   handles: (FileSystemFileHandle | null)[]
+  lyrics: File[]
 }
 
 type PickerWindow = Window & {
@@ -13,7 +15,7 @@ type PickerWindow = Window & {
 }
 type HandleItem = DataTransferItem & { getAsFileSystemHandle?: () => Promise<FileSystemHandle | null> }
 
-const EMPTY: Picked = { files: [], handles: [] }
+const EMPTY: Picked = { files: [], handles: [], lyrics: [] }
 
 function isAbort(err: unknown): boolean {
   return err instanceof DOMException && err.name === 'AbortError'
@@ -22,7 +24,7 @@ function isAbort(err: unknown): boolean {
 async function fromHandles(handles: FileSystemFileHandle[]): Promise<Picked> {
   const pairs = await Promise.all(handles.map(async (h) => ({ file: await h.getFile(), handle: h })))
   const audio = pairs.filter((p) => isAudioFile(p.file))
-  return { files: audio.map((p) => p.file), handles: audio.map((p) => p.handle) }
+  return { files: audio.map((p) => p.file), handles: audio.map((p) => p.handle), lyrics: pairs.filter((p) => isLyricsFile(p.file)).map((p) => p.file) }
 }
 
 async function walkDirectory(dir: FileSystemDirectoryHandle): Promise<FileSystemFileHandle[]> {
@@ -37,7 +39,7 @@ async function walkDirectory(dir: FileSystemDirectoryHandle): Promise<FileSystem
 
 function sortPicked(p: Picked): Picked {
   const pairs = p.files.map((file, i) => ({ name: file.name, file, handle: p.handles[i] })).sort(byName)
-  return { files: pairs.map((x) => x.file), handles: pairs.map((x) => x.handle) }
+  return { files: pairs.map((x) => x.file), handles: pairs.map((x) => x.handle), lyrics: p.lyrics }
 }
 
 function inputPick(directory: boolean): Promise<Picked> {
@@ -46,10 +48,11 @@ function inputPick(directory: boolean): Promise<Picked> {
     input.type = 'file'
     input.multiple = true
     if (directory) input.webkitdirectory = true
-    else input.accept = 'audio/*'
+    else input.accept = 'audio/*,.lrc'
     input.addEventListener('change', () => {
-      const files = [...(input.files ?? [])].filter(isAudioFile)
-      resolve(sortPicked({ files, handles: files.map(() => null) }))
+      const all = [...(input.files ?? [])]
+      const files = all.filter(isAudioFile)
+      resolve(sortPicked({ files, handles: files.map(() => null), lyrics: all.filter(isLyricsFile) }))
     })
     input.addEventListener('cancel', () => resolve(EMPTY))
     input.click()
@@ -62,7 +65,7 @@ export async function pickFiles(): Promise<Picked> {
   try {
     const handles = await w.showOpenFilePicker({
       multiple: true,
-      types: [{ description: 'Audio', accept: { 'audio/*': [] } }],
+      types: [{ description: 'Audio', accept: { 'audio/*': [], 'text/plain': ['.lrc'] } }],
     })
     return fromHandles(handles)
   } catch (err) {
@@ -115,5 +118,5 @@ export async function fromDrop(data: DataTransfer): Promise<Picked> {
     ? (await Promise.all(entries.map(walkEntry))).flat()
     : [...data.files]
   const audio = files.filter(isAudioFile)
-  return sortPicked({ files: audio, handles: audio.map(() => null) })
+  return sortPicked({ files: audio, handles: audio.map(() => null), lyrics: files.filter(isLyricsFile) })
 }

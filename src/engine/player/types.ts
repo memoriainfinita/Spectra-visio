@@ -8,6 +8,8 @@ export interface TrackMeta {
   duration?: number
   // Object URL of the embedded cover, revoked when the track is removed.
   cover?: string
+  // Synced lyrics from the tags, as LRC text.
+  lyrics?: string
 }
 
 export interface Track {

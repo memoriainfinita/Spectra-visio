@@ -12,13 +12,14 @@ import { Stage } from './ui/Stage'
 import { Visuals } from './ui/Visuals'
 import { Effects } from './ui/Effects'
 import { Presets } from './ui/Presets'
+import { Overlays } from './ui/Overlays'
 import { Shaders } from './ui/Shaders'
 import { VisualInput } from './ui/VisualInput'
 import { NowPlaying, Transport } from './ui/Transport'
 import { useStore } from './ui/useStore'
 import { useT } from './ui/useT'
 
-const PHASE = 5
+const PHASE = 6
 const TOTAL_PHASES = 10
 
 export function App() {
@@ -69,6 +70,7 @@ export function App() {
         <Presets />
         <Shaders />
         <VisualInput />
+        <Overlays />
         <Sources />
         <AnalysisPanel />
         {opfsSupported && (
