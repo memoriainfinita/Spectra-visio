@@ -7,11 +7,13 @@ import { opfsSupported } from './storage/opfs'
 import { useFileDrop, usePlayerShortcuts } from './ui/hooks'
 import { Queue } from './ui/Queue'
 import { Sources } from './ui/Sources'
+import { Stage } from './ui/Stage'
+import { Visuals } from './ui/Visuals'
 import { NowPlaying, Transport } from './ui/Transport'
 import { useStore } from './ui/useStore'
 import { useT } from './ui/useT'
 
-const PHASE = 3
+const PHASE = 4
 const TOTAL_PHASES = 10
 
 export function App() {
@@ -50,11 +52,13 @@ export function App() {
       </header>
 
       <main className="layout">
+        <Stage />
         <section className="panel player">
           <NowPlaying />
           <Transport />
         </section>
         <Queue />
+        <Visuals />
         <Sources />
         <AnalysisPanel />
         {opfsSupported && (

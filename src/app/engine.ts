@@ -4,12 +4,15 @@ import { connectMediaSession } from '../engine/player/mediaSession'
 import { Persistence } from '../engine/player/persistence'
 import type { Picked } from '../engine/player/pick'
 import { Player } from '../engine/player/player'
+import { Renderer } from '../engine/render/renderer'
+import { sceneStore } from './scene'
 import { settingsStore } from './settings'
 
 export const player = new Player()
 export const inputs = new Inputs(player)
 export const persistence = new Persistence(player, () => settingsStore.get().keepFiles)
 export const analysis = new Analysis(() => settingsStore.get().analysis)
+export const renderer = new Renderer(() => sceneStore.get(), (now) => analysis.frame(now))
 
 export async function initEngine(): Promise<void> {
   connectMediaSession(player)
