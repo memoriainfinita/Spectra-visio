@@ -15,6 +15,7 @@ import { strobeBloom } from './visuals/strobeBloom'
 import { terrain } from './visuals/terrain'
 import { tunnel } from './visuals/tunnel'
 import { warpTunnel } from './visuals/warpTunnel'
+import { media } from './visuals/media'
 import { milkdrop } from './visuals/milkdrop'
 import { lissajous, radialWave } from './visuals/waves'
 
@@ -42,6 +43,7 @@ export const VISUALS: readonly VisualDef[] = [
   julia,
   kifs,
   milkdrop,
+  media,
 ]
 
 // Built-in ones followed by the user's imported shaders.

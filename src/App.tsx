@@ -13,6 +13,7 @@ import { Visuals } from './ui/Visuals'
 import { Effects } from './ui/Effects'
 import { Presets } from './ui/Presets'
 import { Shaders } from './ui/Shaders'
+import { VisualInput } from './ui/VisualInput'
 import { NowPlaying, Transport } from './ui/Transport'
 import { useStore } from './ui/useStore'
 import { useT } from './ui/useT'
@@ -67,6 +68,7 @@ export function App() {
         <Effects />
         <Presets />
         <Shaders />
+        <VisualInput />
         <Sources />
         <AnalysisPanel />
         {opfsSupported && (
