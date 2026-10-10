@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { addPicked, player } from '../app/engine'
+import { addPicked, analysis, player } from '../app/engine'
 import { fromDrop } from '../engine/player/pick'
 import { useStore } from './useStore'
 
@@ -45,6 +45,7 @@ export function usePlayerShortcuts(): void {
       else if (e.key === 'ArrowLeft' && e.shiftKey) player.previous()
       else if (e.key === 'ArrowRight') player.seek(player.position() + SEEK_STEP)
       else if (e.key === 'ArrowLeft') player.seek(player.position() - SEEK_STEP)
+      else if (e.key === 't' || e.key === 'T') analysis.tap()
       else return
       e.preventDefault()
       // A focused button would also be clicked by the Space keyup.

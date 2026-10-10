@@ -1,3 +1,5 @@
+import { FFT_SIZE } from '../analysis/analyzer'
+
 // One AudioContext for the whole app.
 //
 //   tracks / stream ─► playerBus ─► volume ─► speakers
@@ -30,9 +32,10 @@ export class AudioGraph {
     const splitter = ctx.createChannelSplitter(2)
     this.analyserL = ctx.createAnalyser()
     this.analyserR = ctx.createAnalyser()
+    // Smoothing happens in the analysis, over elapsed time and with its own setting.
     for (const a of [this.analyserL, this.analyserR]) {
-      a.fftSize = 2048
-      a.smoothingTimeConstant = 0.8
+      a.fftSize = FFT_SIZE
+      a.smoothingTimeConstant = 0
     }
     this.playerBus.connect(this.volume).connect(ctx.destination)
     this.playerBus.connect(this.inputGain)

@@ -19,3 +19,13 @@ test('valid fields are kept, invalid ones replaced', () => {
 test('result always carries the current version', () => {
   expect(normalizeSettings({ version: 0, lang: 'en' }, defaults).version).toBe(SETTINGS_VERSION)
 })
+
+test('analysis settings: missing from older data, out of range or invalid', () => {
+  expect(normalizeSettings({ lang: 'en' }, defaults).analysis).toEqual(defaults.analysis)
+  const a = normalizeSettings({ analysis: { bands: 48, smoothing: 3, autoLevel: false, latencyOffset: -900 } }, defaults).analysis
+  expect(a.bands).toBe(48)
+  expect(a.smoothing).toBe(1)
+  expect(a.autoLevel).toBe(false)
+  expect(a.latencyOffset).toBe(-200)
+  expect(normalizeSettings({ analysis: { bands: 7 } }, defaults).analysis.bands).toBe(defaults.analysis.bands)
+})

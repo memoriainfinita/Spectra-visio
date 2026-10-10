@@ -20,3 +20,10 @@
 - Gapless: se midió antes de elegir. Con dos `<audio>` alternos quedaban de 4 a 13 ms de silencio en la unión según el formato; con audio decodificado y programado, ninguno. Por eso se reproduce desde memoria y `<audio>` queda solo para pistas largas
 - Firefox encontró dos fallos que Chrome headless no mostraba: el deslizador de posición buscaba dos veces (por el valor que React repone entre `input` y `change`) y `navigator.storage.persist()` dejaba esperando la copia de archivos tras una pregunta que solo hace Firefox
 - Las primeras pruebas headless en Chrome sonaron por los altavoces; desde entonces van silenciadas
+
+### 2026-10-10 — Fase 3: decisiones del análisis
+
+- Analizadores de 2048 a 4096 muestras: bins de 11,7 Hz a 48 kHz, para separar subgraves de graves; ventana de 85 ms
+- `smoothingTimeConstant` del navegador a 0: el suavizado depende de los fotogramas, y el propio va por tiempo y con ajuste
+- Golpes como contadores acumulados en cada fotograma: quien lee con retraso o salta fotogramas no pierde ninguno
+- BPM por intervalos entre todos los pares de golpes del bombo (no solo vecinos), rango 70 a 180: un golpe perdido o de más no mueve la estimación

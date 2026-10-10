@@ -1,3 +1,4 @@
+import { Analysis } from '../engine/analysis/analysis'
 import { Inputs } from '../engine/audio/inputs'
 import { connectMediaSession } from '../engine/player/mediaSession'
 import { Persistence } from '../engine/player/persistence'
@@ -8,10 +9,12 @@ import { settingsStore } from './settings'
 export const player = new Player()
 export const inputs = new Inputs(player)
 export const persistence = new Persistence(player, () => settingsStore.get().keepFiles)
+export const analysis = new Analysis(() => settingsStore.get().analysis)
 
 export async function initEngine(): Promise<void> {
   connectMediaSession(player)
   await persistence.start()
+  analysis.start()
   // Playing a track takes the analysis back from the mic, screen or stream.
   player.state.subscribe(() => {
     const status = player.state.get().status
