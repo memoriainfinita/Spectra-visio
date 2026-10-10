@@ -61,6 +61,13 @@ export class Inputs {
     return !!navigator.mediaDevices?.getDisplayMedia
   }
 
+  // Screen capture with audio exists only in Chromium browsers (MDN compat data, 2026-10):
+  // Firefox and Safari share the screen but never an audio track. userAgentData is
+  // Chromium-only too, so it stands in for a check the API itself does not offer.
+  get screenAudioSupported(): boolean {
+    return this.screenSupported && 'userAgentData' in navigator
+  }
+
   async refreshDevices(): Promise<void> {
     if (!navigator.mediaDevices?.enumerateDevices) return
     const all = await navigator.mediaDevices.enumerateDevices()
@@ -87,6 +94,10 @@ export class Inputs {
   }
 
   async useScreen(): Promise<void> {
+    if (!this.screenAudioSupported) {
+      this.state.set((s) => ({ ...s, error: 'input.error.screenUnsupported' }))
+      return
+    }
     await this.connect('screen', async () => {
       // Chrome only offers audio together with video; the video track is dropped right away.
       const stream = await navigator.mediaDevices.getDisplayMedia({

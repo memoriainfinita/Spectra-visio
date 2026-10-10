@@ -105,7 +105,7 @@ Consultado el 2026-10-10.
 
 | Función | Chrome / Edge | Firefox | Safari | Fuente |
 |---|---|---|---|---|
-| Audio del sistema o pestaña (`getDisplayMedia`) | Sí en escritorio; audio del sistema en macOS desde Chrome 141 | [PENDIENTE: sin confirmar] | [PENDIENTE: sin confirmar] | [Addpipe](https://blog.addpipe.com/getdisplaymedia-allows-capturing-the-screen-with-system-sounds-on-chrome-on-macos.md), [MDN](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getDisplayMedia) |
+| Audio del sistema o pestaña (`getDisplayMedia`) | Sí desde Chrome 74; en Linux y macOS solo audio de pestaña (Chrome 141 añade sistema en macOS) | No | No | [Addpipe](https://blog.addpipe.com/getdisplaymedia-allows-capturing-the-screen-with-system-sounds-on-chrome-on-macos.md), [MDN compat data](https://github.com/mdn/browser-compat-data/blob/main/api/MediaDevices.json), comprobado también en el Firefox de mykl |
 | Web MIDI | Sí, con permiso | Sí, desde 108 | No | [Chrome](https://developer.chrome.com/blog/web-midi-permission-prompt?hl=de), [WebKit 107250](https://bugs.webkit.org/show_bug.cgi?id=107250) |
 | Elegir pantalla de salida (`getScreenDetails`) | Sí, desde 100 | No | No | [web.dev](https://web.dev/articles/web-apps/multiple-screens) |
 

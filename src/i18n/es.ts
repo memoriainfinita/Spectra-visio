@@ -59,6 +59,8 @@ export const es = {
   'input.error.notFound': 'No se encontró el dispositivo.',
   'input.error.generic': 'No se pudo abrir la entrada.',
   'input.error.noScreenAudio': 'No se compartió audio. Activa la opción de compartir audio.',
+  'input.error.screenUnsupported':
+    'Este navegador no comparte el audio de pestañas ni del sistema; Chrome y Edge sí. Alternativa: si tu tarjeta de sonido ofrece un dispositivo de captura del sistema (en Windows, «Mezcla estéreo»), elígelo en Micrófono.',
   'input.error.stream': 'No se pudo conectar. El servidor tiene que permitir CORS.',
   'level.title': 'Nivel de análisis',
 } as const

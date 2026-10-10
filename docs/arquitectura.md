@@ -52,7 +52,7 @@ Diseño técnico confirmado por mykl el 2026-10-10. Implementa la lista de `docs
 
 - PWA con `vite-plugin-pwa` 2.0.0, MIT, compatible con Vite 8
 - Dos idiomas con diccionarios propios, sin librería
-- Wake Lock y Media Session. Firefox solo activa las teclas multimedia con un elemento multimedia sonando (bug 2067534): un `<audio>` silencioso en bucle mientras reproduce. [PENDIENTE: comprobar las teclas en el Firefox real de mykl]
+- Wake Lock y Media Session. Firefox solo activa las teclas multimedia con un elemento multimedia sonando (bug 2067534): un `<audio>` silencioso en bucle mientras reproduce. Teclas comprobadas por mykl en su Firefox
 - Despliegue en GitHub Pages con GitHub Actions, ruta base relativa `./` como nona, activo desde la fase 1 (I)
 - Código anterior a la reconstrucción en `.archive/v0/`, fuera de git; en el historial hasta el commit `7a63da1`
 - Tests con Vitest: análisis, modulación, lectores ISF y LRC, presets (I)
