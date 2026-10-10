@@ -13,12 +13,16 @@ Visualizador de audio en tiempo real para navegador, en reconstrucción desde ce
 
 ## Status
 
-- Fases 1 y 2 de 10 hechas. Base: TypeScript 7, React 19, Vite 8, Vitest 5, store propio, español e inglés, ajustes en IndexedDB, CI con despliegue a Pages
+- Fases 1 a 3 de 10 hechas. Base: TypeScript 7, React 19, Vite 8, Vitest 5, store propio, español e inglés, ajustes en IndexedDB, CI con despliegue a Pages
 - Fase 2: reproductor con gapless y fundido, lista con archivos, carpetas y arrastre, etiquetas y carátula (`music-metadata`), Media Session; fuentes micrófono, pestaña o sistema y stream; ganancia de entrada y medidor de nivel; sesión que sobrevive a recargar (copias en OPFS opcionales, referencias en Chrome)
 - Comprobado el 2026-10-10, silenciado, en Chrome headless (CDP) y Firefox (Playwright): gapless al sample, fundido de 2 s, pausa, atajos, micrófono falso, stream del mismo origen y error CORS, archivo roto, restauración tras recargar. 26 tests unitarios en verde
 - Probado por mykl en su Firefox (2026-10-10): añadir carpeta, arrastrar archivos, reordenar y teclas multimedia funcionan. La captura de pestaña no existe en Firefox ni Safari (sin audio); la app ahora lo explica en vez de intentarlo
 - Sin probar: captura de pestaña en Chrome o Edge, referencias de archivos de Chrome, pistas largas por `<audio>`, Safari, móvil
-- Aún no hay visualizaciones
+- Fase 3 (`src/engine/analysis/`, panel `src/ui/Analysis.tsx`): bandas logarítmicas configurables (8 a 64, de 20 Hz a 16 kHz) en L, R y centro; 7 bandas con nombre de subgraves a brillo; nivelado automático; suavizado por tiempo ajustable; golpes por banda y bombo; BPM estimado desde los golpes del bombo, con fiabilidad; tap tempo (botón y tecla T); fase del pulso; balance y correlación; retraso de los visuales = latencia que informa el navegador (opcional) + ajuste manual de -200 a +500 ms
+- Comprobado el 2026-10-10, silenciado, en Firefox (Playwright) y Chrome del sistema (Playwright, headless) con un WAV de bombo a 120 BPM: 120 BPM con fiabilidad de 90 a 95 %, 9 destellos del bombo en 4 s, tap a ~100 BPM y vuelta al estimado, balance negativo con platos a la izquierda, bandas guardadas tras recargar, sin errores. Latencia informada: Firefox 22 ms, Chrome 50 ms. 54 tests unitarios en verde
+- Probado por mykl en su Firefox con música real (2026-10-10): fase 3 correcta
+- Sin probar: fase 3 en Safari (si informa `outputLatency`; sin él, la app ofrece solo el ajuste manual)
+- Aún no hay visualizaciones; el panel de análisis muestra barras L/R y destellos para calibrar
 - La versión anterior (canvas, 8 visualizaciones) está en `.archive/v0/`, fuera de git, y en el historial hasta `7a63da1`
 - Repo privado en GitHub, Pages sin activar. Se publicará al terminar la app (decisión de mykl, 2026-10-10)
 
@@ -38,4 +42,4 @@ Visualizador de audio en tiempo real para navegador, en reconstrucción desde ce
 - [ ] Al terminar la app: repo público, activar Pages con origen GitHub Actions (`gh api -X POST repos/memoriainfinita/Spectra-visio/pages -f build_type=workflow`) y push
 - [ ] Probar la captura de pestaña en Chrome o Edge
 - [ ] Probar stream con CORS real de otro dominio
-- [ ] Fase 3: análisis (bandas logarítmicas, golpes, BPM, estéreo, suavizado) y compensación de latencia
+- [ ] Fase 4: compositor WebGL2 con capas A/B, port de las 8 visualizaciones, parámetros y modulación

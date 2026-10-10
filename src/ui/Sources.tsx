@@ -124,10 +124,11 @@ function LevelMeter() {
     const canvas = ref.current
     const ctx = canvas?.getContext('2d')
     if (!canvas || !ctx) return
-    const data = new Float32Array(2048)
+    let data = new Float32Array(0)
     const peaks = [0, 0]
     let raf = 0
     const level = (analyser: AnalyserNode) => {
+      if (data.length !== analyser.fftSize) data = new Float32Array(analyser.fftSize)
       analyser.getFloatTimeDomainData(data)
       let sum = 0
       for (let i = 0; i < data.length; i++) sum += data[i] * data[i]
