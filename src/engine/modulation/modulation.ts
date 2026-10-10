@@ -1,0 +1,150 @@
+import { KICK, type AnalysisFrame } from '../analysis/analyzer'
+import { NAMED_BANDS, type NamedBand } from '../analysis/bands'
+
+// Modulation: source → transformation (amount, curve, smoothing) → parameter.
+// Sources give 0–1; contributions are added to the parameter's position in its range.
+
+export type BandRef = NamedBand | 'all'
+export type BeatRef = NamedBand | 'kick'
+export const BAND_REFS: readonly BandRef[] = [...NAMED_BANDS, 'all']
+export const BEAT_REFS: readonly BeatRef[] = [...NAMED_BANDS, 'kick']
+
+export const LFO_SHAPES = ['sine', 'triangle', 'saw', 'square'] as const
+export type LfoShape = (typeof LFO_SHAPES)[number]
+export const CURVES = ['linear', 'exp', 'log', 'smooth'] as const
+export type Curve = (typeof CURVES)[number]
+// Cycles per beat when an oscillator follows the tempo.
+export const SYNC_RATES = [0.25, 0.5, 1, 2, 4] as const
+
+export const LFO_RATE_MIN = 0.01
+export const LFO_RATE_MAX = 10
+export const DECAY_MIN = 20
+export const DECAY_MAX = 2000
+export const SMOOTHING_MAX = 1000
+
+export type ModSource =
+  | { kind: 'band'; band: BandRef }
+  // Jumps to 1 on each onset and falls back with `decay` ms time constant.
+  | { kind: 'beat'; band: BeatRef; decay: number }
+  // Free: `rate` in Hz. Synced: `rate` in cycles per beat (one of SYNC_RATES).
+  | { kind: 'lfo'; shape: LfoShape; rate: number; sync: boolean }
+
+export type SourceKind = ModSource['kind']
+
+export interface Modulation {
+  id: string
+  source: ModSource
+  // -1 to 1: share of the parameter's range added at full source.
+  amount: number
+  curve: Curve
+  // Time constant in ms; 0 follows the source directly.
+  smoothing: number
+}
+
+export function defaultSource(kind: SourceKind): ModSource {
+  if (kind === 'band') return { kind, band: 'bass' }
+  if (kind === 'beat') return { kind, band: 'kick', decay: 250 }
+  return { kind, shape: 'sine', rate: 1, sync: true }
+}
+
+let nextId = 0
+export function newModulation(kind: SourceKind = 'band'): Modulation {
+  nextId++
+  return { id: `m${Date.now().toString(36)}${nextId}`, source: defaultSource(kind), amount: 0.5, curve: 'linear', smoothing: 0 }
+}
+
+// One cycle per unit of phase, 0–1, starting at 0.
+export function lfo(shape: LfoShape, phase: number): number {
+  const p = phase - Math.floor(phase)
+  if (shape === 'sine') return 0.5 - 0.5 * Math.cos(2 * Math.PI * p)
+  if (shape === 'triangle') return 1 - Math.abs(2 * p - 1)
+  if (shape === 'saw') return p
+  return p < 0.5 ? 1 : 0
+}
+
+export function applyCurve(curve: Curve, x: number): number {
+  const v = x < 0 ? 0 : x > 1 ? 1 : x
+  if (curve === 'exp') return v * v
+  if (curve === 'log') return Math.sqrt(v)
+  if (curve === 'smooth') return v * v * (3 - 2 * v)
+  return v
+}
+
+interface State {
+  value: number
+  env: number
+  seen: number
+  started: boolean
+}
+
+const BEAT_SLOT: Record<BeatRef, number> = { ...Object.fromEntries(NAMED_BANDS.map((b, i) => [b, i])), kick: KICK } as Record<BeatRef, number>
+const FALLBACK_BPM = 120
+
+// Evaluates modulations once per rendered frame. State (smoothing, beat envelopes) is kept
+// per key, so the same modulation on two layers runs independently.
+export class Modulator {
+  private readonly states = new Map<string, State>()
+  private time = 0
+  private dt = 0
+  private frame: AnalysisFrame | null = null
+  // Beats elapsed, continuous: synced oscillators read it. Follows the beat phase while the
+  // tempo is known, runs at 120 BPM otherwise.
+  beats = 0
+
+  advance(time: number, dt: number, frame: AnalysisFrame | null): void {
+    this.time = time
+    this.dt = dt
+    this.frame = frame
+    if (frame && frame.bpm > 0) {
+      let next = Math.floor(this.beats) + frame.phase
+      if (next < this.beats - 0.5) next += 1
+      this.beats = next
+    } else {
+      this.beats += (dt * FALLBACK_BPM) / 60
+    }
+  }
+
+  // Sum of the contributions, in units of the parameter's range.
+  sum(key: string, mods: readonly Modulation[]): number {
+    let total = 0
+    for (const m of mods) total += m.amount * this.output(`${key}:${m.id}`, m)
+    return total
+  }
+
+  private output(key: string, m: Modulation): number {
+    let s = this.states.get(key)
+    if (!s) {
+      s = { value: 0, env: 0, seen: 0, started: false }
+      this.states.set(key, s)
+    }
+    const x = applyCurve(m.curve, this.source(s, m.source))
+    s.value = m.smoothing > 0 ? s.value + (x - s.value) * (1 - Math.exp((-this.dt * 1000) / m.smoothing)) : x
+    return s.value
+  }
+
+  private source(s: State, src: ModSource): number {
+    const f = this.frame
+    if (src.kind === 'lfo') return lfo(src.shape, src.sync ? this.beats * src.rate : this.time * src.rate)
+    if (src.kind === 'band') {
+      if (!f) return 0
+      if (src.band === 'all') {
+        let sum = 0
+        for (let i = 0; i < f.named.length; i++) sum += f.named[i]
+        return sum / f.named.length
+      }
+      return f.named[NAMED_BANDS.indexOf(src.band)]
+    }
+    const count = f ? f.beats[BEAT_SLOT[src.band]] : s.seen
+    if (!s.started) {
+      s.started = true
+      s.seen = count
+    }
+    if (count !== s.seen) {
+      s.seen = count
+      s.env = 1
+    } else {
+      s.env *= Math.exp((-this.dt * 1000) / src.decay)
+    }
+    return s.env
+  }
+}

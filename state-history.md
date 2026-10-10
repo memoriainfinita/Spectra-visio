@@ -27,3 +27,11 @@
 - `smoothingTimeConstant` del navegador a 0: el suavizado depende de los fotogramas, y el propio va por tiempo y con ajuste
 - Golpes como contadores acumulados en cada fotograma: quien lee con retraso o salta fotogramas no pierde ninguno
 - BPM por intervalos entre todos los pares de golpes del bombo (no solo vecinos), rango 70 a 180: un golpe perdido o de más no mueve la estimación
+
+### 2026-10-10 — Fase 4: decisiones del render
+
+- Crossfader con fusión: en 0 solo A, en 1 solo B, en 0,5 la fusión de ambas, lineal entre medias; con "normal" equivale a un fundido simple
+- Una capa con peso 0 no se renderiza; su estado (fases acumuladas) se congela hasta que vuelve a verse
+- Ajustes guardados por visualización dentro de cada capa: cambiar de visualización y volver conserva parámetros y modulaciones
+- Modulación sumada a la posición del parámetro en su rango (cantidad de -1 a 1) y recortada al rango
+- Osciladores al tempo: cuentan pulsos con la fase del análisis; sin BPM corren a 120

@@ -51,7 +51,7 @@ h2 { font-size: 15px; font-weight: 600; }
   min-width: 0;
 }
 
-.panel.queue { grid-row: span 3; }
+.panel.visuals { grid-row: span 3; }
 
 .panel-head {
   display: flex;
@@ -265,6 +265,103 @@ input[type='range'] { accent-color: var(--accent); }
 .tempo-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
 .bpm { font-family: var(--font-mono); font-size: 22px; }
 
+/* Stage */
+
+.stage {
+  grid-column: 1 / -1;
+  /* Full width always; on short windows the height cap makes it wider than 16:9. */
+  width: 100%;
+  position: relative;
+  aspect-ratio: 16 / 9;
+  max-height: 70vh;
+  background: #000;
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.stage canvas { display: block; width: 100%; height: 100%; }
+.stage.full { border-radius: 0; max-height: none; aspect-ratio: auto; }
+
+.stage-bar {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 4px 2px 10px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.5);
+  color: var(--muted);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.stage:hover .stage-bar, .stage-bar:focus-within { opacity: 1; }
+
+.stage-error {
+  position: absolute;
+  inset: auto 16px 16px 16px;
+  margin: 0;
+  color: var(--danger);
+  background: rgba(0, 0, 0, 0.7);
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+/* Visuals */
+
+.crossfade-row { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+.crossfade-row input { flex: 1; min-width: 80px; }
+
+.params { list-style: none; margin: 12px 0 0; padding: 0; }
+.param { border-top: 1px solid var(--border); padding: 4px 0; }
+
+.param-row { display: flex; align-items: center; gap: 8px; }
+.param-name { width: 104px; flex: none; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.param-slider { position: relative; flex: 1; min-width: 60px; display: flex; align-items: center; }
+.param-slider input { width: 100%; }
+.param-value { width: 44px; text-align: right; color: var(--muted); }
+
+/* Where the parameter really is after modulation. */
+.live-mark {
+  position: absolute;
+  top: -1px;
+  width: 2px;
+  height: 4px;
+  margin-left: -1px;
+  background: var(--accent-2);
+  border-radius: 1px;
+  pointer-events: none;
+}
+
+.icon-btn { position: relative; }
+.badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  min-width: 14px;
+  height: 14px;
+  border-radius: 7px;
+  background: var(--accent-2);
+  color: #0a0b16;
+  font-size: 10px;
+  line-height: 14px;
+}
+
+.mods { display: flex; flex-direction: column; gap: 8px; padding: 6px 0 8px 12px; }
+.mod { border: 1px solid var(--border); border-radius: 10px; padding: 8px; background: rgba(255, 255, 255, 0.03); }
+.mod-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.mod-row select { padding: 4px 8px; }
+.mod-remove { margin-left: auto; }
+.inline-check { align-items: center; font-size: 13px; }
+.inline-check input { margin-top: 0; }
+.mod-field { display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 13px; }
+.mod-field > span:first-child { width: 80px; flex: none; color: var(--muted); }
+.mod-field input[type='range'] { flex: 1; min-width: 60px; }
+.mod-field .mono { width: 64px; text-align: right; color: var(--muted); }
+.mods > .btn { align-self: flex-start; }
+
 /* Drop */
 
 .drop-overlay {
@@ -282,6 +379,6 @@ input[type='range'] { accent-color: var(--accent); }
 
 @media (max-width: 800px) {
   .layout { grid-template-columns: minmax(0, 1fr); }
-  .panel.queue { grid-row: auto; }
+  .panel.visuals { grid-row: auto; }
   .crossfade { margin-left: 0; }
 }
