@@ -60,6 +60,8 @@ export const en: Messages = {
   'input.error.notFound': 'Device not found.',
   'input.error.generic': 'Could not open the input.',
   'input.error.noScreenAudio': 'No audio was shared. Turn on audio sharing.',
+  'input.error.screenUnsupported':
+    'This browser does not share tab or system audio; Chrome and Edge do. Alternative: if your sound card offers a system capture device (on Windows, "Stereo Mix"), pick it under Microphone.',
   'input.error.stream': 'Could not connect. The server must allow CORS.',
   'level.title': 'Analysis level',
 }

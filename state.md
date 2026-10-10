@@ -16,7 +16,8 @@ Visualizador de audio en tiempo real para navegador, en reconstrucción desde ce
 - Fases 1 y 2 de 10 hechas. Base: TypeScript 7, React 19, Vite 8, Vitest 5, store propio, español e inglés, ajustes en IndexedDB, CI con despliegue a Pages
 - Fase 2: reproductor con gapless y fundido, lista con archivos, carpetas y arrastre, etiquetas y carátula (`music-metadata`), Media Session; fuentes micrófono, pestaña o sistema y stream; ganancia de entrada y medidor de nivel; sesión que sobrevive a recargar (copias en OPFS opcionales, referencias en Chrome)
 - Comprobado el 2026-10-10, silenciado, en Chrome headless (CDP) y Firefox (Playwright): gapless al sample, fundido de 2 s, pausa, atajos, micrófono falso, stream del mismo origen y error CORS, archivo roto, restauración tras recargar. 26 tests unitarios en verde
-- Sin probar: captura de pestaña o sistema, añadir carpeta, arrastrar archivos y reordenar arrastrando, referencias de archivos de Chrome (la prueba forzó el selector clásico), pistas largas por `<audio>`, teclas multimedia reales, Safari, móvil
+- Probado por mykl en su Firefox (2026-10-10): añadir carpeta, arrastrar archivos, reordenar y teclas multimedia funcionan. La captura de pestaña no existe en Firefox ni Safari (sin audio); la app ahora lo explica en vez de intentarlo
+- Sin probar: captura de pestaña en Chrome o Edge, referencias de archivos de Chrome, pistas largas por `<audio>`, Safari, móvil
 - Aún no hay visualizaciones
 - La versión anterior (canvas, 8 visualizaciones) está en `.archive/v0/`, fuera de git, y en el historial hasta `7a63da1`
 - Repo privado en GitHub, Pages sin activar. Se publicará al terminar la app (decisión de mykl, 2026-10-10)
@@ -35,6 +36,6 @@ Visualizador de audio en tiempo real para navegador, en reconstrucción desde ce
 ## TODO
 
 - [ ] Al terminar la app: repo público, activar Pages con origen GitHub Actions (`gh api -X POST repos/memoriainfinita/Spectra-visio/pages -f build_type=workflow`) y push
-- [ ] Revisión de mykl de la fase 2 en su Firefox: añadir carpeta, arrastrar, teclas multimedia, captura de pestaña
+- [ ] Probar la captura de pestaña en Chrome o Edge
 - [ ] Probar stream con CORS real de otro dominio
 - [ ] Fase 3: análisis (bandas logarítmicas, golpes, BPM, estéreo, suavizado) y compensación de latencia
