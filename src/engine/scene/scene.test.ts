@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { VISUALS, clampParam, defaultParams, fromUnit, getVisual, paramsOf, toUnit } from '../render/registry'
-import { defaultScene, normalizeScene, visualSettings } from './scene'
+import { CLIP_COLUMNS, MAX_LAYERS, SCENE_VERSION, applyClip, clipOf, defaultScene, layerAmount, newLayer, normalizeScene, visualSettings } from './scene'
 
 describe('registry', () => {
   test('unique ids, defaults inside their ranges, a name for every option', () => {
@@ -33,14 +33,64 @@ describe('scene normalization', () => {
     expect(normalizeScene('x')).toEqual(defaultScene())
   })
 
-  test('valid fields kept, invalid replaced', () => {
-    const s = normalizeScene({ layers: [{ visual: 'plasma' }, { visual: 'nope' }], crossfade: 4, blend: 'screen', selected: 1 })
-    expect(s.layers[0].visual).toBe('plasma')
-    expect(s.layers[1].visual).toBe(defaultScene().layers[1].visual)
+  test('scenes before the layer stack become layers A and B, with the old blend on B', () => {
+    const s = normalizeScene({ version: 3, layers: [{ visual: 'plasma' }, { visual: 'nope' }], crossfade: 4, blend: 'screen', selected: 1, effects: [{ id: 'f', type: 'mirror' }] })
+    expect(s.layers.map((l) => [l.visual, l.side, l.blend])).toEqual([
+      ['plasma', 'a', 'normal'],
+      [defaultScene().layers[1].visual, 'b', 'screen'],
+    ])
     expect(s.crossfade).toBe(1)
-    expect(s.blend).toBe('screen')
     expect(s.selected).toBe(1)
-    expect(normalizeScene({ blend: 'glow' }).blend).toBe('normal')
+    expect(s.effects.map((e) => e.type)).toEqual(['mirror'])
+    expect(normalizeScene({ version: 3, blend: 'glow' }).layers[1].blend).toBe('normal')
+  })
+
+  test('layer stack: fields checked, ids unique, at most MAX_LAYERS', () => {
+    const s = normalizeScene({
+      version: SCENE_VERSION,
+      layers: [
+        { id: 'x', visual: 'plasma', opacity: 3, blend: 'add', bypass: true, side: null, clips: [{ visual: 'tunnel' }, { visual: 'nope' }], active: 1 },
+        { id: 'x', visual: 'tunnel', side: 'b', solo: true, active: 0 },
+        ...Array.from({ length: 10 }, () => ({})),
+      ],
+      selected: 99,
+    })
+    expect(s.layers).toHaveLength(MAX_LAYERS)
+    expect(new Set(s.layers.map((l) => l.id)).size).toBe(MAX_LAYERS)
+    expect(s.layers[0]).toMatchObject({ id: 'x', visual: 'plasma', opacity: 1, blend: 'add', bypass: true, side: null, active: null })
+    expect(s.layers[0].clips).toHaveLength(CLIP_COLUMNS)
+    expect(s.layers[0].clips[0]?.visual).toBe('tunnel')
+    expect(s.layers[0].clips[1]).toBeNull()
+    expect(s.layers[1]).toMatchObject({ side: 'b', solo: true, active: null })
+    expect(s.selected).toBe(MAX_LAYERS - 1)
+    expect(normalizeScene({ version: SCENE_VERSION, layers: [] }).layers).toEqual(defaultScene().layers)
+  })
+
+  test('layer amount: opacity, crossfader side, bypass and solo', () => {
+    const s = defaultScene()
+    s.layers.push({ ...newLayer('l3'), opacity: 0.5 })
+    const amounts = () => s.layers.map((_, i) => layerAmount(s, i))
+    expect(amounts()).toEqual([1, 0, 0.5])
+    s.crossfade = 0.5
+    expect(amounts()).toEqual([1, 1, 0.5])
+    s.crossfade = 0.75
+    expect(amounts()).toEqual([0.5, 1, 0.5])
+    s.layers[1].bypass = true
+    expect(amounts()).toEqual([0.5, 0, 0.5])
+    s.layers[2].solo = true
+    expect(amounts()).toEqual([0, 0, 0.5])
+  })
+
+  test('a clip carries visualization, settings and effects; applying marks its column', () => {
+    const s = defaultScene()
+    s.layers[0].effects = [{ id: 'f1', type: 'mirror', enabled: true, params: {}, mods: {} }]
+    const clip = clipOf(s.layers[0])
+    const next = applyClip(s, 1, clip, 4)
+    expect(next.layers[1]).toMatchObject({ visual: 'kaleido', active: 4 })
+    expect(next.layers[1].perVisual.kaleido).toEqual(clip.settings)
+    expect(next.layers[1].effects[0].type).toBe('mirror')
+    expect(next.layers[1].effects[0].id).not.toBe('f1')
+    expect(applyClip(s, 1, { ...clip, visual: 'gone' })).toBe(s)
   })
 
   test('stored parameters and modulations are checked against the visualization', () => {

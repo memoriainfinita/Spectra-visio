@@ -1,37 +1,32 @@
 import { getVisual } from '../render/registry'
-import { normalizeEffects, normalizeVisualSettings, visualSettings, type EffectState, type SceneState, type VisualSettings } from './scene'
+import { applyClip, clipOf, normalizeEffects, normalizeVisualSettings, type Clip, type SceneState } from './scene'
 
-// A preset is one visualization with its values and modulations, plus the effect chain.
-// Loading it puts the visualization on a layer and replaces the chain.
+// A preset is a named clip: one visualization with its values and modulations, plus the
+// layer's effects. Loading it puts both on a layer. Files from before the layer stack
+// held the global chain there; it loads as the layer's.
 
 export const PRESET_FORMAT = 'spectravisio-presets'
 export const PRESET_VERSION = 1
 export const NAME_MAX = 60
 
-export interface Preset {
+export interface Preset extends Clip {
   id: string
   name: string
   // Milliseconds since the epoch.
   created: number
-  visual: string
-  settings: VisualSettings
-  effects: EffectState[]
 }
 
 export function cleanName(name: string): string {
   return name.replace(/\s+/g, ' ').trim().slice(0, NAME_MAX)
 }
 
-export function presetFrom(scene: SceneState, layer: 0 | 1, name: string, id: string, created: number): Preset {
-  const l = scene.layers[layer]
-  return { id, name: cleanName(name), created, visual: l.visual, settings: visualSettings(l), effects: scene.effects }
+export function presetFrom(scene: SceneState, layer: number, name: string, id: string, created: number): Preset {
+  const { visual, settings, effects } = clipOf(scene.layers[layer])
+  return { id, name: cleanName(name), created, visual, settings, effects }
 }
 
-export function applyPreset(scene: SceneState, layer: 0 | 1, p: Preset): SceneState {
-  const layers: SceneState['layers'] = [...scene.layers]
-  const l = layers[layer]
-  layers[layer] = { visual: p.visual, perVisual: { ...l.perVisual, [p.visual]: p.settings } }
-  return { ...scene, layers, effects: p.effects }
+export function applyPreset(scene: SceneState, layer: number, p: Preset): SceneState {
+  return applyClip(scene, layer, { visual: p.visual, settings: p.settings, effects: p.effects })
 }
 
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v)

@@ -5,6 +5,7 @@ import { LANGS, isLang } from './i18n'
 import { AnalysisPanel } from './ui/Analysis'
 import { Auto } from './ui/Auto'
 import { Browser } from './ui/Browser'
+import { Clips } from './ui/Clips'
 import { opfsSupported } from './storage/opfs'
 import { useFileDrop, usePlayerShortcuts } from './ui/hooks'
 import { Queue } from './ui/Queue'
@@ -20,7 +21,7 @@ import { NowPlaying, Transport } from './ui/Transport'
 import { useStore } from './ui/useStore'
 import { useT } from './ui/useT'
 
-const PHASE = 7
+const PHASE = 8
 const TOTAL_PHASES = 10
 
 export function App() {
@@ -66,6 +67,7 @@ export function App() {
         </section>
         <Queue />
         <Browser />
+        <Clips />
         <Visuals />
         <Auto />
         <Effects />

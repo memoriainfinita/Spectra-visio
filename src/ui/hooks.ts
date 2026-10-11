@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { toggleAuto } from '../app/auto'
 import { addPicked, analysis, player } from '../app/engine'
+import { launchColumn } from '../app/scene'
 import { fromDrop } from '../engine/player/pick'
 import { useStore } from './useStore'
 
@@ -48,6 +49,7 @@ export function usePlayerShortcuts(): void {
       else if (e.key === 'ArrowLeft') player.seek(player.position() - SEEK_STEP)
       else if (e.key === 't' || e.key === 'T') analysis.tap()
       else if (e.key === 'a' || e.key === 'A') toggleAuto()
+      else if (e.key >= '1' && e.key <= '9' && e.key.length === 1) launchColumn(Number(e.key) - 1)
       else return
       e.preventDefault()
       // A focused button would also be clicked by the Space keyup.

@@ -17,14 +17,23 @@ import { defaultOverlays, normalizeOverlays, type OverlaySettings } from '../ove
 import { clampParam, defaultParams, getVisual, paramsOf } from '../render/registry'
 import type { ParamDef, Params } from '../render/visual'
 
-// What is on screen: two layers, the crossfader between them, how they blend and the
-// effects applied to the result.
+// What is on screen, as in a VJ composition: a stack of layers, each blended onto the ones
+// below with its opacity, the crossfader between the layers of side A and side B, and the
+// effects applied to the result. Each layer keeps a row of clips to launch.
 
 export const BLEND_MODES = ['normal', 'add', 'screen', 'multiply', 'difference', 'lighten'] as const
 export type BlendMode = (typeof BLEND_MODES)[number]
 
-// 2 added the effect chain, 3 the overlays; older scenes load without them.
-export const SCENE_VERSION = 3
+// 2 added the effect chain, 3 the overlays, 4 the layer stack and the clips. Older scenes
+// load as two layers, A and B, with the old blend on B.
+export const SCENE_VERSION = 4
+
+export const MAX_LAYERS = 8
+// Clips per layer, one per column; columns are launched with the number keys.
+export const CLIP_COLUMNS = 9
+export const SIDES = ['a', 'b'] as const
+export type Side = (typeof SIDES)[number]
+export const DEFAULT_VISUAL = 'kaleido'
 
 // Tweaks per visualization, kept when the layer switches away and back.
 export interface VisualSettings {
@@ -33,27 +42,52 @@ export interface VisualSettings {
   mods: Record<string, Modulation[]>
 }
 
-// One entry of the effect chain. `id` tells two entries of the same effect apart.
+// One entry of an effect chain. `id` tells two entries of the same effect apart, in the
+// whole scene.
 export interface EffectState extends VisualSettings {
   id: string
   type: string
   enabled: boolean
 }
 
+// What a clip holds, and a preset too: a visualization with its settings and the layer's effects.
+export interface Clip {
+  visual: string
+  settings: VisualSettings
+  effects: EffectState[]
+}
+
 export interface LayerState {
+  // Stable while layers are added, removed and moved.
+  id: string
   visual: string
   perVisual: Record<string, VisualSettings>
+  opacity: number
+  // How the layer is drawn onto the layers below.
+  blend: BlendMode
+  // Off: not drawn.
+  bypass: boolean
+  // While any layer is solo, only solo layers are drawn.
+  solo: boolean
+  // Side of the crossfader; null: the crossfader does not touch it.
+  side: Side | null
+  // Applied to this layer before it is blended.
+  effects: EffectState[]
+  // CLIP_COLUMNS cells; null is empty.
+  clips: (Clip | null)[]
+  // Column of the clip last launched on this layer; null after a change by hand.
+  active: number | null
 }
 
 export interface SceneState {
   version: typeof SCENE_VERSION
-  layers: [LayerState, LayerState]
-  // 0 shows A only, 1 B only.
+  // Bottom first.
+  layers: LayerState[]
+  // 0: side A at full and B hidden; 0.5: both at full; 1: B at full and A hidden.
   crossfade: number
-  blend: BlendMode
-  // Layer whose parameters the panel shows.
-  selected: 0 | 1
-  // Applied in order after the layers are blended.
+  // Index of the layer the panels edit.
+  selected: number
+  // Composition effects, applied in order after the layers are blended.
   effects: EffectState[]
   // Seconds a layer takes to fade from one visualization to the next; 0 cuts.
   transition: number
@@ -62,20 +96,33 @@ export interface SceneState {
 
 export const TRANSITION_MAX = 10
 
+let seq = 0
+// Unique enough across visits: time plus a counter.
+export const newId = (prefix: string) => `${prefix}${Date.now().toString(36)}${++seq}`
+
+export function newLayer(id: string, visual = DEFAULT_VISUAL, side: Side | null = null): LayerState {
+  return { id, visual, perVisual: {}, opacity: 1, blend: 'normal', bypass: false, solo: false, side, effects: [], clips: new Array(CLIP_COLUMNS).fill(null), active: null }
+}
+
 export function defaultScene(): SceneState {
   return {
     version: SCENE_VERSION,
-    layers: [
-      { visual: 'kaleido', perVisual: {} },
-      { visual: 'tunnel', perVisual: {} },
-    ],
+    layers: [newLayer('l1', 'kaleido', 'a'), newLayer('l2', 'tunnel', 'b')],
     crossfade: 0,
-    blend: 'normal',
     selected: 0,
     effects: [],
     transition: 1.5,
     overlays: defaultOverlays(),
   }
+}
+
+// How much of the layer is drawn, 0 to 1: opacity, bypass, solo and the crossfader.
+export function layerAmount(scene: SceneState, i: number): number {
+  const l = scene.layers[i]
+  if (!l || l.bypass || (!l.solo && scene.layers.some((x) => x.solo))) return 0
+  const x = scene.crossfade
+  const side = l.side === 'a' ? Math.min(1, 2 * (1 - x)) : l.side === 'b' ? Math.min(1, 2 * x) : 1
+  return l.opacity * side
 }
 
 // Settings of `visual` in this layer: the current one unless told otherwise.
@@ -84,6 +131,26 @@ export function visualSettings(layer: LayerState, visual = layer.visual): Visual
   if (saved) return saved
   const def = getVisual(visual)
   return { params: def ? defaultParams(def) : {}, mods: {} }
+}
+
+export function clipOf(layer: LayerState): Clip {
+  return { visual: layer.visual, settings: visualSettings(layer), effects: layer.effects }
+}
+
+// Puts a clip on a layer. Its effects get new ids, so the same clip on two layers keeps
+// two histories. `column` marks the layer as playing that cell.
+export function applyClip(scene: SceneState, i: number, clip: Clip, column: number | null = null): SceneState {
+  const l = scene.layers[i]
+  if (!l || !getVisual(clip.visual)) return scene
+  const layers = [...scene.layers]
+  layers[i] = {
+    ...l,
+    visual: clip.visual,
+    perVisual: { ...l.perVisual, [clip.visual]: clip.settings },
+    effects: clip.effects.map((e) => ({ ...e, id: newId('fx') })),
+    active: column,
+  }
+  return { ...scene, layers }
 }
 
 // --- Normalization of stored data ---
@@ -165,6 +232,12 @@ export function defaultEffectParams(type: string): Params {
   return def ? Object.fromEntries(def.params.map((p) => [p.id, p.default])) : {}
 }
 
+function normalizeClip(raw: unknown): Clip | null {
+  if (!isObj(raw) || typeof raw.visual !== 'string') return null
+  const settings = normalizeVisualSettings(raw.visual, isObj(raw.settings) ? raw.settings : {})
+  return settings ? { visual: raw.visual, settings, effects: normalizeEffects(raw.effects) } : null
+}
+
 function normalizeLayer(raw: unknown, fallback: LayerState): LayerState {
   if (!isObj(raw)) return fallback
   const visual = typeof raw.visual === 'string' && getVisual(raw.visual) ? raw.visual : fallback.visual
@@ -175,22 +248,60 @@ function normalizeLayer(raw: unknown, fallback: LayerState): LayerState {
       if (s) perVisual[id] = s
     }
   }
-  return { visual, perVisual }
+  const rawClips = Array.isArray(raw.clips) ? raw.clips : []
+  const clips = Array.from({ length: CLIP_COLUMNS }, (_, c) => normalizeClip(rawClips[c]))
+  const active = typeof raw.active === 'number' && Number.isInteger(raw.active) && clips[raw.active] ? raw.active : null
+  return {
+    id: fallback.id,
+    visual,
+    perVisual,
+    opacity: num(raw.opacity, 0, 1, fallback.opacity),
+    blend: oneOf(raw.blend, BLEND_MODES, fallback.blend),
+    bypass: raw.bypass === true,
+    solo: raw.solo === true,
+    side: raw.side === 'a' || raw.side === 'b' ? raw.side : raw.side === null ? null : fallback.side,
+    effects: normalizeEffects(raw.effects),
+    clips,
+    active,
+  }
+}
+
+// Scenes before version 4 had two layers, A and B, and one blend mode between them.
+function legacyLayers(raw: Record<string, unknown>): LayerState[] {
+  const d = defaultScene().layers
+  const old = Array.isArray(raw.layers) ? raw.layers : []
+  const a = normalizeLayer(isObj(old[0]) ? { ...old[0], side: 'a', blend: 'normal' } : null, d[0])
+  const b = normalizeLayer(isObj(old[1]) ? { ...old[1], side: 'b', blend: raw.blend } : null, d[1])
+  return [a, b]
 }
 
 export function normalizeScene(raw: unknown): SceneState {
   const d = defaultScene()
   if (!isObj(raw)) return d
-  const layers = Array.isArray(raw.layers) ? raw.layers : []
+  let layers: LayerState[]
+  if (raw.version === SCENE_VERSION) {
+    const list = Array.isArray(raw.layers) ? raw.layers.slice(0, MAX_LAYERS) : []
+    const ids = new Set<string>()
+    layers = []
+    list.forEach((r, i) => {
+      // Missing or repeated ids get a fresh one.
+      let id = isObj(r) && typeof r.id === 'string' && r.id && !ids.has(r.id) ? r.id : `l${i + 1}`
+      while (ids.has(id)) id += 'x'
+      ids.add(id)
+      layers.push(normalizeLayer(r, { ...newLayer(id), side: null }))
+    })
+    if (!layers.length) layers = d.layers
+  } else {
+    layers = legacyLayers(raw)
+  }
+  const selected = typeof raw.selected === 'number' && Number.isInteger(raw.selected) ? Math.max(0, Math.min(layers.length - 1, raw.selected)) : 0
   return {
     version: SCENE_VERSION,
-    layers: [normalizeLayer(layers[0], d.layers[0]), normalizeLayer(layers[1], d.layers[1])],
+    layers,
     crossfade: num(raw.crossfade, 0, 1, d.crossfade),
-    blend: oneOf(raw.blend, BLEND_MODES, d.blend),
-    selected: raw.selected === 1 ? 1 : 0,
+    selected,
     effects: normalizeEffects(raw.effects),
     transition: num(raw.transition, 0, TRANSITION_MAX, d.transition),
     overlays: normalizeOverlays(raw.overlays),
   }
 }
-
