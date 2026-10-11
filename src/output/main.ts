@@ -23,7 +23,7 @@ document.documentElement.lang = lang
 const style = document.createElement('style')
 style.textContent = `
 html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
-canvas { display: block; width: 100vw; height: 100vh; }
+canvas { display: block; width: 100vw; height: 100vh; object-fit: contain; }
 body.idle { cursor: none; }
 .lost { position: fixed; inset: auto 0 24px; text-align: center; color: #7b86a5; font: 14px system-ui, sans-serif; }
 `
@@ -73,6 +73,7 @@ function sync(b: OutputBridge & { attach?(w: Window): void }): void {
     setVisualSource(v)
   }
   scene = b.scene()
+  renderer.setFixedSize(b.size())
 }
 
 function setConnected(on: boolean): void {

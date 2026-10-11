@@ -1,6 +1,7 @@
 import type { AnalysisFrame } from '../analysis/analyzer'
 import type { OutputState } from '../live/live'
 import type { OverlayData } from '../overlay/overlay'
+import type { PixelSize } from './format'
 import type { VisualSource } from '../render/visualInput'
 import type { SceneState } from '../scene/scene'
 import type { UserShader } from '../shaders/userVisual'
@@ -23,6 +24,8 @@ export interface OutputBridge {
   overlay(): OverlayData
   visual(): VisualSource | null
   shaders(): readonly UserShader[]
+  // The fixed size the main window renders at, or null when it follows its canvas.
+  size(): PixelSize | null
   // A key pressed in the output window, as `keyCombo` writes it.
   key(combo: string): void
 }

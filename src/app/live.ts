@@ -4,6 +4,7 @@ import { OutputStage, bindKey, type ActionId, type OutputState } from '../engine
 import { toggleAuto } from './auto'
 import { moveCrossfader } from './crossfader'
 import { analysis, player, renderer } from './engine'
+import { toggleRecording } from './record'
 import { launchColumn, sceneStore } from './scene'
 import { settingsStore } from './settings'
 
@@ -70,6 +71,8 @@ export function runAction(id: ActionId): void {
     case 'freeze':
     case 'strobe':
       return toggleLive(id)
+    case 'record':
+      return toggleRecording()
   }
 }
 

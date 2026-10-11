@@ -20,6 +20,7 @@ export const ACTIONS = [
   'blackout',
   'freeze',
   'strobe',
+  'record',
 ] as const
 export type ActionId = (typeof ACTIONS)[number]
 
@@ -43,6 +44,7 @@ export const DEFAULT_KEYS: KeyMap = {
   blackout: 'b',
   freeze: 'f',
   strobe: 's',
+  record: 'r',
 }
 
 // A key as stored: printable keys in lower case (Shift is already in the character),
@@ -94,16 +96,36 @@ export const BLACKOUT_FADE_MS = 250
 
 export interface LiveSettings {
   keys: KeyMap
+  // The actions there were when the keys were saved: a later one gets its default key.
+  known: ActionId[]
   strobe: StrobeRate
 }
 
-export const DEFAULT_LIVE: LiveSettings = { keys: DEFAULT_KEYS, strobe: 'beat' }
+export const DEFAULT_LIVE: LiveSettings = { keys: DEFAULT_KEYS, known: [...ACTIONS], strobe: 'beat' }
+
+// Actions added after keys were first saved, which stored maps without `known` lack.
+const LATER_ACTIONS: readonly ActionId[] = ['record']
+
+// New actions take their default key unless something else already has it.
+export function withNewActions(keys: KeyMap, known: readonly ActionId[]): KeyMap {
+  const out = { ...keys }
+  const used = new Set(Object.values(keys))
+  for (const id of ACTIONS) {
+    const key = DEFAULT_KEYS[id]
+    if (known.includes(id) || !key || used.has(key)) continue
+    out[id] = key
+    used.add(key)
+  }
+  return out
+}
 
 export function normalizeLive(raw: unknown): LiveSettings {
   if (typeof raw !== 'object' || raw === null) return DEFAULT_LIVE
   const r = raw as Record<string, unknown>
+  const known = Array.isArray(r.known) ? r.known.filter(isAction) : ACTIONS.filter((id) => !LATER_ACTIONS.includes(id))
   return {
-    keys: r.keys === undefined ? DEFAULT_KEYS : normalizeKeys(r.keys),
+    keys: r.keys === undefined ? DEFAULT_KEYS : withNewActions(normalizeKeys(r.keys), known),
+    known: [...ACTIONS],
     strobe: (STROBE_RATES as readonly unknown[]).includes(r.strobe) ? (r.strobe as StrobeRate) : DEFAULT_LIVE.strobe,
   }
 }

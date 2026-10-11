@@ -4,6 +4,7 @@ import { EffectChain, type ChainStep } from '../effects/chain'
 import type { OutputState } from '../live/live'
 import { getEffect } from '../effects/registry'
 import { Modulator } from '../modulation/modulation'
+import { fixedRatio, type PixelSize } from '../output/format'
 import { OverlayRenderer, anyOverlay, type OverlayData } from '../overlay/overlay'
 import { layerAmount, visualSettings, type EffectState, type LayerState, type SceneState, type VisualSettings } from '../scene/scene'
 import { Compositor, Layer, type LayerImage } from './compositor'
@@ -72,6 +73,8 @@ export class Renderer {
   // The last image shown before the overlays, kept while the output is frozen.
   private shown: WebGLTexture | null = null
   private surface: Surface = { width: 1, height: 1, dpr: 1 }
+  private css = { width: 1, height: 1, dpr: 1 }
+  private fixed: PixelSize | null = null
   private readonly seen = new Uint32Array(BEAT_SLOTS)
   private seenValid = false
   private readonly frame: VisualFrame = { time: 0, dt: 0, analysis: null, wave: new Float32Array(WAVE_SIZE), hits: new Array(BEAT_SLOTS).fill(false) }
@@ -106,17 +109,50 @@ export class Renderer {
     this.canvas = null
   }
 
-  // CSS size of the canvas and the device pixel ratio; the internal size follows, capped.
+  // CSS size of the canvas and the device pixel ratio; the internal size follows, capped,
+  // unless a fixed size is set.
   resize(cssWidth: number, cssHeight: number, dpr: number): void {
-    let scale = dpr
-    const pixels = cssWidth * cssHeight * scale * scale
-    if (pixels > MAX_PIXELS) scale *= Math.sqrt(MAX_PIXELS / pixels)
-    const width = Math.max(1, Math.round(cssWidth * scale))
-    const height = Math.max(1, Math.round(cssHeight * scale))
-    this.surface = { width, height, dpr: scale }
-    if (this.canvas && (this.canvas.width !== width || this.canvas.height !== height)) {
-      this.canvas.width = width
-      this.canvas.height = height
+    this.css = { width: cssWidth, height: cssHeight, dpr }
+    this.applySize()
+  }
+
+  // Renders at exactly this many pixels whatever the canvas shows; null follows the canvas.
+  setFixedSize(size: PixelSize | null): void {
+    if (size === this.fixed || (size && this.fixed && size.width === this.fixed.width && size.height === this.fixed.height)) return
+    this.fixed = size
+    this.applySize()
+  }
+
+  // The output canvas, for recording.
+  get element(): HTMLCanvasElement | null {
+    return this.canvas
+  }
+
+  // The fixed size set, or null when following the canvas.
+  get fixedSize(): PixelSize | null {
+    return this.fixed
+  }
+
+  // The size the composition renders at now.
+  get pixels(): PixelSize {
+    return { width: this.surface.width, height: this.surface.height }
+  }
+
+  private applySize(): void {
+    let surface: Surface
+    if (this.fixed) {
+      surface = { width: this.fixed.width, height: this.fixed.height, dpr: fixedRatio(this.fixed) }
+    } else {
+      const { width: cssWidth, height: cssHeight, dpr } = this.css
+      let scale = dpr
+      const pixels = cssWidth * cssHeight * scale * scale
+      if (pixels > MAX_PIXELS) scale *= Math.sqrt(MAX_PIXELS / pixels)
+      surface = { width: Math.max(1, Math.round(cssWidth * scale)), height: Math.max(1, Math.round(cssHeight * scale)), dpr: scale }
+    }
+    this.surface = surface
+    if (this.canvas && (this.canvas.width !== surface.width || this.canvas.height !== surface.height)) {
+      this.canvas.width = surface.width
+      this.canvas.height = surface.height
     }
   }
 
