@@ -9,6 +9,7 @@ import { initMidi } from './app/midi'
 import { initOutput } from './app/output'
 import { initOverlays } from './app/overlays'
 import { initPresets } from './app/presets'
+import { initRecord } from './app/record'
 import { initScene } from './app/scene'
 import { initSettings } from './app/settings'
 import { initShaders } from './app/shaders'
@@ -26,6 +27,7 @@ await initEngine()
 initLive()
 initMidi()
 initOutput()
+await initRecord()
 await initOverlays()
 await initTrackAnalysis()
 

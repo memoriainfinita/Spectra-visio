@@ -2,6 +2,8 @@ import { get, set } from 'idb-keyval'
 import { DEFAULT_AUTO, normalizeAuto, type AutoSettings } from '../engine/auto/auto'
 import { DEFAULT_LIVE, normalizeLive, type LiveSettings } from '../engine/live/live'
 import { DEFAULT_MIDI, normalizeMidi, type MidiSettings } from '../engine/midi/midi'
+import { DEFAULT_FORMAT, normalizeFormat, type OutputFormat } from '../engine/output/format'
+import { DEFAULT_RECORD, normalizeRecord, type RecordSettings } from '../engine/record/recorder'
 import { isLang, type Lang } from '../i18n'
 
 const KEY = 'settings'
@@ -35,6 +37,9 @@ export interface Settings {
   // Keyboard shortcuts and the strobe rate.
   live: LiveSettings
   midi: MidiSettings
+  // Size of the composition, for the stage, the output window, recordings and OBS.
+  format: OutputFormat
+  record: RecordSettings
 }
 
 export function defaultSettings(lang: Lang): Settings {
@@ -46,6 +51,8 @@ export function defaultSettings(lang: Lang): Settings {
     auto: DEFAULT_AUTO,
     live: DEFAULT_LIVE,
     midi: DEFAULT_MIDI,
+    format: DEFAULT_FORMAT,
+    record: DEFAULT_RECORD,
   }
 }
 
@@ -83,6 +90,8 @@ export function normalizeSettings(raw: unknown, defaults: Settings): Settings {
     auto: r.auto === undefined ? defaults.auto : normalizeAuto(r.auto),
     live: r.live === undefined ? defaults.live : normalizeLive(r.live),
     midi: r.midi === undefined ? defaults.midi : normalizeMidi(r.midi),
+    format: r.format === undefined ? defaults.format : normalizeFormat(r.format),
+    record: r.record === undefined ? defaults.record : normalizeRecord(r.record),
   }
 }
 

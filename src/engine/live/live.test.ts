@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { DEFAULT_KEYS, FLASH_MS, MIN_FLASH_GAP_MS, OutputStage, actionForKey, bindKey, keyCombo, normalizeKeys, normalizeLive, type OutputInput } from './live'
+import { ACTIONS, DEFAULT_KEYS, FLASH_MS, MIN_FLASH_GAP_MS, OutputStage, actionForKey, bindKey, keyCombo, normalizeKeys, normalizeLive, type OutputInput } from './live'
 
 const key = (k: string, mods: Partial<{ shiftKey: boolean; ctrlKey: boolean; altKey: boolean; metaKey: boolean }> = {}) =>
   keyCombo({ key: k, shiftKey: false, ctrlKey: false, altKey: false, metaKey: false, ...mods })
@@ -33,7 +33,15 @@ describe('keys', () => {
     expect(normalizeKeys({ tap: 'q', auto: 'q', nope: 'w', blackout: 3, freeze: '' })).toEqual({ tap: 'q' })
     expect(normalizeLive(undefined).keys).toEqual(DEFAULT_KEYS)
     expect(normalizeLive({ strobe: 9 }).strobe).toBe('beat')
-    expect(normalizeLive({ strobe: 2, keys: {} })).toEqual({ strobe: 2, keys: {} })
+    expect(normalizeLive({ strobe: 2, keys: {}, known: ACTIONS })).toEqual({ strobe: 2, keys: {}, known: [...ACTIONS] })
+  })
+
+  test('an action added later gets its default key when it is free', () => {
+    // Saved before 'record' existed: it gets R, the rest stay as they were.
+    expect(normalizeLive({ keys: { tap: 'q' } }).keys).toEqual({ tap: 'q', record: 'r' })
+    expect(normalizeLive({ keys: { tap: 'r' } }).keys).toEqual({ tap: 'r' })
+    // Saved knowing it, and left without a key.
+    expect(normalizeLive({ keys: { tap: 'q' }, known: ACTIONS }).keys).toEqual({ tap: 'q' })
   })
 })
 

@@ -8,6 +8,7 @@ import { Browser } from './ui/Browser'
 import { Clips } from './ui/Clips'
 import { Live } from './ui/Live'
 import { Midi } from './ui/Midi'
+import { Output } from './ui/Output'
 import { opfsSupported } from './storage/opfs'
 import { useFileDrop, usePlayerShortcuts } from './ui/hooks'
 import { Queue } from './ui/Queue'
@@ -23,7 +24,7 @@ import { NowPlaying, Transport } from './ui/Transport'
 import { useStore } from './ui/useStore'
 import { useT } from './ui/useT'
 
-const PHASE = 8
+const PHASE = 9
 const TOTAL_PHASES = 10
 
 export function App() {
@@ -72,6 +73,7 @@ export function App() {
         <Clips />
         <Live />
         <Midi />
+        <Output />
         <Visuals />
         <Auto />
         <Effects />

@@ -6,6 +6,8 @@ import { FFT_SIZE } from '../analysis/analyzer'
 //                          │
 //   mic / screen ─────► inputGain ─► splitter ─► analyser L / analyser R
 //
+//   playerBus + mic / screen ─► mix (what the analysis hears, before its gain; recordings)
+//
 // The volume sits after the analysis branch, so turning it down never changes what the
 // visuals see. External inputs (mic, screen capture) go to analysis only: playing the mic
 // back would feed back, and captured tab audio is already audible in its own tab.
@@ -15,6 +17,8 @@ export class AudioGraph {
   readonly playerBus: GainNode
   readonly volume: GainNode
   readonly inputGain: GainNode
+  // The player and the external input before the input gain: the sound a recording takes.
+  readonly mix: GainNode
   readonly analyserL: AnalyserNode
   readonly analyserR: AnalyserNode
   private external: AudioNode | null = null
@@ -25,6 +29,7 @@ export class AudioGraph {
     this.playerBus = ctx.createGain()
     this.volume = ctx.createGain()
     this.inputGain = ctx.createGain()
+    this.mix = ctx.createGain()
     // Mono inputs (most microphones) are spread to both channels before the split.
     this.inputGain.channelCount = 2
     this.inputGain.channelCountMode = 'explicit'
@@ -39,6 +44,7 @@ export class AudioGraph {
     }
     this.playerBus.connect(this.volume).connect(ctx.destination)
     this.playerBus.connect(this.inputGain)
+    this.playerBus.connect(this.mix)
     this.inputGain.connect(splitter)
     splitter.connect(this.analyserL, 0)
     splitter.connect(this.analyserR, 1)
@@ -53,6 +59,7 @@ export class AudioGraph {
     this.external?.disconnect()
     this.external = node
     node?.connect(this.inputGain)
+    node?.connect(this.mix)
   }
 
   // Smoothed so slider moves do not click.

@@ -1,11 +1,13 @@
 import { createStore } from '../core/store'
 import { actionForKey } from '../engine/live/live'
 import { BRIDGE_KEY, OUTPUT_PARAM, type OutputBridge } from '../engine/output/bridge'
+import { formatPixels } from '../engine/output/format'
 import { visualSource } from '../engine/render/visualInput'
 import { analysis, renderer } from './engine'
 import { liveOutput, runAction } from './live'
 import { controlValue } from './midi'
 import { overlayData } from './overlays'
+import { recordStore } from './record'
 import { sceneStore } from './scene'
 import { settingsStore } from './settings'
 import { shadersStore } from './shaders'
@@ -37,6 +39,7 @@ export function initOutput(): void {
     overlay: overlayData,
     visual: visualSource,
     shaders: () => shadersStore.get(),
+    size: () => renderer.fixedSize,
     key: (combo) => {
       const action = actionForKey(settingsStore.get().live.keys, combo)
       if (action) runAction(action)
@@ -45,10 +48,19 @@ export function initOutput(): void {
     attach: (w) => track(w),
   }
   ;(window as unknown as Record<string, unknown>)[BRIDGE_KEY] = bridge
-  outputStore.subscribe(() => {
+  // A recording takes this window's canvas, so it keeps drawing.
+  const pause = () => {
     const s = outputStore.get()
-    renderer.paused = s.open && !s.preview
-  })
+    renderer.paused = s.open && !s.preview && recordStore.get().status === 'idle'
+  }
+  outputStore.subscribe(pause)
+  recordStore.subscribe(pause)
+  // A recording fixes the size itself and sets it back when it ends.
+  const format = () => {
+    if (recordStore.get().status === 'idle') renderer.setFixedSize(formatPixels(settingsStore.get().format))
+  }
+  settingsStore.subscribe(format)
+  format()
 }
 
 function track(w: Window): void {
