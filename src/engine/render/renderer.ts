@@ -9,6 +9,8 @@ import { OverlayRenderer, anyOverlay, type OverlayData } from '../overlay/overla
 import { layerAmount, visualSettings, type EffectState, type LayerState, type SceneState, type VisualSettings } from '../scene/scene'
 import { Compositor, Layer, type LayerImage } from './compositor'
 import { Target } from './gl'
+import { FlashLimiter } from './limiter'
+import { FrameGate, QualityGovernor } from './quality'
 import { fromUnit, getVisual, paramsOf, toUnit } from './registry'
 import type { ParamDef, Params, Surface, VisualFrame } from './visual'
 
@@ -40,13 +42,15 @@ export interface RendererStatus {
   // Error key or message when WebGL2 is missing or a visualization failed to start.
   error: 'noWebgl' | string | null
   fps: number
+  // Internal resolution as a fraction of each side, below 1 when lowered for speed.
+  scale: number
 }
 
 // Draws the scene once per animation frame: evaluates modulations, renders the layers that
 // show, runs each one's effects, blends them bottom to top, runs the composition effects
 // and puts the result on the output canvas.
 export class Renderer {
-  readonly status = createStore<RendererStatus>({ error: null, fps: 0 })
+  readonly status = createStore<RendererStatus>({ error: null, fps: 0, scale: 1 })
   // Effective value of each parameter in 0–1 of its range, by layer id, for the panel.
   readonly live = new Map<string, Map<string, number>>()
   // The same per effect entry, by its id.
@@ -59,6 +63,8 @@ export class Renderer {
   paused = false
   // Brightness as alpha on a see-through canvas, for the OBS source. Set before attach.
   transparent = false
+  // Frames a second at most; 0 every animation frame.
+  fpsCap = 0
 
   private readonly scene: () => SceneState
   private readonly analysis: (now: number) => AnalysisFrame | null
@@ -79,6 +85,12 @@ export class Renderer {
   private surface: Surface = { width: 1, height: 1, dpr: 1 }
   private css = { width: 1, height: 1, dpr: 1 }
   private fixed: PixelSize | null = null
+  // Resolution lowered when the fps fall short, and the most low power allows.
+  private adaptive = false
+  private maxScale = 1
+  private readonly governor = new QualityGovernor()
+  private readonly gate = new FrameGate()
+  private limiter: FlashLimiter | null = null
   private readonly seen = new Uint32Array(BEAT_SLOTS)
   private seenValid = false
   private readonly frame: VisualFrame = { time: 0, dt: 0, analysis: null, wave: new Float32Array(WAVE_SIZE), hits: new Array(BEAT_SLOTS).fill(false) }
@@ -127,6 +139,15 @@ export class Renderer {
     this.applySize()
   }
 
+  // Lets the fps lower the resolution (never with a fixed size), up to `maxScale` of it.
+  setQuality(adaptive: boolean, maxScale: number): void {
+    if (adaptive === this.adaptive && maxScale === this.maxScale) return
+    this.adaptive = adaptive
+    this.maxScale = maxScale
+    if (!adaptive) this.governor.reset()
+    this.applySize()
+  }
+
   // The output canvas, for recording.
   get element(): HTMLCanvasElement | null {
     return this.canvas
@@ -144,6 +165,7 @@ export class Renderer {
 
   private applySize(): void {
     let surface: Surface
+    let lowered = 1
     if (this.fixed) {
       surface = { width: this.fixed.width, height: this.fixed.height, dpr: fixedRatio(this.fixed) }
     } else {
@@ -151,9 +173,12 @@ export class Renderer {
       let scale = dpr
       const pixels = cssWidth * cssHeight * scale * scale
       if (pixels > MAX_PIXELS) scale *= Math.sqrt(MAX_PIXELS / pixels)
+      lowered = Math.min(this.maxScale, this.adaptive ? this.governor.scale : 1)
+      scale *= lowered
       surface = { width: Math.max(1, Math.round(cssWidth * scale)), height: Math.max(1, Math.round(cssHeight * scale)), dpr: scale }
     }
     this.surface = surface
+    if (lowered !== this.status.get().scale) this.status.set((s) => ({ ...s, scale: lowered }))
     if (this.canvas && (this.canvas.width !== surface.width || this.canvas.height !== surface.height)) {
       this.canvas.width = surface.width
       this.canvas.height = surface.height
@@ -213,6 +238,8 @@ export class Renderer {
     this.stack = null
     this.final?.dispose()
     this.final = null
+    this.limiter?.dispose()
+    this.limiter = null
     this.shown = null
   }
 
@@ -232,6 +259,7 @@ export class Renderer {
     this.overlay = null
     this.stack = null
     this.final = null
+    this.limiter = null
     this.shown = null
   }
 
@@ -246,6 +274,7 @@ export class Renderer {
       if (this.status.get().fps) this.status.set((s) => ({ ...s, fps: 0 }))
       return
     }
+    if (!this.gate.pass(now, this.fpsCap)) return
     const dt = this.last === null ? 0 : Math.min(MAX_DT_S, (now - this.last) / 1000)
     this.last = now
     this.countFps(now)
@@ -266,12 +295,12 @@ export class Renderer {
       f.wave.fill(0)
       f.hits.fill(false)
     }
-    const out = this.output?.(now, a) ?? { black: 0, flash: 0, freeze: false }
+    const out = this.output?.(now, a) ?? { black: 0, flash: 0, freeze: false, reduceFlashes: false }
     const scene = this.scene()
     const { width, height } = this.surface
     // Frozen: nothing advances and the last image stays.
     if (out.freeze && this.shown) {
-      this.present(compositor, this.shown, out, scene, f.time)
+      this.present(compositor, this.shown, out, scene, f.time, dt)
       return
     }
     this.modulator.advance(f.time, dt, a)
@@ -303,7 +332,7 @@ export class Renderer {
       base = chain.run(base ?? compositor.black, steps, f, this.surface)
     }
     this.shown = base ?? compositor.black
-    this.present(compositor, this.shown, out, scene, f.time)
+    this.present(compositor, this.shown, out, scene, f.time, dt)
 
     for (const id of this.effectLive.keys()) if (!this.evaluated.has(id)) this.effectLive.delete(id)
     for (const id of this.live.keys()) if (!scene.layers.some((l) => l.id === id)) this.live.delete(id)
@@ -311,8 +340,13 @@ export class Renderer {
 
   // The image on the canvas with the blackout and the strobe flash, then the overlays,
   // which go dark with the blackout too. Transparent, all of it goes through the key.
-  private present(compositor: Compositor, image: WebGLTexture, out: OutputState, scene: SceneState, time: number): void {
+  // Reducing flashes, the image is limited first; the overlays are left as they are.
+  private present(compositor: Compositor, image: WebGLTexture, out: OutputState, scene: SceneState, time: number, dt: number): void {
     const { width, height } = this.surface
+    if (out.reduceFlashes) {
+      this.limiter ??= new FlashLimiter(compositor.gl)
+      image = this.limiter.run(image, width, height, dt)
+    } else this.limiter?.reset()
     const target = this.final
     target?.size(width, height)
     compositor.draw(null, { texture: image, outgoing: null, progress: 1 }, 1 - out.black, 'normal', width, height, target)
@@ -450,11 +484,21 @@ export class Renderer {
   }
 
   private countFps(now: number): void {
+    // After a pause or a hidden tab, start counting again rather than report the gap.
+    if (now - this.fpsStart > 2000) {
+      this.fpsStart = now
+      this.fpsFrames = 0
+    }
     this.fpsFrames++
     if (now - this.fpsStart < 1000) return
     const fps = Math.round((this.fpsFrames * 1000) / (now - this.fpsStart))
     this.fpsStart = now
     this.fpsFrames = 0
     if (fps !== this.status.get().fps) this.status.set((s) => ({ ...s, fps }))
+    if (this.adaptive && !this.fixed) {
+      const before = this.governor.level
+      this.governor.update(fps, this.fpsCap || 60, now / 1000)
+      if (this.governor.level !== before) this.applySize()
+    }
   }
 }

@@ -5,6 +5,7 @@ import { DEFAULT_MIDI, normalizeMidi, type MidiSettings } from '../engine/midi/m
 import { DEFAULT_OBS, normalizeObs, type ObsSettings } from '../engine/obs/settings'
 import { DEFAULT_FORMAT, normalizeFormat, type OutputFormat } from '../engine/output/format'
 import { DEFAULT_RECORD, normalizeRecord, type RecordSettings } from '../engine/record/recorder'
+import { DEFAULT_PERFORMANCE, normalizePerformance, type PerformanceSettings } from '../engine/render/quality'
 import { isLang, type Lang } from '../i18n'
 
 const KEY = 'settings'
@@ -42,9 +43,15 @@ export interface Settings {
   format: OutputFormat
   record: RecordSettings
   obs: ObsSettings
+  performance: PerformanceSettings
+  // Photosensitive safety on the output: no strobe, slow brightness rises.
+  reduceFlashes: boolean
+  // The photosensitivity notice was shown and answered.
+  flashNotice: boolean
 }
 
-export function defaultSettings(lang: Lang): Settings {
+// `reduceFlashes` follows the system's reduced motion preference until changed.
+export function defaultSettings(lang: Lang, reduceFlashes = false): Settings {
   return {
     version: SETTINGS_VERSION,
     lang,
@@ -56,6 +63,9 @@ export function defaultSettings(lang: Lang): Settings {
     format: DEFAULT_FORMAT,
     record: DEFAULT_RECORD,
     obs: DEFAULT_OBS,
+    performance: DEFAULT_PERFORMANCE,
+    reduceFlashes,
+    flashNotice: false,
   }
 }
 
@@ -96,6 +106,9 @@ export function normalizeSettings(raw: unknown, defaults: Settings): Settings {
     format: r.format === undefined ? defaults.format : normalizeFormat(r.format),
     record: r.record === undefined ? defaults.record : normalizeRecord(r.record),
     obs: r.obs === undefined ? defaults.obs : normalizeObs(r.obs),
+    performance: r.performance === undefined ? defaults.performance : normalizePerformance(r.performance),
+    reduceFlashes: bool(r.reduceFlashes, defaults.reduceFlashes),
+    flashNotice: bool(r.flashNotice, defaults.flashNotice),
   }
 }
 

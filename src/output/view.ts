@@ -3,6 +3,8 @@ import type { OutputBridge } from '../engine/output/bridge'
 import type { OverlayData } from '../engine/overlay/overlay'
 import { setUserVisuals } from '../engine/render/registry'
 import { Renderer } from '../engine/render/renderer'
+import { applyPerformance } from '../engine/render/quality'
+import { keepAwake } from '../engine/wakeLock'
 import type { VisualDef } from '../engine/render/visual'
 import { setVisualSource, type VisualSource } from '../engine/render/visualInput'
 import { defaultScene, type SceneState } from '../engine/scene/scene'
@@ -23,7 +25,7 @@ export interface ViewOptions {
 }
 
 const IDLE_CURSOR_MS = 2000
-const BLACK: OutputState = { black: 1, flash: 0, freeze: false }
+const BLACK: OutputState = { black: 1, flash: 0, freeze: false, reduceFlashes: false }
 const NO_OVERLAY: OverlayData = { trackId: null, title: '', artist: '', lyrics: null, time: 0, logo: null }
 
 export function startView(o: ViewOptions): void {
@@ -77,6 +79,9 @@ body.idle { cursor: none; }
     }
     scene = b.scene()
     renderer.setFixedSize(b.size())
+    // The OBS source has none: OBS sets its own frame rate.
+    const perf = b.performance?.()
+    if (perf) applyPerformance(renderer, perf)
   }
 
   function setConnected(on: boolean): void {
@@ -124,6 +129,9 @@ body.idle { cursor: none; }
     e.preventDefault()
     o.bridge()?.key(combo)
   })
+
+  // A projector should not go to sleep while it shows the image.
+  if (!o.transparent) keepAwake(() => connected === true, (fn) => window.setInterval(fn, 2000))
 
   let idle = 0
   window.addEventListener('pointermove', () => {

@@ -40,6 +40,7 @@ export function initOutput(): void {
     visual: visualSource,
     shaders: () => shadersStore.get(),
     size: () => renderer.fixedSize,
+    performance: () => settingsStore.get().performance,
     key: (combo) => {
       const action = actionForKey(settingsStore.get().live.keys, combo)
       if (action) runAction(action)

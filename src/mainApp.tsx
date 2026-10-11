@@ -9,12 +9,14 @@ import { initMidi } from './app/midi'
 import { initObs } from './app/obs'
 import { initOutput } from './app/output'
 import { initOverlays } from './app/overlays'
+import { initPower } from './app/power'
 import { initPresets } from './app/presets'
 import { initRecord } from './app/record'
 import { initScene } from './app/scene'
 import { initSettings } from './app/settings'
 import { initShaders } from './app/shaders'
 import { initTrackAnalysis } from './app/trackAnalysis'
+import { initUpdate } from './app/update'
 import './styles/tokens.css'
 import './styles/app.css'
 
@@ -29,6 +31,8 @@ initLive()
 initMidi()
 initOutput()
 initObs()
+initPower()
+initUpdate()
 await initRecord()
 await initOverlays()
 await initTrackAnalysis()

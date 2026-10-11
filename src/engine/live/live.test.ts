@@ -46,7 +46,7 @@ describe('keys', () => {
 })
 
 describe('output stage', () => {
-  const base: OutputInput = { now: 0, blackout: false, freeze: false, strobe: false, rate: 'beat', phase: null }
+  const base: OutputInput = { now: 0, blackout: false, freeze: false, strobe: false, rate: 'beat', reduceFlashes: false, phase: null }
 
   test('blackout fades in and out', () => {
     const o = new OutputStage()
@@ -79,5 +79,16 @@ describe('output stage', () => {
     const off = new OutputStage()
     expect(off.tick({ ...base, now: 0, phase: 0.9 }).flash).toBe(0)
     expect(off.tick({ ...base, now: 10, phase: 0.1 }).flash).toBe(0)
+  })
+
+  test('reducing flashes stops the strobe and says so to the renderer', () => {
+    const o = new OutputStage()
+    let any = false
+    for (let t = 0; t < 2000; t += 10) {
+      const out = o.tick({ ...base, now: t, strobe: true, rate: 3, reduceFlashes: true })
+      any ||= out.flash > 0
+      expect(out.reduceFlashes).toBe(true)
+    }
+    expect(any).toBe(false)
   })
 })

@@ -136,6 +136,8 @@ export interface OutputState {
   // 0 the image, 1 white.
   flash: number
   freeze: boolean
+  // Photosensitive safety: no strobe, and the image's brightness rises slowly.
+  reduceFlashes: boolean
 }
 
 export interface OutputInput {
@@ -144,6 +146,7 @@ export interface OutputInput {
   freeze: boolean
   strobe: boolean
   rate: StrobeRate
+  reduceFlashes: boolean
   // Beat phase of the tempo, 0–1; null without a tempo.
   phase: number | null
 }
@@ -167,11 +170,12 @@ export class OutputStage {
     // A beat is where the phase wraps.
     const newBeat = input.phase !== null && this.phase !== null && input.phase < this.phase - 0.5
     this.phase = input.phase
-    if (input.strobe) {
+    const strobe = input.strobe && !input.reduceFlashes
+    if (strobe) {
       const due = input.rate === 'beat' ? newBeat : now - this.lastFlash >= 1000 / input.rate
       if (due && now - this.lastFlash >= MIN_FLASH_GAP_MS) this.lastFlash = now
     }
-    const flash = input.strobe && now - this.lastFlash < FLASH_MS ? 1 : 0
-    return { black: this.black, flash, freeze: input.freeze }
+    const flash = strobe && now - this.lastFlash < FLASH_MS ? 1 : 0
+    return { black: this.black, flash, freeze: input.freeze, reduceFlashes: input.reduceFlashes }
   }
 }
