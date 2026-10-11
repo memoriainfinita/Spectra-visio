@@ -21,7 +21,8 @@ export function visualSource(): VisualSource | null {
   return current
 }
 
-const ready = (s: VisualSource) => !(s.element instanceof HTMLVideoElement) || s.element.readyState >= 2
+// By property, not instanceof: in the output window the element belongs to the main window.
+const ready = (s: VisualSource) => !('readyState' in s.element) || s.element.readyState >= 2
 
 // The input as a texture of one context: black until there is a source.
 export class InputTexture {

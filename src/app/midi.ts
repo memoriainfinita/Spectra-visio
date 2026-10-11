@@ -38,8 +38,10 @@ const CLOCK_SHOW_MS = 500
 
 export const midiSupported = typeof navigator !== 'undefined' && 'requestMIDIAccess' in navigator
 
+export const controlValue = (id: ControlId) => values.get(id) ?? 0
+
 export function initMidi(): void {
-  renderer.controls = (id) => values.get(id) ?? 0
+  renderer.controls = controlValue
   analysis.clockSource = (time) => (settingsStore.get().midi.clock ? clock.read(time) : null)
   if (settingsStore.get().midi.enabled) void enableMidi()
 }

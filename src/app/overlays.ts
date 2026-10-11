@@ -39,7 +39,7 @@ export async function initOverlays(): Promise<void> {
   renderer.overlaySource = overlayData
 }
 
-function overlayData(): OverlayData {
+export function overlayData(): OverlayData {
   const s = player.state.get()
   const track = s.tracks.find((t) => t.id === s.currentId)
   return {

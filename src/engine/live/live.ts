@@ -136,8 +136,9 @@ export class OutputStage {
 
   tick(input: OutputInput): OutputState {
     const { now } = input
-    const dt = this.last === null ? 0 : now - this.last
-    this.last = now
+    // Two windows read it, each with its own frame times: never step back.
+    const dt = this.last === null ? 0 : Math.max(0, now - this.last)
+    this.last = Math.max(this.last ?? now, now)
     const step = dt / BLACKOUT_FADE_MS
     this.black = input.blackout ? Math.min(1, this.black + step) : Math.max(0, this.black - step)
 

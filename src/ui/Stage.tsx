@@ -1,6 +1,7 @@
 import { Maximize, Minimize } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { renderer } from '../app/engine'
+import { outputStore } from '../app/output'
 import { useStore } from './useStore'
 import { useT } from './useT'
 
@@ -8,6 +9,7 @@ import { useT } from './useT'
 export function Stage() {
   const t = useT()
   const status = useStore(renderer.status)
+  const paused = useStore(outputStore, (s) => s.open && !s.preview)
   const box = useRef<HTMLElement>(null)
   const canvas = useRef<HTMLCanvasElement>(null)
   const [full, setFull] = useState(false)
@@ -41,6 +43,7 @@ export function Stage() {
   return (
     <section ref={box} className={`stage${full ? ' full' : ''}`} onDoubleClick={toggle}>
       <canvas ref={canvas} />
+      {paused && <p className="stage-error">{t('stage.paused')}</p>}
       {status.error && <p className="stage-error">{status.error === 'noWebgl' ? t('stage.noWebgl') : t('stage.error', { msg: status.error })}</p>}
       <div className="stage-bar">
         <span className="mono">{t('stage.fps', { n: status.fps })}</span>
