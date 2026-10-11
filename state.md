@@ -93,5 +93,6 @@ Visualizador de audio en tiempo real para navegador, en reconstrucción desde ce
 - [ ] Probar stream con CORS real de otro dominio
 - [ ] Probar MIDI con un controlador real
 - [ ] Revisión de la fase 9 por mykl (OBS real, grabación en su Firefox)
+- [ ] Disposición de escritorio B, aprobada por mykl el 2026-10-12 (lienzo https://claude.ai/artifact/YQZeJBzbvudQkcqn84u8ow, artboard «B. Escenario grande y pestañas»). Motivo: la rejilla actual de dos columnas alinea filas (huecos de hasta 1150 px), `.app` limitada a 1200 px y orden por fases (página de 6400 px). B: todo cabe en la ventana sin bajar; arriba, título, fps, transporte con pista y BPM, abrir salida y pantalla completa; el escenario ocupa el espacio libre; debajo, barra de actuación (apagón, congelar, estrobo, al pulso, crossfader, fila de clips, modo automático); a la derecha, barra lateral de unos 420 px con pestañas Audio, Imagen, Efectos, Directo y Salida que se desplaza por dentro, con paneles poco usados plegados. Móvil (menos de 800 px) queda como ahora
 - [ ] Revisión de la fase 10 por mykl (móvil real, instalar la app, calidad adaptativa en su equipo)
 - [ ] Al publicar: comprobar la conexión a OBS desde GitHub Pages (permiso de red local)
