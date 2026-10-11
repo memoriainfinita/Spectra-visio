@@ -29,3 +29,16 @@ test('analysis settings: missing from older data, out of range or invalid', () =
   expect(a.latencyOffset).toBe(-200)
   expect(normalizeSettings({ analysis: { bands: 7 } }, defaults).analysis.bands).toBe(defaults.analysis.bands)
 })
+
+test('performance and photosensitive safety: defaults, older data and invalid values', () => {
+  expect(defaultSettings('es', true).reduceFlashes).toBe(true)
+  const older = normalizeSettings({ lang: 'en' }, defaultSettings('es', true))
+  expect(older.reduceFlashes).toBe(true)
+  expect(older.flashNotice).toBe(false)
+  expect(older.performance).toEqual(defaults.performance)
+  const s = normalizeSettings({ reduceFlashes: false, flashNotice: true, performance: { maxFps: 30, adaptive: 'no' } }, defaults)
+  expect(s.reduceFlashes).toBe(false)
+  expect(s.flashNotice).toBe(true)
+  expect(s.performance.maxFps).toBe(30)
+  expect(s.performance.adaptive).toBe(true)
+})

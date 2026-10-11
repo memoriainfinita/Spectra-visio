@@ -1,7 +1,7 @@
 import { RotateCcw } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { liveStore, runAction, setActionKey, toggleLive } from '../app/live'
-import { settingsStore } from '../app/settings'
+import { setReduceFlashes, settingsStore } from '../app/settings'
 import { ACTIONS, DEFAULT_KEYS, STROBE_RATES, keyCombo, type ActionId, type StrobeRate } from '../engine/live/live'
 import type { MessageKey } from '../i18n'
 import { useStore } from './useStore'
@@ -18,6 +18,7 @@ export function Live() {
   const t = useT()
   const live = useStore(liveStore)
   const settings = useStore(settingsStore, (s) => s.live)
+  const reduceFlashes = useStore(settingsStore, (s) => s.reduceFlashes)
   const [capturing, setCapturing] = useState<ActionId | null>(null)
 
   const keyName = (key: string | undefined) => {
@@ -50,7 +51,7 @@ export function Live() {
   }, [capturing])
 
   const toggle = (key: 'blackout' | 'freeze' | 'strobe') => (
-    <button className={`btn${live[key] ? ' on' : ''}`} aria-pressed={live[key]} onClick={() => toggleLive(key)}>
+    <button className={`btn${live[key] ? ' on' : ''}`} aria-pressed={live[key]} disabled={key === 'strobe' && reduceFlashes} onClick={() => toggleLive(key)}>
       {t(`live.${key}`)}
     </button>
   )
@@ -82,6 +83,11 @@ export function Live() {
         </select>
       </div>
       <p className="muted small">{t('live.strobeHint')}</p>
+      <label className="check">
+        <input type="checkbox" checked={reduceFlashes} onChange={(e) => setReduceFlashes(e.target.checked)} />
+        <span>{t('safety.reduce')}</span>
+      </label>
+      <p className="muted small">{t('safety.reduceHint')}</p>
 
       <div className="live-row">
         <button className="btn" onClick={() => runAction('crossA')}>

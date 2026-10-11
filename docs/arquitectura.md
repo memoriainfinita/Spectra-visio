@@ -26,7 +26,9 @@ Diseño técnico confirmado por mykl el 2026-10-10. Implementa la lista de `docs
 - Butterchurn 2.6.7, MIT, en su propio canvas, usado como textura de entrada. API: `createVisualizer(audioContext, canvas, opciones)`, `connectAudio(nodo)`, `loadPreset(preset, segundosDeFundido)`, `render()` por fotograma, `setRendererSize(ancho, alto)`. `butterchurn-presets` 2.4.7 es de 2022
 - ISF con lector propio: la cabecera JSON da los parámetros; el audio llega como textura, una fila por canal
 - Fondo transparente en el modo fuente para OBS (G)
-- Calidad adaptativa variando la resolución interna según los fps (H)
+- Calidad adaptativa (H): la resolución interna baja en pasos (100, 85, 70, 50 %) tras 2 s por debajo del 85 % de los fps objetivo (el límite, o 60) y sube tras 5 s por encima del 95 %. Un paso que no da al menos un 10 % más de fps se deshace y no se repite en 60 s: el límite estaba en otra parte (CPU, ritmo del navegador). No actúa con formato fijo
+- Límite de fps (60 o 30) saltando fotogramas de animación; bajo consumo = 30 fps y 75 % de resolución
+- Reducir destellos (H): el brillo medio de la imagen (copia de 256 × 144 promediada por mipmaps) puede bajar de golpe pero solo subir 1 por segundo; un fotograma más brillante se escala entero. Va en el estado de salida, así que llega a la ventana de salida, a OBS y a las grabaciones. Anula el estrobo
 - Miniaturas del navegador de visualizaciones: render de cada una en pequeño con audio de prueba, en caché
 
 ## Parámetros y modulación
@@ -52,9 +54,11 @@ Diseño técnico confirmado por mykl el 2026-10-10. Implementa la lista de `docs
 
 ## Universal y proyecto
 
-- PWA con `vite-plugin-pwa` 2.0.0, MIT, compatible con Vite 8
+- PWA con `vite-plugin-pwa` 2.0.0 (MIT) y `workbox-window` 7.4.1: todo precacheado (unos 1,7 MB, Milkdrop incluido); versión nueva en espera hasta pulsar Recargar, que se desactiva mientras graba; comprobación de versión cada hora. Iconos PNG generados una vez desde `favicon.svg`
+- Pantalla encendida (Wake Lock) mientras suena el reproductor o una entrada, y en la ventana de salida conectada; se pide de nuevo al volver a la pestaña
+- Táctil: deslizar en horizontal sobre la imagen cambia de visualización en la capa seleccionada, un toque muestra una barra grande (visualización anterior y siguiente, reproducir, siguiente pista, apagón) y el doble toque pone pantalla completa. Con puntero grueso, controles de al menos 44 px
 - Dos idiomas con diccionarios propios, sin librería
-- Wake Lock y Media Session. Firefox solo activa las teclas multimedia con un elemento multimedia sonando (bug 2067534): un `<audio>` silencioso en bucle mientras reproduce. Teclas comprobadas por mykl en su Firefox
+- Media Session. Firefox solo activa las teclas multimedia con un elemento multimedia sonando (bug 2067534): un `<audio>` silencioso en bucle mientras reproduce. Teclas comprobadas por mykl en su Firefox
 - Despliegue en GitHub Pages con GitHub Actions, ruta base relativa `./` como nona, activo desde la fase 1 (I)
 - Código anterior a la reconstrucción en `.archive/v0/`, fuera de git; en el historial hasta el commit `7a63da1`
 - Tests con Vitest: análisis, modulación, lectores ISF y LRC, presets (I)

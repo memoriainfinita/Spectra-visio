@@ -16,15 +16,17 @@ import { Sources } from './ui/Sources'
 import { Stage } from './ui/Stage'
 import { Visuals } from './ui/Visuals'
 import { Effects } from './ui/Effects'
+import { FlashNotice } from './ui/FlashNotice'
 import { Presets } from './ui/Presets'
 import { Overlays } from './ui/Overlays'
 import { Shaders } from './ui/Shaders'
 import { VisualInput } from './ui/VisualInput'
 import { NowPlaying, Transport } from './ui/Transport'
+import { UpdateBanner } from './ui/UpdateBanner'
 import { useStore } from './ui/useStore'
 import { useT } from './ui/useT'
 
-const PHASE = 9
+const PHASE = 10
 const TOTAL_PHASES = 10
 
 export function App() {
@@ -62,6 +64,8 @@ export function App() {
         </label>
       </header>
 
+      <UpdateBanner />
+
       <main className="layout">
         <Stage />
         <section className="panel player">
@@ -93,6 +97,8 @@ export function App() {
           </section>
         )}
       </main>
+
+      <FlashNotice />
 
       {dropping && (
         <div className="drop-overlay" aria-hidden="true">

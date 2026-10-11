@@ -69,6 +69,12 @@ export function Clips() {
                             clearClip(i, c)
                           }}
                           onKeyDown={(e) => {
+                            // Shift + Enter saves over a clip, as Shift + click does.
+                            if (e.key === 'Enter' && e.shiftKey) {
+                              e.preventDefault()
+                              saveClip(i, c)
+                              return
+                            }
                             if (!clip || (e.key !== 'Delete' && e.key !== 'Backspace')) return
                             e.preventDefault()
                             clearClip(i, c)

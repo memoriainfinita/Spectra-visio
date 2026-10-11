@@ -83,6 +83,17 @@ export function Queue() {
                 <GripVertical size={14} className="grip" aria-hidden="true" />
                 <button
                   className="track-main"
+                  data-track={track.id}
+                  aria-keyshortcuts="Alt+ArrowUp Alt+ArrowDown"
+                  onKeyDown={(e) => {
+                    // The keyboard's way to reorder; focus follows the track.
+                    if (!e.altKey || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return
+                    e.preventDefault()
+                    const to = i + (e.key === 'ArrowUp' ? -1 : 1)
+                    if (to < 0 || to >= s.tracks.length) return
+                    player.move(i, to)
+                    requestAnimationFrame(() => document.querySelector<HTMLElement>(`[data-track="${track.id}"]`)?.focus())
+                  }}
                   disabled={unavailable}
                   title={track.failed ? t('queue.failed') : unavailable ? t('queue.unavailable') : undefined}
                   onClick={() => void player.play(track.id)}
@@ -102,6 +113,7 @@ export function Queue() {
           })}
         </ol>
       )}
+      {s.tracks.length > 1 && <p className="muted small">{t('queue.moveHint')}</p>}
     </section>
   )
 }
