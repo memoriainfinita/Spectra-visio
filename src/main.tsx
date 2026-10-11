@@ -8,6 +8,7 @@ import { initPresets } from './app/presets'
 import { initScene } from './app/scene'
 import { initSettings } from './app/settings'
 import { initShaders } from './app/shaders'
+import { initTrackAnalysis } from './app/trackAnalysis'
 import './styles/tokens.css'
 import './styles/app.css'
 
@@ -19,6 +20,7 @@ await initPresets()
 await initLibrary()
 await initEngine()
 await initOverlays()
+await initTrackAnalysis()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

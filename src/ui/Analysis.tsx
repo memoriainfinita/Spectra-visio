@@ -3,14 +3,14 @@ import { analysis } from '../app/engine'
 import { latencyReported } from '../engine/analysis/analysis'
 import { settingsStore } from '../app/settings'
 import { NAMED_BANDS } from '../engine/analysis/bands'
-import { BEAT_SLOTS, KICK } from '../engine/analysis/analyzer'
+import { BEAT_SLOTS, KICK, SECTION } from '../engine/analysis/analyzer'
 import type { MessageKey } from '../i18n'
 import { BAND_CHOICES, LATENCY_OFFSET_MAX, LATENCY_OFFSET_MIN, type AnalysisSettings } from '../storage/settings'
 import { useStore } from './useStore'
 import { useT } from './useT'
 
 const FLASH_MS = 180
-const BEAT_KEYS: MessageKey[] = [...NAMED_BANDS.map((b) => `band.${b}` as MessageKey), 'band.kick']
+const BEAT_KEYS: MessageKey[] = [...NAMED_BANDS.map((b) => `band.${b}` as MessageKey), 'band.kick', 'band.section']
 
 function setAnalysis(patch: Partial<AnalysisSettings>): void {
   settingsStore.set((s) => ({ ...s, analysis: { ...s.analysis, ...patch } }))
@@ -33,7 +33,9 @@ export function AnalysisPanel() {
         <div>
           <div className="bpm">{tempo.bpm === null ? t('analysis.bpmUnknown') : t('analysis.bpm', { n: tempo.bpm.toFixed(1) })}</div>
           {tempo.bpm !== null && (
-            <div className="muted small">{tempo.mode === 'tap' ? t('analysis.mode.tap') : t('analysis.mode.auto', { n: Math.round(tempo.confidence * 100) })}</div>
+            <div className="muted small">
+              {tempo.mode === 'tap' ? t('analysis.mode.tap') : tempo.mode === 'track' ? t('analysis.mode.track') : t('analysis.mode.auto', { n: Math.round(tempo.confidence * 100) })}
+            </div>
           )}
         </div>
         <div className="head-actions">
@@ -72,6 +74,10 @@ export function AnalysisPanel() {
         <label className="check inline">
           <input type="checkbox" checked={opts.autoLevel} onChange={(e) => setAnalysis({ autoLevel: e.target.checked })} />
           <span>{t('analysis.autoLevel')}</span>
+        </label>
+        <label className="check inline" title={t('analysis.trackLevelHint')}>
+          <input type="checkbox" checked={opts.trackLevel} onChange={(e) => setAnalysis({ trackLevel: e.target.checked })} />
+          <span>{t('analysis.trackLevel')}</span>
         </label>
       </label>
       <label className="field">
@@ -166,7 +172,7 @@ function Scope() {
       <canvas ref={canvas} width={640} height={160} aria-hidden="true" />
       <div className="beat-cells" aria-hidden="true">
         {BEAT_KEYS.map((key, i) => (
-          <span key={key} ref={(n) => void (cells.current[i] = n)} className={`beat-cell${i === KICK ? ' kick' : ''}`}>
+          <span key={key} ref={(n) => void (cells.current[i] = n)} className={`beat-cell${i === KICK ? ' kick' : i === SECTION ? ' section' : ''}`}>
             {t(key)}
           </span>
         ))}

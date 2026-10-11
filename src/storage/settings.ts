@@ -14,6 +14,8 @@ export interface AnalysisSettings {
   // 0–1: 0 raw, 1 slowest.
   smoothing: number
   autoLevel: boolean
+  // For files analysed beforehand: a fixed level from the track's loudness instead.
+  trackLevel: boolean
   // Delay the visuals by the output latency the browser reports.
   autoLatency: boolean
   // Manual correction on top, in ms; negative brings the visuals earlier.
@@ -33,7 +35,7 @@ export function defaultSettings(lang: Lang): Settings {
     version: SETTINGS_VERSION,
     lang,
     keepFiles: false,
-    analysis: { bands: 32, smoothing: 0.4, autoLevel: true, autoLatency: true, latencyOffset: 0 },
+    analysis: { bands: 32, smoothing: 0.4, autoLevel: true, trackLevel: false, autoLatency: true, latencyOffset: 0 },
   }
 }
 
@@ -52,6 +54,7 @@ function normalizeAnalysis(raw: unknown, defaults: AnalysisSettings): AnalysisSe
     bands: (BAND_CHOICES as readonly unknown[]).includes(r.bands) ? (r.bands as number) : defaults.bands,
     smoothing: num(r.smoothing, 0, 1, defaults.smoothing),
     autoLevel: bool(r.autoLevel, defaults.autoLevel),
+    trackLevel: bool(r.trackLevel, defaults.trackLevel),
     autoLatency: bool(r.autoLatency, defaults.autoLatency),
     latencyOffset: num(r.latencyOffset, LATENCY_OFFSET_MIN, LATENCY_OFFSET_MAX, defaults.latencyOffset),
   }

@@ -8,15 +8,20 @@ import { ONSET_WINDOW_MS, TapTempo, beatPhase, estimateTempo, type TempoEstimate
 export const FFT_SIZE = 4096
 export const WAVE_SIZE = 1024
 export const MAX_BANDS = 64
-// Beat slots: one per named band, then the kick.
+// Beat slots: one per named band, then the kick, then section changes (files analysed
+// beforehand only).
 export const KICK = NAMED_BANDS.length
-export const BEAT_SLOTS = NAMED_BANDS.length + 1
+export const SECTION = NAMED_BANDS.length + 1
+export const BEAT_SLOTS = NAMED_BANDS.length + 2
 
 const ESTIMATE_EVERY_MS = 500
 // A kick this close to the predicted beat (share of a period) re-syncs the beat phase.
 const RESYNC_WINDOW = 0.2
 // Longest step between frames taken into account; longer gaps (a hidden tab) count as this.
 const MAX_DT_S = 0.1
+// A track position that moves by more than this between frames was a seek: no section
+// change is reported for the stretch it skipped.
+const MAX_SECTION_STEP_S = 0.5
 
 export interface AnalysisOptions {
   bands: number
@@ -25,7 +30,21 @@ export interface AnalysisOptions {
   autoLevel: boolean
 }
 
-export type TempoMode = 'auto' | 'tap'
+// 'track': the beat grid of a file analysed beforehand.
+export type TempoMode = 'auto' | 'tap' | 'track'
+
+// The file playing, when it was analysed beforehand.
+export interface TrackClock {
+  id: string
+  // Seconds into the track at the moment analysed.
+  position: number
+  // Beat grid; bpm null when the track has none.
+  bpm: number | null
+  offset: number
+  sections: readonly number[]
+  // Level that maps to 1, from the track's loudness; null keeps the usual levelling.
+  referenceDb: number | null
+}
 
 // Everything the visuals read, for one moment of the audio.
 export interface AnalysisFrame {
@@ -82,6 +101,7 @@ export interface AnalyserInput {
   waveL: Float32Array
   waveR: Float32Array
   sampleRate: number
+  track?: TrackClock | null
 }
 
 interface Layout {
@@ -107,9 +127,13 @@ export class Analyzer {
   private estimate: TempoEstimate | null = null
   private lastEstimate = -Infinity
   private readonly taps = new TapTempo()
-  private mode: TempoMode = 'auto'
+  private mode: 'auto' | 'tap' = 'auto'
   private anchor = 0
   private lastTime: number | null = null
+  // The track playing, while its grid sets the tempo.
+  private grid: TrackClock | null = null
+  private trackId: string | null = null
+  private trackPos = 0
 
   process(input: AnalyserInput, now: number, opts: AnalysisOptions, out: AnalysisFrame): void {
     const dt = this.lastTime === null ? 0 : Math.min(MAX_DT_S, Math.max(0, (now - this.lastTime) / 1000))
@@ -124,7 +148,10 @@ export class Analyzer {
       this.namedDb[i] = powerToDb(bandPower(this.powMid, layout.named[i]))
       loudest = Math.max(loudest, this.namedDb[i])
     }
-    const ref = opts.autoLevel ? this.autoLevel.update(loudest, dt) : FIXED_REFERENCE_DB
+    const track = input.track ?? null
+    // The automatic level keeps following, ready for when the track's level no longer applies.
+    const auto = this.autoLevel.update(loudest, dt)
+    const ref = track?.referenceDb ?? (opts.autoLevel ? auto : FIXED_REFERENCE_DB)
     const k = smoothCoefficients(opts.smoothing, dt)
 
     for (let i = 0; i < layout.count; i++) {
@@ -146,6 +173,7 @@ export class Analyzer {
       this.onKick(now)
     }
     this.updateEstimate(now)
+    this.followTrack(track)
 
     out.time = now
     out.bandCount = layout.count
@@ -159,14 +187,15 @@ export class Analyzer {
     Object.assign(out.stereo, stereoStats(input.waveL, input.waveR, this.stereo))
     const bpm = this.bpm()
     out.bpm = bpm ?? 0
-    out.tempoMode = this.mode
-    out.tempoConfidence = this.mode === 'tap' ? 1 : (this.estimate?.confidence ?? 0)
-    out.phase = bpm ? beatPhase(now, this.anchor, bpm) : 0
+    out.tempoMode = this.tempoMode
+    out.tempoConfidence = this.mode === 'tap' || this.grid ? 1 : (this.estimate?.confidence ?? 0)
+    out.phase = this.grid ? gridPhase(this.grid) : bpm ? beatPhase(now, this.anchor, bpm) : 0
     out.referenceDb = ref
   }
 
   bpm(): number | null {
-    return this.mode === 'tap' ? this.taps.bpm() : (this.estimate?.bpm ?? null)
+    if (this.mode === 'tap') return this.taps.bpm()
+    return this.grid?.bpm ?? this.estimate?.bpm ?? null
   }
 
   // `time` is on the analysis clock: the caller subtracts the output delay from the moment
@@ -184,7 +213,24 @@ export class Analyzer {
   }
 
   get tempoMode(): TempoMode {
-    return this.mode
+    return this.mode === 'auto' && this.grid ? 'track' : this.mode
+  }
+
+  // Counts the section changes the track position passed since the last frame, and takes
+  // the track's grid for the tempo unless it is tapped.
+  private followTrack(track: TrackClock | null): void {
+    this.grid = track?.bpm && this.mode === 'auto' ? track : null
+    if (!track) {
+      this.trackId = null
+      return
+    }
+    const from = this.trackPos
+    const to = track.position
+    if (track.id === this.trackId && to >= from && to - from < MAX_SECTION_STEP_S && track.sections.some((t) => t > from && t <= to)) {
+      this.beatCounts[SECTION]++
+    }
+    this.trackId = track.id
+    this.trackPos = to
   }
 
   private onKick(now: number): void {
@@ -219,4 +265,9 @@ export class Analyzer {
     }
     return this.layout
   }
+}
+
+function gridPhase(g: TrackClock): number {
+  const p = ((g.position - g.offset) * (g.bpm ?? 0)) / 60
+  return p - Math.floor(p)
 }

@@ -14,7 +14,7 @@ Diseño técnico confirmado por mykl el 2026-10-10. Implementa la lista de `docs
 - Reproductor sobre audio decodificado: la pista siguiente se programa al sample exacto, o antes con fundido cruzado. Solo se guardan decodificadas la actual y la siguiente (unos 23 MB por minuto estéreo a 48 kHz). Pistas de más de 20 min, o de más de 100 MB sin duración conocida: `<audio>`, sin gapless
 - Prototipo del 2026-10-10 en Chrome, dos mitades de un mismo tono: con dos `<audio>` alternos quedan 3,9 ms (WAV), 12,6 ms (MP3), 3,9 ms (AAC) y 5,4 ms (Opus) de silencio en la unión; con audio decodificado, ninguno. El decodificador recorta el relleno del codificador (mitades de 1,5000 s exactos)
 - Metadatos y carátula: `music-metadata` 12.1.0, MIT
-- Análisis previo (C): decodificación en el hilo principal, cálculo en un Web Worker. BPM con `web-audio-beat-detector` 8.2.39, MIT, sobre el audio decodificado. Secciones y sonoridad para la normalización, con cálculo propio
+- Análisis previo (C): decodificación a 22 050 Hz en un `OfflineAudioContext`, cálculo propio en un Web Worker: tempo por autocorrelación de la curva de ataques, rejilla ajustada a toda la pista, secciones por novedad espectral y sonoridad BS.1770. `web-audio-beat-detector` 8.2.39 descartado el 2026-10-11: fallaba con el `AudioBuffer` nativo y fija el desfase con un solo pico, tarde
 - Essentia.js descartado: AGPL v3
 - Bandas logarítmicas configurables calculadas desde la FFT
 - Compensación de latencia: latencia que informa el navegador más ajuste manual en ms, aplicada retrasando los datos de análisis que llegan al render. [PENDIENTE: soporte en Safari]

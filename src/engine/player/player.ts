@@ -8,9 +8,9 @@ import type { PlayerState, Track, TrackMeta } from './types'
 import { BufferVoice, ElementVoice, type Voice } from './voice'
 
 // Decoded audio takes ~23 MB per stereo minute at 48 kHz. Longer tracks stream instead.
-const LONG_TRACK_S = 20 * 60
+export const LONG_TRACK_S = 20 * 60
 // Used when the duration is unknown: larger files stream.
-const LONG_TRACK_BYTES = 100 * 1024 * 1024
+export const LONG_TRACK_BYTES = 100 * 1024 * 1024
 // Lead time for scheduled starts, so the first samples are never late.
 const START_DELAY = 0.05
 // "Previous" restarts the track instead when past this point.

@@ -1,6 +1,7 @@
 import { FolderPlus, GripVertical, Plus, Trash, X } from 'lucide-react'
 import { useState } from 'react'
 import { addPicked, persistence, player } from '../app/engine'
+import { trackAnalysisStore } from '../app/trackAnalysis'
 import { pickFiles, pickFolder } from '../engine/player/pick'
 import { trackTitle } from '../engine/player/types'
 import { formatTime } from './format'
@@ -12,6 +13,7 @@ export function Queue() {
   const s = useStore(player.state)
   const pending = useStore(persistence.state, (p) => p.pending)
   const storageFull = useStore(persistence.state, (p) => p.storageFull)
+  const analysed = useStore(trackAnalysisStore)
   const [dragFrom, setDragFrom] = useState<number | null>(null)
   const [dragOver, setDragOver] = useState<number | null>(null)
 
@@ -88,6 +90,9 @@ export function Queue() {
                   <span className="track-title">{trackTitle(track)}</span>
                   <span className="track-artist">{track.meta?.artist ?? ''}</span>
                 </button>
+                <span className="track-bpm" title={analysed[track.id]?.status === 'running' ? t('queue.analysing') : undefined}>
+                  {analysed[track.id]?.status === 'running' ? '…' : analysed[track.id]?.result?.bpm ? t('queue.bpm', { n: Math.round(analysed[track.id].result!.bpm!) }) : ''}
+                </span>
                 <span className="track-time">{formatTime(track.meta?.duration ?? null)}</span>
                 <button className="icon-btn small" title={t('queue.remove')} aria-label={t('queue.remove')} onClick={() => player.remove(track.id)}>
                   <X size={14} />
