@@ -106,6 +106,18 @@ void main() {
   outColor = vec4(mix(b, blend(b, l), uAmount), 1.0);
 }`
 
+// Transparent output: brightness becomes alpha, so black is see-through and the image adds
+// over what is behind it. The colour is already premultiplied by that alpha.
+const KEY_FS = `#version 300 es
+precision highp float;
+in vec2 vUv;
+uniform sampler2D uSrc;
+out vec4 outColor;
+void main() {
+  vec3 c = texture(uSrc, vUv).rgb;
+  outColor = vec4(c, max(c.r, max(c.g, c.b)));
+}`
+
 // What one layer contributes: its image and, while it changes visualization, the outgoing
 // image with the progress of the fade (0 outgoing only, 1 new only).
 export interface LayerImage {
@@ -120,12 +132,16 @@ export class Compositor {
   readonly white: WebGLTexture
   private readonly prog: WebGLProgram
   private readonly u: Record<'uBase' | 'uLayer' | 'uOut' | 'uT' | 'uAmount' | 'uMode', WebGLUniformLocation | null>
+  private readonly keyProg: WebGLProgram
+  private readonly keyU: Record<'uSrc', WebGLUniformLocation | null>
   private readonly vao: WebGLVertexArrayObject
 
   constructor(gl: WebGL2RenderingContext) {
     this.gl = gl
     this.prog = program(gl, LAYER_FS)
     this.u = uniforms(gl, this.prog, ['uBase', 'uLayer', 'uOut', 'uT', 'uAmount', 'uMode'] as const)
+    this.keyProg = program(gl, KEY_FS)
+    this.keyU = uniforms(gl, this.keyProg, ['uSrc'] as const)
     this.vao = gl.createVertexArray()!
     this.black = solid(gl, 0)
     this.white = solid(gl, 255)
@@ -147,9 +163,20 @@ export class Compositor {
     drawFullscreen(gl, this.vao)
   }
 
+  // `image` on the canvas with its brightness as alpha.
+  key(image: WebGLTexture, width: number, height: number): void {
+    const gl = this.gl
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+    gl.viewport(0, 0, width, height)
+    gl.useProgram(this.keyProg)
+    bindTextures(gl, [this.keyU.uSrc], [image])
+    drawFullscreen(gl, this.vao)
+  }
+
   dispose(): void {
     const gl = this.gl
     gl.deleteProgram(this.prog)
+    gl.deleteProgram(this.keyProg)
     gl.deleteVertexArray(this.vao)
     gl.deleteTexture(this.black)
     gl.deleteTexture(this.white)

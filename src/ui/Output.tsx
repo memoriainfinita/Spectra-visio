@@ -1,5 +1,6 @@
-import { Circle, Download, Square, Trash2 } from 'lucide-react'
+import { Circle, Copy, Download, Square, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { obsStore, setObsConnection, setObsEnabled, sourceUrl } from '../app/obs'
 import { closeOutput, openOutput, outputStore, setPreview } from '../app/output'
 import { deleteKept, downloadKept, mimeSupported, recordStore, toggleRecording } from '../app/record'
 import { settingsStore } from '../app/settings'
@@ -31,7 +32,86 @@ function useElapsed(started: number, running: boolean): number {
 const setFormat = (value: Partial<Settings['format']>) => settingsStore.set((s) => ({ ...s, format: { ...s.format, ...value } }))
 const setRecord = (value: Partial<Settings['record']>) => settingsStore.set((s) => ({ ...s, record: { ...s.record, ...value } }))
 
-// Where the image goes: the output window, its size, recordings.
+function Obs() {
+  const t = useT()
+  const obs = useStore(obsStore)
+  const settings = useStore(settingsStore, (s) => s.obs)
+  const [url, setUrl] = useState(settings.url)
+  const [password, setPassword] = useState(settings.password)
+  const [black, setBlack] = useState(false)
+  const [copied, setCopied] = useState(false)
+  const source = sourceUrl() + (black ? '&background=black' : '')
+  const dirty = url !== settings.url || password !== settings.password
+
+  const status =
+    obs.status === 'on'
+      ? t('obs.on')
+      : obs.status === 'connecting'
+        ? t('obs.connecting')
+        : obs.status === 'error'
+          ? t(`obs.error.${obs.error ?? 'closed'}`)
+          : t('obs.off')
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(source)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
+    } catch {
+      // The field stays selectable by hand.
+    }
+  }
+
+  return (
+    <>
+      <h3 className="sub-head">{t('obs.title')}</h3>
+      <label className="check">
+        <input type="checkbox" checked={settings.enabled} onChange={(e) => setObsEnabled(e.target.checked)} />
+        <span>{t('obs.enable')}</span>
+      </label>
+      <p className={obs.status === 'error' ? 'error' : 'muted small'} role="status">
+        {status}
+      </p>
+      {obs.requestError && (
+        <p className="error" role="alert">
+          {t('obs.requestError', { msg: obs.requestError })}
+        </p>
+      )}
+      <details className="live-keys" open={obs.status === 'error' || undefined}>
+        <summary>{t('obs.connection')}</summary>
+        <label className="field">
+          <span>{t('obs.url')}</span>
+          <input type="text" spellCheck={false} value={url} onChange={(e) => setUrl(e.target.value)} />
+        </label>
+        <label className="field">
+          <span>{t('obs.password')}</span>
+          <input type="password" autoComplete="off" value={password} onChange={(e) => setPassword(e.target.value)} />
+        </label>
+        <button className="btn" disabled={!dirty} onClick={() => setObsConnection(url.trim(), password)}>
+          {t('obs.save')}
+        </button>
+        <p className="muted small">{t('obs.serverHint')}</p>
+      </details>
+      <label className="field">
+        <span>{t('obs.sourceUrl')}</span>
+        <span className="live-row source-url">
+          <input type="text" readOnly value={source} onFocus={(e) => e.target.select()} />
+          <button className="icon-btn small" title={t('obs.copy')} aria-label={t('obs.copy')} onClick={() => void copy()}>
+            <Copy size={15} />
+          </button>
+          {copied && <span className="muted small">{t('obs.copied')}</span>}
+        </span>
+      </label>
+      <label className="check">
+        <input type="checkbox" checked={black} onChange={(e) => setBlack(e.target.checked)} />
+        <span>{t('obs.black')}</span>
+      </label>
+      <p className="muted small">{t('obs.hint')}</p>
+    </>
+  )
+}
+
+// Where the image goes: the output window, its size, recordings, OBS.
 export function Output() {
   const t = useT()
   const out = useStore(outputStore)
@@ -133,6 +213,8 @@ export function Output() {
       ) : (
         <p className="muted small">{t('record.unsupported')}</p>
       )}
+
+      <Obs />
     </section>
   )
 }

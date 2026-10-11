@@ -40,6 +40,9 @@ export const midiSupported = typeof navigator !== 'undefined' && 'requestMIDIAcc
 
 export const controlValue = (id: ControlId) => values.get(id) ?? 0
 
+// Every control moved so far with its value, for the OBS source.
+export const controlValues = (): [string, number][] => Array.from(values)
+
 export function initMidi(): void {
   renderer.controls = controlValue
   analysis.clockSource = (time) => (settingsStore.get().midi.clock ? clock.read(time) : null)

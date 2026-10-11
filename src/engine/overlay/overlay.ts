@@ -1,4 +1,4 @@
-import { drawFullscreen, program, uniforms } from '../render/gl'
+import { drawFullscreen, program, uniforms, type Target } from '../render/gl'
 import type { Surface } from '../render/visual'
 import { lineAt, type LrcLine } from './lrc'
 import { FONTS, type OverlaySettings } from './settings'
@@ -73,8 +73,8 @@ export class OverlayRenderer {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
   }
 
-  // Over the output canvas. `now` is the frame clock, seconds.
-  draw(o: OverlaySettings, data: OverlayData, s: Surface, now: number): void {
+  // Over the output canvas, or over `target`. `now` is the frame clock, seconds.
+  draw(o: OverlaySettings, data: OverlayData, s: Surface, now: number, target: Target | null = null): void {
     if (data.trackId !== this.trackId) {
       this.trackId = data.trackId
       this.trackStart = now
@@ -95,8 +95,11 @@ export class OverlayRenderer {
       this.paint(o, s, { titleAlpha, title: data.title, artist: data.artist, current, next, text, logo })
     }
     const gl = this.gl
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null)
-    gl.viewport(0, 0, s.width, s.height)
+    if (target) target.bind()
+    else {
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+      gl.viewport(0, 0, s.width, s.height)
+    }
     gl.enable(gl.BLEND)
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA)
     gl.useProgram(this.prog)
