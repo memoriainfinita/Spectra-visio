@@ -1,16 +1,20 @@
 import { describe, expect, test } from 'vitest'
 import { PRESET_FORMAT, applyPreset, cleanName, exportPresets, normalizePresets, parsePresets, presetFrom } from './preset'
-import { defaultScene, normalizeEffects, type SceneState } from './scene'
+import { defaultScene, newLayer, normalizeEffects, type SceneState } from './scene'
 
 function scene(): SceneState {
   const s = defaultScene()
-  s.layers[1] = { visual: 'plasma', perVisual: { plasma: { params: { ...{ speed: 2, sensitivity: 1, intensity: 1, hue: 90, scale: 2 } }, mods: {} } } }
-  s.effects = normalizeEffects([{ id: 'f1', type: 'trails', params: { length: 1 } }])
+  s.layers[1] = {
+    ...newLayer('l2', 'plasma', 'b'),
+    perVisual: { plasma: { params: { speed: 2, sensitivity: 1, intensity: 1, hue: 90, scale: 2 }, mods: {} } },
+    effects: normalizeEffects([{ id: 'f1', type: 'trails', params: { length: 1 } }]),
+  }
+  s.effects = normalizeEffects([{ id: 'g1', type: 'mirror' }])
   return s
 }
 
 describe('presets', () => {
-  test('saved from a layer and loaded on the other: visual, settings and effects', () => {
+  test('saved from a layer and loaded on the other: visual, settings and the layer effects', () => {
     const p = presetFrom(scene(), 1, '  Plasma   lento ', 'p1', 5)
     expect(p).toMatchObject({ id: 'p1', name: 'Plasma lento', created: 5, visual: 'plasma' })
     expect(p.settings.params.scale).toBe(2)
@@ -24,7 +28,10 @@ describe('presets', () => {
     // Other visualizations' tweaks on that layer stay.
     expect(next.layers[0].perVisual.tunnel).toEqual({ params: { rings: 10 }, mods: {} })
     expect(next.layers[1]).toBe(target.layers[1])
-    expect(next.effects).toEqual(p.effects)
+    // The layer's effects, with ids of their own; the composition chain stays.
+    expect(next.layers[0].effects.map((e) => e.type)).toEqual(['trails'])
+    expect(next.layers[0].effects[0].id).not.toBe('f1')
+    expect(next.effects).toBe(target.effects)
   })
 
   test('export and import round trip', () => {

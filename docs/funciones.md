@@ -64,8 +64,8 @@ Lista de funciones confirmada por mykl el 2026-10-10. Es el contrato del redise�
 
 - Aprendizaje de controles MIDI, mediante la modulación
 - Sincronía con reloj MIDI externo (caja de ritmos, DAW)
-- Atajos configurables y teclas numéricas para escenas
-- Mezcla de dos visualizaciones con crossfader y modos de fusión
+- Atajos configurables; teclas numéricas para lanzar columnas de clips
+- Composición por capas al estilo Resolume Arena: capas apiladas con opacidad y modo de fusión, crossfader entre lados A y B, efectos por capa y de composición, rejilla de clips
 - Salida en segunda ventana para proyector, controlada desde la principal
 - Apagón, congelar imagen y estrobo con límite fotosensible global
 

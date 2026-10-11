@@ -8,12 +8,11 @@ import { NAME_MAX } from '../engine/scene/preset'
 import { useStore } from './useStore'
 import { useT } from './useT'
 
-const LAYER_NAMES = ['A', 'B'] as const
 
 export function Presets() {
   const t = useT()
   const presets = useStore(presetsStore)
-  const layer = LAYER_NAMES[useStore(sceneStore, (s) => s.selected)]
+  const layer = useStore(sceneStore, (s) => s.selected) + 1
   const [name, setName] = useState('')
   const [message, setMessage] = useState<string | null>(null)
   const fileInput = useRef<HTMLInputElement>(null)

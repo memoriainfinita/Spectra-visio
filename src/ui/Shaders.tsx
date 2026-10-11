@@ -8,7 +8,6 @@ import { USER_PREFIX } from '../engine/shaders/userVisual'
 import { useStore } from './useStore'
 import { useT } from './useT'
 
-const LAYER_NAMES = ['A', 'B'] as const
 
 export function Shaders() {
   const t = useT()
@@ -107,8 +106,8 @@ export function Shaders() {
                 <button
                   className="icon-btn small"
                   disabled={!usable}
-                  title={t('shaders.use', { name: s.name, n: LAYER_NAMES[selected] })}
-                  aria-label={t('shaders.use', { name: s.name, n: LAYER_NAMES[selected] })}
+                  title={t('shaders.use', { name: s.name, n: selected + 1 })}
+                  aria-label={t('shaders.use', { name: s.name, n: selected + 1 })}
                   onClick={() => setVisual(selected, USER_PREFIX + s.id)}
                 >
                   <Play size={15} />

@@ -4,8 +4,9 @@ import { EffectChain, type ChainStep } from '../effects/chain'
 import { getEffect } from '../effects/registry'
 import { Modulator } from '../modulation/modulation'
 import { OverlayRenderer, anyOverlay, type OverlayData } from '../overlay/overlay'
-import { visualSettings, type SceneState, type VisualSettings } from '../scene/scene'
+import { layerAmount, visualSettings, type EffectState, type LayerState, type SceneState, type VisualSettings } from '../scene/scene'
 import { Compositor, Layer, type LayerImage } from './compositor'
+import { Target } from './gl'
 import { fromUnit, getVisual, paramsOf, toUnit } from './registry'
 import type { ParamDef, Params, Surface, VisualFrame } from './visual'
 
@@ -21,6 +22,16 @@ interface Fade {
   duration: number
 }
 
+// What the renderer keeps per layer of the scene, by layer id.
+interface Slot {
+  layer: Layer | null
+  // Visualization that failed to start, not retried every frame.
+  failed: string | null
+  // Visualization the layer is fading out of.
+  outgoing: Fade | null
+  chain: EffectChain | null
+}
+
 const smoothstep = (p: number) => p * p * (3 - 2 * p)
 
 export interface RendererStatus {
@@ -30,11 +41,12 @@ export interface RendererStatus {
 }
 
 // Draws the scene once per animation frame: evaluates modulations, renders the layers that
-// are visible through the crossfader and composites them onto the output canvas.
+// show, runs each one's effects, blends them bottom to top, runs the composition effects
+// and puts the result on the output canvas.
 export class Renderer {
   readonly status = createStore<RendererStatus>({ error: null, fps: 0 })
-  // Effective value of each parameter in 0–1 of its range, per layer, for the panel.
-  readonly live: [Map<string, number>, Map<string, number>] = [new Map(), new Map()]
+  // Effective value of each parameter in 0–1 of its range, by layer id, for the panel.
+  readonly live = new Map<string, Map<string, number>>()
   // The same per effect entry, by its id.
   readonly effectLive = new Map<string, Map<string, number>>()
   // What the overlays show; set by the app, which knows the player.
@@ -47,11 +59,11 @@ export class Renderer {
   private compositor: Compositor | null = null
   private chain: EffectChain | null = null
   private overlay: OverlayRenderer | null = null
-  private layers: [Layer | null, Layer | null] = [null, null]
-  private failed: [string | null, string | null] = [null, null]
-  // Visualization a layer is fading out of, per layer.
-  private outgoing: [Fade | null, Fade | null] = [null, null]
+  // The layers blended so far, ping-pong.
+  private stack: [Target, Target] | null = null
+  private readonly slots = new Map<string, Slot>()
   private readonly outgoingLive = new Map<string, number>()
+  private readonly evaluated = new Set<string>()
   private surface: Surface = { width: 1, height: 1, dpr: 1 }
   private readonly seen = new Uint32Array(BEAT_SLOTS)
   private seenValid = false
@@ -104,14 +116,20 @@ export class Renderer {
     }
     try {
       this.compositor = new Compositor(gl)
-      this.chain = new EffectChain(gl)
-      this.chain.onError = (msg) => this.status.set((s) => ({ ...s, error: msg }))
+      this.chain = this.newChain(gl)
       this.overlay = new OverlayRenderer(gl)
+      this.stack = [new Target(gl), new Target(gl)]
       this.status.set((s) => ({ ...s, error: null }))
       this.start()
     } catch (err) {
       this.status.set((s) => ({ ...s, error: String(err) }))
     }
+  }
+
+  private newChain(gl: WebGL2RenderingContext): EffectChain {
+    const chain = new EffectChain(gl)
+    chain.onError = (msg) => this.status.set((s) => ({ ...s, error: msg }))
+    return chain
   }
 
   private start(): void {
@@ -130,35 +148,41 @@ export class Renderer {
   }
 
   private release(): void {
-    for (const l of this.layers) l?.dispose()
-    for (const o of this.outgoing) o?.layer.dispose()
-    this.layers = [null, null]
-    this.outgoing = [null, null]
+    for (const slot of this.slots.values()) this.disposeSlot(slot)
+    this.slots.clear()
     this.compositor?.dispose()
     this.compositor = null
     this.chain?.dispose()
     this.chain = null
     this.overlay?.dispose()
     this.overlay = null
+    for (const t of this.stack ?? []) t.dispose()
+    this.stack = null
+  }
+
+  private disposeSlot(slot: Slot): void {
+    slot.layer?.dispose()
+    slot.outgoing?.layer.dispose()
+    slot.chain?.dispose()
   }
 
   private readonly onLost = (e: Event) => {
     // Without preventDefault the browser never restores the context.
     e.preventDefault()
     this.stop()
-    this.layers = [null, null]
-    this.outgoing = [null, null]
-    this.failed = [null, null]
+    this.slots.clear()
     this.compositor = null
     this.chain = null
     this.overlay = null
+    this.stack = null
   }
 
   private readonly onRestored = () => this.init()
 
   private draw(now: number): void {
     const compositor = this.compositor
-    if (!compositor) return
+    const stack = this.stack
+    if (!compositor || !stack) return
     const dt = this.last === null ? 0 : Math.min(MAX_DT_S, (now - this.last) / 1000)
     this.last = now
     this.countFps(now)
@@ -182,65 +206,93 @@ export class Renderer {
     this.modulator.advance(f.time, dt, a)
 
     const scene = this.scene()
-    const x = scene.crossfade
-    const images: [LayerImage, LayerImage] = [
-      { texture: null, outgoing: null, progress: 1 },
-      { texture: null, outgoing: null, progress: 1 },
-    ]
-    for (const i of [0, 1] as const) {
-      if (i === 0 ? x >= 1 : x <= 0) {
-        this.hidden(i, scene.layers[i].visual)
-        continue
+    const { width, height } = this.surface
+    this.dropGoneLayers(scene)
+    this.evaluated.clear()
+    for (const t of stack) t.size(width, height)
+
+    // Bottom to top, each layer onto the ones below.
+    let base: WebGLTexture | null = null
+    let next = 0
+    scene.layers.forEach((l, i) => {
+      const amount = layerAmount(scene, i)
+      if (amount <= 0) {
+        this.hidden(l)
+        return
       }
-      const layer = this.layerFor(i, scene.layers[i].visual, f.time, scene.transition)
-      if (!layer) continue
-      layer.render(f, this.params(i, scene), this.surface)
-      images[i].texture = layer.texture
-      const fade = this.outgoing[i]
-      if (!fade) continue
-      const p = (f.time - fade.start) / fade.duration
-      if (p >= 1) {
-        fade.layer.dispose()
-        this.outgoing[i] = null
-        continue
-      }
-      const def = getVisual(fade.layer.visualId)
-      const settings = visualSettings(scene.layers[i], fade.layer.visualId)
-      const params = def ? this.evaluate(paramsOf(def), settings, `${i}:${fade.layer.visualId}`, this.outgoingLive) : {}
-      fade.layer.render(f, params, this.surface)
-      images[i].outgoing = fade.layer.texture
-      images[i].progress = smoothstep(p)
-    }
-    const steps = this.effectSteps(scene)
+      const image = this.layerImage(l, f, scene.transition)
+      if (!image) return
+      compositor.draw(base, image, amount, l.blend, width, height, stack[next])
+      base = stack[next].texture
+      next = 1 - next
+    })
+
+    const steps = this.effectSteps(scene.effects, 'fx')
     const chain = this.chain
     chain?.sync(steps)
     if (chain && steps.length) {
       chain.resize(this.surface)
-      compositor.composite(images[0], images[1], x, scene.blend, this.surface.width, this.surface.height, chain.input)
-      chain.run(steps, f, this.surface)
-    } else {
-      compositor.composite(images[0], images[1], x, scene.blend, this.surface.width, this.surface.height)
+      base = chain.run(base ?? compositor.black, steps, f, this.surface)
     }
+    compositor.draw(null, { texture: base, outgoing: null, progress: 1 }, 1, 'normal', width, height)
     if (this.overlay && this.overlaySource && anyOverlay(scene.overlays)) this.overlay.draw(scene.overlays, this.overlaySource(), this.surface, f.time)
+
+    for (const id of this.effectLive.keys()) if (!this.evaluated.has(id)) this.effectLive.delete(id)
+    for (const id of this.live.keys()) if (!scene.layers.some((l) => l.id === id)) this.live.delete(id)
   }
 
-  private params(i: 0 | 1, scene: SceneState): Params {
-    const layer = scene.layers[i]
-    const def = getVisual(layer.visual)
-    if (!def) return {}
-    return this.evaluate(paramsOf(def), visualSettings(layer), `${i}:${layer.visual}`, this.live[i])
+  // The layer rendered, with its fade and its effects; null when it cannot start.
+  private layerImage(l: LayerState, f: VisualFrame, transition: number): LayerImage | null {
+    const slot = this.slotFor(l.id)
+    const layer = this.layerFor(slot, l.visual, f.time, transition)
+    if (!layer) return null
+    let live = this.live.get(l.id)
+    if (!live) this.live.set(l.id, (live = new Map()))
+    const def = getVisual(l.visual)
+    layer.render(f, def ? this.evaluate(paramsOf(def), visualSettings(l), `${l.id}:${l.visual}`, live) : {}, this.surface)
+    const image: LayerImage = { texture: layer.texture, outgoing: null, progress: 1 }
+    const fade = slot.outgoing
+    if (fade) {
+      const p = (f.time - fade.start) / fade.duration
+      if (p >= 1) {
+        fade.layer.dispose()
+        slot.outgoing = null
+      } else {
+        const outDef = getVisual(fade.layer.visualId)
+        const settings = visualSettings(l, fade.layer.visualId)
+        const params = outDef ? this.evaluate(paramsOf(outDef), settings, `${l.id}:${fade.layer.visualId}`, this.outgoingLive) : {}
+        fade.layer.render(f, params, this.surface)
+        image.outgoing = fade.layer.texture
+        image.progress = smoothstep(p)
+      }
+    }
+
+    const steps = this.effectSteps(l.effects, `${l.id}:fx`)
+    if (!steps.length && !slot.chain) return image
+    if (!slot.chain && this.compositor) slot.chain = this.newChain(this.compositor.gl)
+    const chain = slot.chain!
+    chain.sync(steps)
+    if (!steps.length) return image
+    chain.resize(this.surface)
+    let src = image.texture!
+    if (image.outgoing) {
+      // The fade has to be one image before the effects see it.
+      this.compositor!.draw(null, image, 1, 'normal', this.surface.width, this.surface.height, chain.input)
+      src = chain.input.texture
+    }
+    return { texture: chain.run(src, steps, f, this.surface), outgoing: null, progress: 1 }
   }
 
-  private effectSteps(scene: SceneState): ChainStep[] {
+  private effectSteps(effects: readonly EffectState[], key: string): ChainStep[] {
     const steps: ChainStep[] = []
-    for (const e of scene.effects) {
+    for (const e of effects) {
       const def = getEffect(e.type)
       if (!e.enabled || !def) continue
       let live = this.effectLive.get(e.id)
       if (!live) this.effectLive.set(e.id, (live = new Map()))
-      steps.push({ id: e.id, type: e.type, params: this.evaluate(def.params, e, `fx:${e.id}`, live) })
+      this.evaluated.add(e.id)
+      steps.push({ id: e.id, type: e.type, params: this.evaluate(def.params, e, `${key}:${e.id}`, live) })
     }
-    for (const id of this.effectLive.keys()) if (!scene.effects.some((e) => e.id === id && e.enabled)) this.effectLive.delete(id)
     return steps
   }
 
@@ -259,46 +311,61 @@ export class Renderer {
     return out
   }
 
+  private slotFor(id: string): Slot {
+    let slot = this.slots.get(id)
+    if (!slot) this.slots.set(id, (slot = { layer: null, failed: null, outgoing: null, chain: null }))
+    return slot
+  }
+
+  private dropGoneLayers(scene: SceneState): void {
+    for (const [id, slot] of this.slots) {
+      if (scene.layers.some((l) => l.id === id)) continue
+      this.disposeSlot(slot)
+      this.slots.delete(id)
+    }
+  }
+
   // A change of visualization starts a fade of `duration` seconds from the current one.
-  private layerFor(i: 0 | 1, visualId: string, time: number, duration: number): Layer | null {
-    const current = this.layers[i]
+  private layerFor(slot: Slot, visualId: string, time: number, duration: number): Layer | null {
+    const current = slot.layer
     if (current?.visualId === visualId) return current
-    // A visualization that failed to start is not retried every frame.
-    if (this.failed[i] === visualId) return null
-    const fade = this.outgoing[i]
+    if (slot.failed === visualId) return null
+    const fade = slot.outgoing
     // Back to the one fading out: the fade turns round from where it is.
     if (fade && current && fade.layer.visualId === visualId) {
       const p = Math.min(1, (time - fade.start) / fade.duration)
-      this.layers[i] = fade.layer
-      this.outgoing[i] = { layer: current, start: time - (1 - p) * fade.duration, duration: fade.duration }
+      slot.layer = fade.layer
+      slot.outgoing = { layer: current, start: time - (1 - p) * fade.duration, duration: fade.duration }
       return fade.layer
     }
     fade?.layer.dispose()
-    this.outgoing[i] = current && duration > 0 ? { layer: current, start: time, duration } : null
-    if (!this.outgoing[i]) current?.dispose()
-    this.layers[i] = null
+    slot.outgoing = current && duration > 0 ? { layer: current, start: time, duration } : null
+    if (!slot.outgoing) current?.dispose()
+    slot.layer = null
     const def = getVisual(visualId)
     if (!def || !this.compositor) return null
     try {
-      this.layers[i] = new Layer(this.compositor.gl, def)
-      this.failed[i] = null
+      slot.layer = new Layer(this.compositor.gl, def)
+      slot.failed = null
     } catch (err) {
-      this.failed[i] = visualId
-      this.outgoing[i]?.layer.dispose()
-      this.outgoing[i] = null
+      slot.failed = visualId
+      slot.outgoing?.layer.dispose()
+      slot.outgoing = null
       this.status.set((s) => ({ ...s, error: String(err) }))
     }
-    return this.layers[i]
+    return slot.layer
   }
 
-  // A layer the crossfader hides changes visualization without a fade: nobody would see it,
+  // A layer that does not show changes visualization without a fade: nobody would see it,
   // and it would play when the layer comes back.
-  private hidden(i: 0 | 1, visualId: string): void {
-    this.outgoing[i]?.layer.dispose()
-    this.outgoing[i] = null
-    if (this.layers[i] && this.layers[i]!.visualId !== visualId) {
-      this.layers[i]!.dispose()
-      this.layers[i] = null
+  private hidden(l: LayerState): void {
+    const slot = this.slots.get(l.id)
+    if (!slot) return
+    slot.outgoing?.layer.dispose()
+    slot.outgoing = null
+    if (slot.layer && slot.layer.visualId !== l.visual) {
+      slot.layer.dispose()
+      slot.layer = null
     }
   }
 

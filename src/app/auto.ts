@@ -21,8 +21,8 @@ export const autoStore = createStore<AutoState>({ enabled: false, last: null })
 
 const clock = new AutoClock()
 let raf = 0
-// The preset last put on each layer, so the next pick is a different one.
-const lastPreset: [string | null, string | null] = [null, null]
+// The preset last put on each layer, by layer id, so the next pick is a different one.
+const lastPreset = new Map<string, string>()
 // Crossfader move of the alternate mode, in progress.
 let fade: { from: number; to: number; start: number; ms: number; set: number } | null = null
 
@@ -65,22 +65,29 @@ function visualPool(): string[] {
 function change(now: number): boolean {
   const s = settingsStore.get().auto
   const scene = sceneStore.get()
-  const layer = s.target === 'alternate' ? (scene.crossfade < 0.5 ? 1 : 0) : scene.selected
+  // Alternate: the top layer of the side the crossfader hides; without one, the selected
+  // layer and the crossfader stays.
+  const hiddenSide = scene.crossfade < 0.5 ? 'b' : 'a'
+  const sideLayer = scene.layers.findLastIndex((l) => l.side === hiddenSide)
+  const alternate = s.target === 'alternate' && sideLayer >= 0
+  const layer = alternate ? sideLayer : scene.selected
+  const layerId = scene.layers[layer].id
   if (s.pool === 'presets') {
     const presets = presetsStore.get()
-    const id = pickNext(presets.map((p) => p.id), lastPreset[layer])
+    const last = lastPreset.get(layerId) ?? null
+    const id = pickNext(presets.map((p) => p.id), last)
     const preset = presets.find((p) => p.id === id)
     // A single choice is only worth applying again on the hidden layer.
-    if (!preset || (preset.id === lastPreset[layer] && s.target === 'layer')) return false
-    lastPreset[layer] = preset.id
+    if (!preset || (preset.id === last && !alternate)) return false
+    lastPreset.set(layerId, preset.id)
     sceneStore.set((sc) => applyPreset(sc, layer, preset))
   } else {
     const id = pickNext(visualPool(), scene.layers[layer].visual)
-    if (!id || (id === scene.layers[layer].visual && s.target === 'layer')) return false
+    if (!id || (id === scene.layers[layer].visual && !alternate)) return false
     setVisual(layer, id)
   }
-  if (s.target === 'alternate') {
-    const to = layer === 1 ? 1 : 0
+  if (alternate) {
+    const to = hiddenSide === 'b' ? 1 : 0
     if (scene.transition > 0) fade = { from: scene.crossfade, to, start: now, ms: scene.transition * 1000, set: scene.crossfade }
     else setCrossfade(to)
   }

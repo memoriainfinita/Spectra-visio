@@ -10,7 +10,6 @@ import { useT } from './useT'
 
 type Filter = 'all' | 'favorites' | VisualCategory
 const FILTERS: Filter[] = ['all', 'favorites', ...CATEGORIES]
-const LAYER_NAMES = ['A', 'B'] as const
 
 // Lower case without accents, so "tunel" finds "Túnel".
 const fold = (s: string) => s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase()
@@ -63,7 +62,7 @@ export function Browser() {
             const fav = favorites.includes(v.id)
             return (
               <li key={v.id} className={`visual-card${v.id === current ? ' current' : ''}`}>
-                <button className="visual-pick" title={t('browser.pick', { name, n: LAYER_NAMES[selected] })} aria-label={t('browser.pick', { name, n: LAYER_NAMES[selected] })} onClick={() => setVisual(selected, v.id)}>
+                <button className="visual-pick" title={t('browser.pick', { name, n: selected + 1 })} aria-label={t('browser.pick', { name, n: selected + 1 })} onClick={() => setVisual(selected, v.id)}>
                   {thumbs[v.id] ? <img src={thumbs[v.id]} alt="" width={192} height={108} /> : <span className="thumb-placeholder" />}
                   <span className="visual-card-name">{name}</span>
                   <span className="visual-card-cat">{t(`browser.${v.category}` as MessageKey)}</span>

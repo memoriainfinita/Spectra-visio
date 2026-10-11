@@ -5,7 +5,7 @@ import type { VisualDef, VisualGL } from '../engine/render/visual'
 import { ShaderError, splitHeader } from '../engine/shaders/isf'
 import { isShadertoy } from '../engine/shaders/shadertoy'
 import { USER_PREFIX, userVisual, type ShaderFormat, type UserShader } from '../engine/shaders/userVisual'
-import { defaultScene, type SceneState } from '../engine/scene/scene'
+import { DEFAULT_VISUAL } from '../engine/scene/scene'
 import { translate, type Lang, type MessageKey } from '../i18n'
 import { sceneStore } from './scene'
 
@@ -118,15 +118,15 @@ export async function importShaderFiles(files: File[], lang: Lang): Promise<{ ad
   return { added, errors }
 }
 
-// Layers showing the shader go back to their default visualization.
+// Layers showing the shader go back to the default visualization; its clips are emptied.
 export function deleteShader(id: string): void {
   const visual = USER_PREFIX + id
-  const fallback = defaultScene().layers
   sceneStore.set((s) => {
-    if (!s.layers.some((l) => l.visual === visual)) return s
-    const layers: SceneState['layers'] = [...s.layers]
-    layers.forEach((l, i) => {
-      if (l.visual === visual) layers[i] = { ...l, visual: fallback[i].visual }
+    if (!s.layers.some((l) => l.visual === visual || l.clips.some((c) => c?.visual === visual))) return s
+    const layers = s.layers.map((l) => {
+      const clips = l.clips.map((c) => (c?.visual === visual ? null : c))
+      const active = l.active !== null && clips[l.active] ? l.active : null
+      return { ...l, visual: l.visual === visual ? DEFAULT_VISUAL : l.visual, clips, active }
     })
     return { ...s, layers }
   })

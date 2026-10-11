@@ -4,6 +4,7 @@ import { renderer } from '../app/engine'
 import {
   addEffect,
   addEffectModulation,
+  chainOf,
   moveEffect,
   removeEffect,
   removeEffectModulation,
@@ -18,12 +19,17 @@ import { ParamList } from './ParamList'
 import { useStore } from './useStore'
 import { useT } from './useT'
 
-// The global effect chain, applied in list order after the layers are blended.
+// The effect chain of the selected layer, applied before it blends onto the layers below,
+// or the composition's, applied in list order after all layers are blended.
 export function Effects() {
   const t = useT()
-  const effects = useStore(sceneStore, (s) => s.effects)
+  const [comp, setComp] = useState(false)
+  const selected = useStore(sceneStore, (s) => s.selected)
+  const target = comp ? 'comp' : selected
+  const effects = useStore(sceneStore, (s) => chainOf(s, target))
   const [open, setOpen] = useState<string | null>(null)
   const full = effects.length >= MAX_EFFECTS
+  const n = selected + 1
 
   return (
     <section className="panel effects">
@@ -34,7 +40,7 @@ export function Effects() {
           value=""
           disabled={full}
           onChange={(e) => {
-            if (e.target.value) addEffect(e.target.value)
+            if (e.target.value) addEffect(e.target.value, target)
           }}
         >
           <option value="">{full ? t('effects.full', { n: MAX_EFFECTS }) : t('effects.add')}</option>
@@ -46,7 +52,16 @@ export function Effects() {
         </select>
       </header>
 
-      {effects.length === 0 && <p className="empty">{t('effects.empty')}</p>}
+      <div className="segmented" role="group" aria-label={t('effects.target')}>
+        <button className={`seg${comp ? '' : ' on'}`} aria-pressed={!comp} onClick={() => setComp(false)}>
+          {t('visuals.layer', { n })}
+        </button>
+        <button className={`seg${comp ? ' on' : ''}`} aria-pressed={comp} onClick={() => setComp(true)}>
+          {t('effects.comp')}
+        </button>
+      </div>
+
+      {effects.length === 0 && <p className="empty">{comp ? t('effects.empty') : t('effects.emptyLayer', { n })}</p>}
 
       <ul className="effect-list">
         {effects.map((e, i) => {

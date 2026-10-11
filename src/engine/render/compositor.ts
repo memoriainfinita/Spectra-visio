@@ -83,30 +83,27 @@ export class Layer {
   }
 }
 
-// Crossfade with a blend mode: at 0 only A, at 1 only B, and at 0.5 the blend of both.
-// Between them it fades linearly, so "normal" is a plain crossfade.
-// Each layer may be changing visualization: its outgoing image fades into the new one first.
-const COMPOSITE_FS = `#version 300 es
+/// One layer drawn onto the layers below: `uAmount` of the blend over the base. A layer that
+// is changing visualization mixes its outgoing image into the new one first.
+const LAYER_FS = `#version 300 es
 precision highp float;
 in vec2 vUv;
-uniform sampler2D uA, uB, uAOut, uBOut;
-uniform float uX, uTA, uTB;
+uniform sampler2D uBase, uLayer, uOut;
+uniform float uT, uAmount;
 uniform int uMode;
 out vec4 outColor;
-vec3 blend(vec3 a, vec3 b) {
-  if (uMode == 1) return min(a + b, 1.0);
-  if (uMode == 2) return 1.0 - (1.0 - a) * (1.0 - b);
-  if (uMode == 3) return a * b;
-  if (uMode == 4) return abs(a - b);
-  if (uMode == 5) return max(a, b);
-  return (a + b) * 0.5;
+vec3 blend(vec3 b, vec3 l) {
+  if (uMode == 1) return min(b + l, 1.0);
+  if (uMode == 2) return 1.0 - (1.0 - b) * (1.0 - l);
+  if (uMode == 3) return b * l;
+  if (uMode == 4) return abs(b - l);
+  if (uMode == 5) return max(b, l);
+  return l;
 }
 void main() {
-  vec3 a = mix(texture(uAOut, vUv).rgb, texture(uA, vUv).rgb, uTA);
-  vec3 b = mix(texture(uBOut, vUv).rgb, texture(uB, vUv).rgb, uTB);
-  vec3 m = blend(a, b);
-  vec3 c = uX < 0.5 ? mix(a, m, uX * 2.0) : mix(m, b, uX * 2.0 - 1.0);
-  outColor = vec4(c, 1.0);
+  vec3 b = texture(uBase, vUv).rgb;
+  vec3 l = mix(texture(uOut, vUv).rgb, texture(uLayer, vUv).rgb, uT);
+  outColor = vec4(mix(b, blend(b, l), uAmount), 1.0);
 }`
 
 // What one layer contributes: its image and, while it changes visualization, the outgoing
@@ -119,23 +116,23 @@ export interface LayerImage {
 
 export class Compositor {
   readonly gl: WebGL2RenderingContext
+  readonly black: WebGLTexture
   private readonly prog: WebGLProgram
-  private readonly u: Record<'uA' | 'uB' | 'uAOut' | 'uBOut' | 'uX' | 'uTA' | 'uTB' | 'uMode', WebGLUniformLocation | null>
+  private readonly u: Record<'uBase' | 'uLayer' | 'uOut' | 'uT' | 'uAmount' | 'uMode', WebGLUniformLocation | null>
   private readonly vao: WebGLVertexArrayObject
-  private readonly black: WebGLTexture
 
   constructor(gl: WebGL2RenderingContext) {
     this.gl = gl
-    this.prog = program(gl, COMPOSITE_FS)
-    this.u = uniforms(gl, this.prog, ['uA', 'uB', 'uAOut', 'uBOut', 'uX', 'uTA', 'uTB', 'uMode'] as const)
+    this.prog = program(gl, LAYER_FS)
+    this.u = uniforms(gl, this.prog, ['uBase', 'uLayer', 'uOut', 'uT', 'uAmount', 'uMode'] as const)
     this.vao = gl.createVertexArray()!
     this.black = gl.createTexture()!
     gl.bindTexture(gl.TEXTURE_2D, this.black)
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 255]))
   }
 
-  // Draws on `target`, or on the canvas when it is null.
-  composite(a: LayerImage, b: LayerImage, crossfade: number, mode: BlendMode, width: number, height: number, target: Target | null = null): void {
+  // Draws `image` over `base` (black when null) on `target`, or on the canvas when it is null.
+  draw(base: WebGLTexture | null, image: LayerImage, amount: number, mode: BlendMode, width: number, height: number, target: Target | null = null): void {
     const gl = this.gl
     if (target) target.bind()
     else {
@@ -143,14 +140,9 @@ export class Compositor {
       gl.viewport(0, 0, width, height)
     }
     gl.useProgram(this.prog)
-    bindTextures(
-      gl,
-      [this.u.uA, this.u.uB, this.u.uAOut, this.u.uBOut],
-      [a.texture ?? this.black, b.texture ?? this.black, a.outgoing ?? this.black, b.outgoing ?? this.black],
-    )
-    gl.uniform1f(this.u.uTA, a.outgoing ? a.progress : 1)
-    gl.uniform1f(this.u.uTB, b.outgoing ? b.progress : 1)
-    gl.uniform1f(this.u.uX, crossfade)
+    bindTextures(gl, [this.u.uBase, this.u.uLayer, this.u.uOut], [base ?? this.black, image.texture ?? this.black, image.outgoing ?? this.black])
+    gl.uniform1f(this.u.uT, image.outgoing ? image.progress : 1)
+    gl.uniform1f(this.u.uAmount, amount)
     gl.uniform1i(this.u.uMode, BLEND_MODES.indexOf(mode))
     drawFullscreen(gl, this.vao)
   }

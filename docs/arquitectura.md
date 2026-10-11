@@ -22,7 +22,7 @@ Diseño técnico confirmado por mykl el 2026-10-10. Implementa la lista de `docs
 ## Render
 
 - Un único canvas WebGL2 de salida. Cada visualización dibuja en una textura: las de Canvas 2D en un canvas oculto que se sube a la GPU, las WebGL directamente
-- Compositor: capas A y B con crossfader y modo de fusión → cadena de efectos → capas de texto y letras (E, F)
+- Compositor como Resolume: pila de hasta 8 capas, cada una con opacidad, modo de fusión sobre las de abajo, anular, solo, lado del crossfader (A, B o fuera) y su cadena de efectos → efectos de composición → capas de texto y letras (E, F). Rejilla de clips: 9 por capa; una columna lanza un clip por capa
 - Butterchurn 2.6.7, MIT, en su propio canvas, usado como textura de entrada. API: `createVisualizer(audioContext, canvas, opciones)`, `connectAudio(nodo)`, `loadPreset(preset, segundosDeFundido)`, `render()` por fotograma, `setRendererSize(ancho, alto)`. `butterchurn-presets` 2.4.7 es de 2022
 - ISF con lector propio: la cabecera JSON da los parámetros; el audio llega como textura, una fila por canal
 - Fondo transparente en el modo fuente para OBS (G)
@@ -66,7 +66,7 @@ Diseño técnico confirmado por mykl el 2026-10-10. Implementa la lista de `docs
 5. Efectos, paletas, transiciones, presets, navegador de visualizaciones
 6. Familias nuevas, Butterchurn, ISF, entradas visuales, capas y letras
 7. Análisis previo y modo automático
-8. Directo: MIDI, reloj MIDI, escenas, crossfader, segunda ventana, apagón
+8. Directo: capas y clips al estilo Resolume, MIDI, reloj MIDI, crossfader, segunda ventana, apagón
 9. OBS y grabación
 10. PWA, móvil, accesibilidad, calidad adaptativa, ahorro de energía
 
