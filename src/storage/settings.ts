@@ -1,5 +1,6 @@
 import { get, set } from 'idb-keyval'
 import { DEFAULT_AUTO, normalizeAuto, type AutoSettings } from '../engine/auto/auto'
+import { DEFAULT_LIVE, normalizeLive, type LiveSettings } from '../engine/live/live'
 import { isLang, type Lang } from '../i18n'
 
 const KEY = 'settings'
@@ -30,6 +31,8 @@ export interface Settings {
   keepFiles: boolean
   analysis: AnalysisSettings
   auto: AutoSettings
+  // Keyboard shortcuts and the strobe rate.
+  live: LiveSettings
 }
 
 export function defaultSettings(lang: Lang): Settings {
@@ -39,6 +42,7 @@ export function defaultSettings(lang: Lang): Settings {
     keepFiles: false,
     analysis: { bands: 32, smoothing: 0.4, autoLevel: true, trackLevel: false, autoLatency: true, latencyOffset: 0 },
     auto: DEFAULT_AUTO,
+    live: DEFAULT_LIVE,
   }
 }
 
@@ -74,6 +78,7 @@ export function normalizeSettings(raw: unknown, defaults: Settings): Settings {
     keepFiles: bool(r.keepFiles, defaults.keepFiles),
     analysis: normalizeAnalysis(r.analysis, defaults.analysis),
     auto: r.auto === undefined ? defaults.auto : normalizeAuto(r.auto),
+    live: r.live === undefined ? defaults.live : normalizeLive(r.live),
   }
 }
 

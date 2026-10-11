@@ -117,6 +117,7 @@ export interface LayerImage {
 export class Compositor {
   readonly gl: WebGL2RenderingContext
   readonly black: WebGLTexture
+  readonly white: WebGLTexture
   private readonly prog: WebGLProgram
   private readonly u: Record<'uBase' | 'uLayer' | 'uOut' | 'uT' | 'uAmount' | 'uMode', WebGLUniformLocation | null>
   private readonly vao: WebGLVertexArrayObject
@@ -126,9 +127,8 @@ export class Compositor {
     this.prog = program(gl, LAYER_FS)
     this.u = uniforms(gl, this.prog, ['uBase', 'uLayer', 'uOut', 'uT', 'uAmount', 'uMode'] as const)
     this.vao = gl.createVertexArray()!
-    this.black = gl.createTexture()!
-    gl.bindTexture(gl.TEXTURE_2D, this.black)
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 255]))
+    this.black = solid(gl, 0)
+    this.white = solid(gl, 255)
   }
 
   // Draws `image` over `base` (black when null) on `target`, or on the canvas when it is null.
@@ -152,5 +152,13 @@ export class Compositor {
     gl.deleteProgram(this.prog)
     gl.deleteVertexArray(this.vao)
     gl.deleteTexture(this.black)
+    gl.deleteTexture(this.white)
   }
+}
+
+function solid(gl: WebGL2RenderingContext, v: number): WebGLTexture {
+  const t = gl.createTexture()!
+  gl.bindTexture(gl.TEXTURE_2D, t)
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([v, v, v, 255]))
+  return t
 }
