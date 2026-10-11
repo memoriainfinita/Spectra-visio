@@ -6,6 +6,7 @@ import { initEngine } from './app/engine'
 import { initLibrary } from './app/library'
 import { initLive } from './app/live'
 import { initMidi } from './app/midi'
+import { initObs } from './app/obs'
 import { initOutput } from './app/output'
 import { initOverlays } from './app/overlays'
 import { initPresets } from './app/presets'
@@ -27,6 +28,7 @@ await initEngine()
 initLive()
 initMidi()
 initOutput()
+initObs()
 await initRecord()
 await initOverlays()
 await initTrackAnalysis()

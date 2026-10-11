@@ -57,6 +57,8 @@ export class Renderer {
   output: ((now: number, analysis: AnalysisFrame | null) => OutputState) | null = null
   // Stops drawing, for when the output window shows the image instead.
   paused = false
+  // Brightness as alpha on a see-through canvas, for the OBS source. Set before attach.
+  transparent = false
 
   private readonly scene: () => SceneState
   private readonly analysis: (now: number) => AnalysisFrame | null
@@ -67,6 +69,8 @@ export class Renderer {
   private overlay: OverlayRenderer | null = null
   // The layers blended so far, ping-pong.
   private stack: [Target, Target] | null = null
+  // The finished image before the transparency key.
+  private final: Target | null = null
   private readonly slots = new Map<string, Slot>()
   private readonly outgoingLive = new Map<string, number>()
   private readonly evaluated = new Set<string>()
@@ -157,7 +161,7 @@ export class Renderer {
   }
 
   private init(): void {
-    const gl = this.canvas?.getContext('webgl2', { alpha: false, antialias: false, depth: false, stencil: false })
+    const gl = this.canvas?.getContext('webgl2', { alpha: this.transparent, premultipliedAlpha: true, antialias: false, depth: false, stencil: false })
     if (!gl) {
       this.status.set((s) => ({ ...s, error: 'noWebgl' }))
       return
@@ -167,6 +171,7 @@ export class Renderer {
       this.chain = this.newChain(gl)
       this.overlay = new OverlayRenderer(gl)
       this.stack = [new Target(gl), new Target(gl)]
+      this.final = this.transparent ? new Target(gl) : null
       this.status.set((s) => ({ ...s, error: null }))
       this.start()
     } catch (err) {
@@ -206,6 +211,8 @@ export class Renderer {
     this.overlay = null
     for (const t of this.stack ?? []) t.dispose()
     this.stack = null
+    this.final?.dispose()
+    this.final = null
     this.shown = null
   }
 
@@ -224,6 +231,7 @@ export class Renderer {
     this.chain = null
     this.overlay = null
     this.stack = null
+    this.final = null
     this.shown = null
   }
 
@@ -302,12 +310,15 @@ export class Renderer {
   }
 
   // The image on the canvas with the blackout and the strobe flash, then the overlays,
-  // which go dark with the blackout too.
+  // which go dark with the blackout too. Transparent, all of it goes through the key.
   private present(compositor: Compositor, image: WebGLTexture, out: OutputState, scene: SceneState, time: number): void {
     const { width, height } = this.surface
-    compositor.draw(null, { texture: image, outgoing: null, progress: 1 }, 1 - out.black, 'normal', width, height)
-    if (out.flash > 0) compositor.draw(null, { texture: compositor.white, outgoing: null, progress: 1 }, out.flash, 'normal', width, height)
-    if (out.black < 0.5 && this.overlay && this.overlaySource && anyOverlay(scene.overlays)) this.overlay.draw(scene.overlays, this.overlaySource(), this.surface, time)
+    const target = this.final
+    target?.size(width, height)
+    compositor.draw(null, { texture: image, outgoing: null, progress: 1 }, 1 - out.black, 'normal', width, height, target)
+    if (out.flash > 0) compositor.draw(null, { texture: compositor.white, outgoing: null, progress: 1 }, out.flash, 'normal', width, height, target)
+    if (out.black < 0.5 && this.overlay && this.overlaySource && anyOverlay(scene.overlays)) this.overlay.draw(scene.overlays, this.overlaySource(), this.surface, time, target)
+    if (target) compositor.key(target.texture, width, height)
   }
 
   // The layer rendered, with its fade and its effects; null when it cannot start.

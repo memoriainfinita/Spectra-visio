@@ -71,7 +71,7 @@ Lista de funciones confirmada por mykl el 2026-10-10. Es el contrato del redise�
 
 ## G. OBS / streaming
 
-- Modo fuente configurable por URL: visualización, sin interfaz, fondo transparente, fuente de audio
+- Fuente para OBS por URL, sin interfaz, con fondo transparente o negro; la imagen, el audio y el análisis los da la app abierta en el navegador, por obs-websocket
 - Resolución fija y perfiles de calidad
 - Grabación de la salida a vídeo con audio
 
