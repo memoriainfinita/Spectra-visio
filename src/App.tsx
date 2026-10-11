@@ -6,6 +6,7 @@ import { AnalysisPanel } from './ui/Analysis'
 import { Auto } from './ui/Auto'
 import { Browser } from './ui/Browser'
 import { Clips } from './ui/Clips'
+import { Live } from './ui/Live'
 import { opfsSupported } from './storage/opfs'
 import { useFileDrop, usePlayerShortcuts } from './ui/hooks'
 import { Queue } from './ui/Queue'
@@ -68,6 +69,7 @@ export function App() {
         <Queue />
         <Browser />
         <Clips />
+        <Live />
         <Visuals />
         <Auto />
         <Effects />

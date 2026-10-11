@@ -1,6 +1,7 @@
 import { createStore } from '../../core/store'
 import { BEAT_SLOTS, WAVE_SIZE, type AnalysisFrame } from '../analysis/analyzer'
 import { EffectChain, type ChainStep } from '../effects/chain'
+import type { OutputState } from '../live/live'
 import { getEffect } from '../effects/registry'
 import { Modulator } from '../modulation/modulation'
 import { OverlayRenderer, anyOverlay, type OverlayData } from '../overlay/overlay'
@@ -51,6 +52,8 @@ export class Renderer {
   readonly effectLive = new Map<string, Map<string, number>>()
   // What the overlays show; set by the app, which knows the player.
   overlaySource: (() => OverlayData) | null = null
+  // Blackout, freeze and strobe for this frame; set by the app, which knows the switches.
+  output: ((now: number, analysis: AnalysisFrame | null) => OutputState) | null = null
 
   private readonly scene: () => SceneState
   private readonly analysis: (now: number) => AnalysisFrame | null
@@ -64,6 +67,8 @@ export class Renderer {
   private readonly slots = new Map<string, Slot>()
   private readonly outgoingLive = new Map<string, number>()
   private readonly evaluated = new Set<string>()
+  // The last image shown before the overlays, kept while the output is frozen.
+  private shown: WebGLTexture | null = null
   private surface: Surface = { width: 1, height: 1, dpr: 1 }
   private readonly seen = new Uint32Array(BEAT_SLOTS)
   private seenValid = false
@@ -158,6 +163,7 @@ export class Renderer {
     this.overlay = null
     for (const t of this.stack ?? []) t.dispose()
     this.stack = null
+    this.shown = null
   }
 
   private disposeSlot(slot: Slot): void {
@@ -175,6 +181,7 @@ export class Renderer {
     this.chain = null
     this.overlay = null
     this.stack = null
+    this.shown = null
   }
 
   private readonly onRestored = () => this.init()
@@ -203,10 +210,15 @@ export class Renderer {
       f.wave.fill(0)
       f.hits.fill(false)
     }
-    this.modulator.advance(f.time, dt, a)
-
+    const out = this.output?.(now, a) ?? { black: 0, flash: 0, freeze: false }
     const scene = this.scene()
     const { width, height } = this.surface
+    // Frozen: nothing advances and the last image stays.
+    if (out.freeze && this.shown) {
+      this.present(compositor, this.shown, out, scene, f.time)
+      return
+    }
+    this.modulator.advance(f.time, dt, a)
     this.dropGoneLayers(scene)
     this.evaluated.clear()
     for (const t of stack) t.size(width, height)
@@ -234,11 +246,20 @@ export class Renderer {
       chain.resize(this.surface)
       base = chain.run(base ?? compositor.black, steps, f, this.surface)
     }
-    compositor.draw(null, { texture: base, outgoing: null, progress: 1 }, 1, 'normal', width, height)
-    if (this.overlay && this.overlaySource && anyOverlay(scene.overlays)) this.overlay.draw(scene.overlays, this.overlaySource(), this.surface, f.time)
+    this.shown = base ?? compositor.black
+    this.present(compositor, this.shown, out, scene, f.time)
 
     for (const id of this.effectLive.keys()) if (!this.evaluated.has(id)) this.effectLive.delete(id)
     for (const id of this.live.keys()) if (!scene.layers.some((l) => l.id === id)) this.live.delete(id)
+  }
+
+  // The image on the canvas with the blackout and the strobe flash, then the overlays,
+  // which go dark with the blackout too.
+  private present(compositor: Compositor, image: WebGLTexture, out: OutputState, scene: SceneState, time: number): void {
+    const { width, height } = this.surface
+    compositor.draw(null, { texture: image, outgoing: null, progress: 1 }, 1 - out.black, 'normal', width, height)
+    if (out.flash > 0) compositor.draw(null, { texture: compositor.white, outgoing: null, progress: 1 }, out.flash, 'normal', width, height)
+    if (out.black < 0.5 && this.overlay && this.overlaySource && anyOverlay(scene.overlays)) this.overlay.draw(scene.overlays, this.overlaySource(), this.surface, time)
   }
 
   // The layer rendered, with its fade and its effects; null when it cannot start.

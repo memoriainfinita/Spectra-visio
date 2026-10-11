@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { App } from './App'
 import { initEngine } from './app/engine'
 import { initLibrary } from './app/library'
+import { initLive } from './app/live'
 import { initOverlays } from './app/overlays'
 import { initPresets } from './app/presets'
 import { initScene } from './app/scene'
@@ -19,6 +20,7 @@ await initScene()
 await initPresets()
 await initLibrary()
 await initEngine()
+initLive()
 await initOverlays()
 await initTrackAnalysis()
 

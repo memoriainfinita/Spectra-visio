@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { toggleAuto } from '../app/auto'
-import { addPicked, analysis, player } from '../app/engine'
-import { launchColumn } from '../app/scene'
+import { addPicked, player } from '../app/engine'
+import { runAction } from '../app/live'
+import { settingsStore } from '../app/settings'
+import { actionForKey, keyCombo } from '../engine/live/live'
 import { fromDrop } from '../engine/player/pick'
 import { useStore } from './useStore'
 
@@ -23,8 +24,6 @@ export function usePosition(): number {
   return position
 }
 
-const SEEK_STEP = 5
-
 const ARROWS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown']
 
 // Whether the focused control uses this key itself: text fields and selects use every key,
@@ -41,16 +40,12 @@ function ownsKey(target: EventTarget | null, key: string): boolean {
 export function usePlayerShortcuts(): void {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.ctrlKey || e.metaKey || e.altKey || ownsKey(e.target, e.key)) return
-      if (e.key === ' ') player.toggle()
-      else if (e.key === 'ArrowRight' && e.shiftKey) player.next()
-      else if (e.key === 'ArrowLeft' && e.shiftKey) player.previous()
-      else if (e.key === 'ArrowRight') player.seek(player.position() + SEEK_STEP)
-      else if (e.key === 'ArrowLeft') player.seek(player.position() - SEEK_STEP)
-      else if (e.key === 't' || e.key === 'T') analysis.tap()
-      else if (e.key === 'a' || e.key === 'A') toggleAuto()
-      else if (e.key >= '1' && e.key <= '9' && e.key.length === 1) launchColumn(Number(e.key) - 1)
-      else return
+      // A key being captured for a shortcut, or one a focused control uses.
+      if (e.defaultPrevented || ownsKey(e.target, e.key)) return
+      const combo = keyCombo(e)
+      const action = combo && actionForKey(settingsStore.get().live.keys, combo)
+      if (!action) return
+      runAction(action)
       e.preventDefault()
       // A focused button would also be clicked by the Space keyup.
       if (document.activeElement instanceof HTMLButtonElement) document.activeElement.blur()

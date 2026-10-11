@@ -2,10 +2,11 @@ import { createStore } from '../core/store'
 import { AutoClock, pickNext, type AutoTrigger } from '../engine/auto/auto'
 import { visualsStore } from '../engine/render/registry'
 import { applyPreset } from '../engine/scene/preset'
+import { moveCrossfader, stopCrossfader } from './crossfader'
 import { analysis, inputs, player } from './engine'
 import { favoritesStore } from './library'
 import { presetsStore } from './presets'
-import { sceneStore, setCrossfade, setVisual } from './scene'
+import { sceneStore, setVisual } from './scene'
 import { settingsStore } from './settings'
 import { visualInputStore } from './visualInput'
 
@@ -23,13 +24,11 @@ const clock = new AutoClock()
 let raf = 0
 // The preset last put on each layer, by layer id, so the next pick is a different one.
 const lastPreset = new Map<string, string>()
-// Crossfader move of the alternate mode, in progress.
-let fade: { from: number; to: number; start: number; ms: number; set: number } | null = null
 
 export function setAuto(on: boolean): void {
   if (on === autoStore.get().enabled) return
   cancelAnimationFrame(raf)
-  fade = null
+  stopCrossfader()
   if (on) {
     clock.reset(performance.now())
     raf = requestAnimationFrame(loop)
@@ -43,11 +42,10 @@ export function toggleAuto(): void {
 
 function loop(now: number): void {
   raf = requestAnimationFrame(loop)
-  stepFade(now)
   const p = player.state.get()
   const trackId = p.status === 'playing' && inputs.state.get().kind === 'player' ? p.currentId : null
   const why = clock.tick({ now, settings: settingsStore.get().auto, frame: analysis.frame(now), trackId })
-  if (why && change(now)) autoStore.set((s) => ({ ...s, last: why }))
+  if (why && change()) autoStore.set((s) => ({ ...s, last: why }))
 }
 
 // Visualizations of the chosen pool; the visual input one only while there is an input.
@@ -62,7 +60,7 @@ function visualPool(): string[] {
 }
 
 // False when the pool offers nothing new.
-function change(now: number): boolean {
+function change(): boolean {
   const s = settingsStore.get().auto
   const scene = sceneStore.get()
   // Alternate: the top layer of the side the crossfader hides; without one, the selected
@@ -86,24 +84,7 @@ function change(now: number): boolean {
     if (!id || (id === scene.layers[layer].visual && !alternate)) return false
     setVisual(layer, id)
   }
-  if (alternate) {
-    const to = hiddenSide === 'b' ? 1 : 0
-    if (scene.transition > 0) fade = { from: scene.crossfade, to, start: now, ms: scene.transition * 1000, set: scene.crossfade }
-    else setCrossfade(to)
-  }
+  if (alternate) moveCrossfader(hiddenSide === 'b' ? 1 : 0, scene.transition * 1000)
   return true
 }
 
-// Moves the crossfader along a smooth curve; moving it by hand takes over.
-function stepFade(now: number): void {
-  if (!fade) return
-  if (sceneStore.get().crossfade !== fade.set) {
-    fade = null
-    return
-  }
-  const x = Math.min(1, (now - fade.start) / fade.ms)
-  const v = fade.from + (fade.to - fade.from) * x * x * (3 - 2 * x)
-  setCrossfade(v)
-  fade.set = sceneStore.get().crossfade
-  if (x >= 1) fade = null
-}
