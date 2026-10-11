@@ -1,4 +1,5 @@
 import { get, set } from 'idb-keyval'
+import { DEFAULT_AUTO, normalizeAuto, type AutoSettings } from '../engine/auto/auto'
 import { isLang, type Lang } from '../i18n'
 
 const KEY = 'settings'
@@ -28,6 +29,7 @@ export interface Settings {
   // Copy added files into the app's private storage so the list survives a reload.
   keepFiles: boolean
   analysis: AnalysisSettings
+  auto: AutoSettings
 }
 
 export function defaultSettings(lang: Lang): Settings {
@@ -36,6 +38,7 @@ export function defaultSettings(lang: Lang): Settings {
     lang,
     keepFiles: false,
     analysis: { bands: 32, smoothing: 0.4, autoLevel: true, trackLevel: false, autoLatency: true, latencyOffset: 0 },
+    auto: DEFAULT_AUTO,
   }
 }
 
@@ -70,6 +73,7 @@ export function normalizeSettings(raw: unknown, defaults: Settings): Settings {
     lang: isLang(r.lang) ? r.lang : defaults.lang,
     keepFiles: bool(r.keepFiles, defaults.keepFiles),
     analysis: normalizeAnalysis(r.analysis, defaults.analysis),
+    auto: r.auto === undefined ? defaults.auto : normalizeAuto(r.auto),
   }
 }
 
