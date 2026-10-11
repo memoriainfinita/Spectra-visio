@@ -4,6 +4,7 @@ import { App } from './App'
 import { initEngine } from './app/engine'
 import { initLibrary } from './app/library'
 import { initLive } from './app/live'
+import { initMidi } from './app/midi'
 import { initOverlays } from './app/overlays'
 import { initPresets } from './app/presets'
 import { initScene } from './app/scene'
@@ -21,6 +22,7 @@ await initPresets()
 await initLibrary()
 await initEngine()
 initLive()
+initMidi()
 await initOverlays()
 await initTrackAnalysis()
 

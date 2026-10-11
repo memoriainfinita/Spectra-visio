@@ -229,4 +229,23 @@ describe('analyzer', () => {
     a.process({ ...input(-60), track: track(30.02) }, 64, opts, frame)
     expect(frame.tempoMode).toBe('tap')
   })
+
+  test('a MIDI clock sets tempo and phase over the track grid; tapping still wins', () => {
+    const a = new Analyzer()
+    const frame = createFrame()
+    const opts = { bands: 32, smoothing: 0.3, autoLevel: true }
+    const track: TrackClock = { id: 't', position: 5, bpm: 100, offset: 0, sections: [], referenceDb: null }
+    a.process({ ...input(-60), track, clock: { bpm: 128, phase: 0.25 } }, 0, opts, frame)
+    expect(frame.tempoMode).toBe('midi')
+    expect(frame.bpm).toBe(128)
+    expect(frame.phase).toBe(0.25)
+    expect(frame.tempoConfidence).toBe(1)
+    // The clock gone: back to the grid.
+    a.process({ ...input(-60), track, clock: null }, 16, opts, frame)
+    expect(frame.tempoMode).toBe('track')
+    for (const t of [100, 700, 1300]) a.tap(t)
+    a.process({ ...input(-60), track, clock: { bpm: 128, phase: 0.25 } }, 32, opts, frame)
+    expect(frame.tempoMode).toBe('tap')
+    expect(frame.bpm).toBeCloseTo(100, 0)
+  })
 })

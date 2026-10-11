@@ -1,7 +1,7 @@
 import { createStore } from '../../core/store'
 import type { AnalysisSettings } from '../../storage/settings'
 import { peekGraph } from '../audio/graph'
-import { Analyzer, FFT_SIZE, createFrame, type AnalysisFrame, type TempoMode, type TrackClock } from './analyzer'
+import { Analyzer, FFT_SIZE, createFrame, type AnalysisFrame, type ExternalClock, type TempoMode, type TrackClock } from './analyzer'
 import { DelayLine } from './delay'
 
 // 256 frames hold over a second at 240 fps, more than the longest delay.
@@ -42,6 +42,8 @@ export class Analysis {
   private lastPublish = -Infinity
   // The file playing with what its analysis beforehand found; set by the app.
   trackSource: (() => TrackClock | null) | null = null
+  // An external clock read at a given time; set by the app.
+  clockSource: ((time: number) => ExternalClock | null) | null = null
 
   constructor(settings: () => AnalysisSettings) {
     this.settings = settings
@@ -68,7 +70,16 @@ export class Analysis {
     graph.analyserR.getFloatFrequencyData(this.specR)
     graph.analyserL.getFloatTimeDomainData(this.waveL)
     graph.analyserR.getFloatTimeDomainData(this.waveR)
-    const input = { specL: this.specL, specR: this.specR, waveL: this.waveL, waveR: this.waveR, sampleRate: graph.ctx.sampleRate, track: this.trackSource?.() ?? null }
+    const input = {
+      specL: this.specL,
+      specR: this.specR,
+      waveL: this.waveL,
+      waveR: this.waveR,
+      sampleRate: graph.ctx.sampleRate,
+      track: this.trackSource?.() ?? null,
+      // The frame is seen after the output delay: the clock is read for that moment.
+      clock: this.clockSource?.(now + this.delayMs()) ?? null,
+    }
     this.analyzer.process(input, now, this.settings(), this.line.next())
     if (now - this.lastPublish >= PUBLISH_EVERY_MS) {
       this.lastPublish = now

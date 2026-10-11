@@ -13,6 +13,8 @@ import {
   type Modulation,
 } from '../modulation/modulation'
 import { MAX_EFFECTS, getEffect } from '../effects/registry'
+import { isControl } from '../midi/midi'
+import { CLIP_COLUMNS, MAX_LAYERS } from './limits'
 import { defaultOverlays, normalizeOverlays, type OverlaySettings } from '../overlay/settings'
 import { clampParam, defaultParams, getVisual, paramsOf } from '../render/registry'
 import type { ParamDef, Params } from '../render/visual'
@@ -28,9 +30,7 @@ export type BlendMode = (typeof BLEND_MODES)[number]
 // load as two layers, A and B, with the old blend on B.
 export const SCENE_VERSION = 4
 
-export const MAX_LAYERS = 8
-// Clips per layer, one per column; columns are launched with the number keys.
-export const CLIP_COLUMNS = 9
+export { CLIP_COLUMNS, MAX_LAYERS } from './limits'
 export const SIDES = ['a', 'b'] as const
 export type Side = (typeof SIDES)[number]
 export const DEFAULT_VISUAL = 'kaleido'
@@ -168,6 +168,7 @@ function normalizeSource(raw: unknown): ModSource | null {
     const rate = sync ? oneOf(raw.rate, SYNC_RATES, 1) : num(raw.rate, LFO_RATE_MIN, LFO_RATE_MAX, 1)
     return { kind: 'lfo', shape: oneOf(raw.shape, LFO_SHAPES, 'sine'), rate, sync }
   }
+  if (raw.kind === 'midi') return { kind: 'midi', control: isControl(raw.control) ? raw.control : null }
   return null
 }
 
