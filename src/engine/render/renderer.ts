@@ -83,6 +83,11 @@ export class Renderer {
     this.analysis = analysis
   }
 
+  // Values of MIDI controls for the modulations that follow them.
+  set controls(read: (id: string) => number) {
+    this.modulator.controls = read
+  }
+
   attach(canvas: HTMLCanvasElement): void {
     this.detach()
     this.canvas = canvas

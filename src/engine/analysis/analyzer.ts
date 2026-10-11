@@ -30,8 +30,15 @@ export interface AnalysisOptions {
   autoLevel: boolean
 }
 
-// 'track': the beat grid of a file analysed beforehand.
-export type TempoMode = 'auto' | 'tap' | 'track'
+// 'track': the beat grid of a file analysed beforehand. 'midi': an external MIDI clock.
+export type TempoMode = 'auto' | 'tap' | 'track' | 'midi'
+
+// Tempo and phase from outside, a MIDI clock.
+export interface ExternalClock {
+  bpm: number
+  // 0–1 within the beat.
+  phase: number
+}
 
 // The file playing, when it was analysed beforehand.
 export interface TrackClock {
@@ -102,6 +109,8 @@ export interface AnalyserInput {
   waveR: Float32Array
   sampleRate: number
   track?: TrackClock | null
+  // Read for the moment the frame is seen; null without a clock.
+  clock?: ExternalClock | null
 }
 
 interface Layout {
@@ -134,6 +143,7 @@ export class Analyzer {
   private grid: TrackClock | null = null
   private trackId: string | null = null
   private trackPos = 0
+  private clock: ExternalClock | null = null
 
   process(input: AnalyserInput, now: number, opts: AnalysisOptions, out: AnalysisFrame): void {
     const dt = this.lastTime === null ? 0 : Math.min(MAX_DT_S, Math.max(0, (now - this.lastTime) / 1000))
@@ -174,6 +184,7 @@ export class Analyzer {
     }
     this.updateEstimate(now)
     this.followTrack(track)
+    this.clock = input.clock ?? null
 
     out.time = now
     out.bandCount = layout.count
@@ -188,14 +199,21 @@ export class Analyzer {
     const bpm = this.bpm()
     out.bpm = bpm ?? 0
     out.tempoMode = this.tempoMode
-    out.tempoConfidence = this.mode === 'tap' || this.grid ? 1 : (this.estimate?.confidence ?? 0)
-    out.phase = this.grid ? gridPhase(this.grid) : bpm ? beatPhase(now, this.anchor, bpm) : 0
+    out.tempoConfidence = this.mode === 'tap' || this.clock || this.grid ? 1 : (this.estimate?.confidence ?? 0)
+    out.phase = this.phase(now, bpm)
     out.referenceDb = ref
   }
 
+  // Tapping wins, then a MIDI clock, then the track's grid, then the estimate.
   bpm(): number | null {
     if (this.mode === 'tap') return this.taps.bpm()
-    return this.grid?.bpm ?? this.estimate?.bpm ?? null
+    return this.clock?.bpm ?? this.grid?.bpm ?? this.estimate?.bpm ?? null
+  }
+
+  private phase(now: number, bpm: number | null): number {
+    if (this.mode !== 'tap' && this.clock) return this.clock.phase
+    if (this.mode !== 'tap' && this.grid) return gridPhase(this.grid)
+    return bpm ? beatPhase(now, this.anchor, bpm) : 0
   }
 
   // `time` is on the analysis clock: the caller subtracts the output delay from the moment
@@ -213,7 +231,8 @@ export class Analyzer {
   }
 
   get tempoMode(): TempoMode {
-    return this.mode === 'auto' && this.grid ? 'track' : this.mode
+    if (this.mode === 'tap') return 'tap'
+    return this.clock ? 'midi' : this.grid ? 'track' : 'auto'
   }
 
   // Counts the section changes the track position passed since the last frame, and takes

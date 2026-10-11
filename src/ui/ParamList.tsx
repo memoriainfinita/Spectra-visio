@@ -17,9 +17,10 @@ import {
 } from '../engine/modulation/modulation'
 import { nameOf, type ParamDef, type Params } from '../engine/render/visual'
 import type { MessageKey } from '../i18n'
+import { MidiLearn } from './Midi'
 import { useT } from './useT'
 
-const SOURCE_KINDS: SourceKind[] = ['band', 'beat', 'lfo']
+const SOURCE_KINDS: SourceKind[] = ['band', 'beat', 'lfo', 'midi']
 
 function formatValue(def: ParamDef, v: number): string {
   if (def.int || def.max - def.min >= 100) return String(Math.round(v))
@@ -177,6 +178,8 @@ function ModEditor({ mod, onChange, onRemove }: { mod: Modulation; onChange: (m:
             </label>
           </>
         )}
+
+        {src.kind === 'midi' && <MidiLearn control={src.control} onLearn={(control) => set({ source: { ...src, control } })} />}
 
         <button className="icon-btn small mod-remove" title={t('mod.remove')} aria-label={t('mod.remove')} onClick={onRemove}>
           <X size={15} />

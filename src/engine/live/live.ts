@@ -1,4 +1,4 @@
-import { CLIP_COLUMNS } from '../scene/scene'
+import { CLIP_COLUMNS } from '../scene/limits'
 
 // Live control: the actions a key or a MIDI control can trigger, and the output stage
 // (blackout, freeze, strobe).

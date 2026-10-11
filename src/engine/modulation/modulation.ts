@@ -29,6 +29,8 @@ export type ModSource =
   | { kind: 'beat'; band: BeatRef; decay: number }
   // Free: `rate` in Hz. Synced: `rate` in cycles per beat (one of SYNC_RATES).
   | { kind: 'lfo'; shape: LfoShape; rate: number; sync: boolean }
+  // A MIDI control's value; `control` as engine/midi writes it, null until learned.
+  | { kind: 'midi'; control: string | null }
 
 export type SourceKind = ModSource['kind']
 
@@ -45,6 +47,7 @@ export interface Modulation {
 export function defaultSource(kind: SourceKind): ModSource {
   if (kind === 'band') return { kind, band: 'bass' }
   if (kind === 'beat') return { kind, band: 'kick', decay: 250 }
+  if (kind === 'midi') return { kind, control: null }
   return { kind, shape: 'sine', rate: 1, sync: true }
 }
 
@@ -91,6 +94,8 @@ export class Modulator {
   // Beats elapsed, continuous: synced oscillators read it. Follows the beat phase while the
   // tempo is known, runs at 120 BPM otherwise.
   beats = 0
+  // Current value of a MIDI control, 0–1; set by the app.
+  controls: (id: string) => number = () => 0
 
   advance(time: number, dt: number, frame: AnalysisFrame | null): void {
     this.time = time
@@ -126,6 +131,7 @@ export class Modulator {
   private source(s: State, src: ModSource): number {
     const f = this.frame
     if (src.kind === 'lfo') return lfo(src.shape, src.sync ? this.beats * src.rate : this.time * src.rate)
+    if (src.kind === 'midi') return src.control ? this.controls(src.control) : 0
     if (src.kind === 'band') {
       if (!f) return 0
       if (src.band === 'all') {

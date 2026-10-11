@@ -34,7 +34,7 @@ export function AnalysisPanel() {
           <div className="bpm">{tempo.bpm === null ? t('analysis.bpmUnknown') : t('analysis.bpm', { n: tempo.bpm.toFixed(1) })}</div>
           {tempo.bpm !== null && (
             <div className="muted small">
-              {tempo.mode === 'tap' ? t('analysis.mode.tap') : tempo.mode === 'track' ? t('analysis.mode.track') : t('analysis.mode.auto', { n: Math.round(tempo.confidence * 100) })}
+              {tempo.mode === 'tap' ? t('analysis.mode.tap') : tempo.mode === 'track' ? t('analysis.mode.track') : tempo.mode === 'midi' ? t('analysis.mode.midi') : t('analysis.mode.auto', { n: Math.round(tempo.confidence * 100) })}
             </div>
           )}
         </div>

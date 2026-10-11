@@ -7,6 +7,7 @@ import { Auto } from './ui/Auto'
 import { Browser } from './ui/Browser'
 import { Clips } from './ui/Clips'
 import { Live } from './ui/Live'
+import { Midi } from './ui/Midi'
 import { opfsSupported } from './storage/opfs'
 import { useFileDrop, usePlayerShortcuts } from './ui/hooks'
 import { Queue } from './ui/Queue'
@@ -70,6 +71,7 @@ export function App() {
         <Browser />
         <Clips />
         <Live />
+        <Midi />
         <Visuals />
         <Auto />
         <Effects />
