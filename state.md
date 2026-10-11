@@ -13,7 +13,7 @@ Visualizador de audio en tiempo real para navegador, en reconstrucción desde ce
 
 ## Status
 
-- Fases 1 a 7 de 10 hechas; fase 8 en curso. Fases 4 y 5 probadas por mykl en su Firefox (2026-10-10), fases 6 y 7 el 2026-10-11 (Milkdrop, cámara, letras con pista de prueba, análisis previo y modo automático). Base: TypeScript 7, React 19, Vite 8, Vitest 5, store propio, español e inglés, ajustes en IndexedDB, CI con despliegue a Pages
+- Fases 1 a 8 de 10 hechas; fase 8 pendiente de la revisión de mykl. Fases 4 y 5 probadas por mykl en su Firefox (2026-10-10), fases 6 y 7 el 2026-10-11 (Milkdrop, cámara, letras con pista de prueba, análisis previo y modo automático). Base: TypeScript 7, React 19, Vite 8, Vitest 5, store propio, español e inglés, ajustes en IndexedDB, CI con despliegue a Pages
 - Fase 2: reproductor con gapless y fundido, lista con archivos, carpetas y arrastre, etiquetas y carátula (`music-metadata`), Media Session; fuentes micrófono, pestaña o sistema y stream; ganancia de entrada y medidor de nivel; sesión que sobrevive a recargar (copias en OPFS opcionales, referencias en Chrome)
 - Comprobado el 2026-10-10, silenciado, en Chrome headless (CDP) y Firefox (Playwright): gapless al sample, fundido de 2 s, pausa, atajos, micrófono falso, stream del mismo origen y error CORS, archivo roto, restauración tras recargar. 26 tests unitarios en verde
 - Probado por mykl en su Firefox (2026-10-10): añadir carpeta, arrastrar archivos, reordenar y teclas multimedia funcionan. La captura de pestaña no existe en Firefox ni Safari (sin audio); la app ahora lo explica en vez de intentarlo
@@ -57,6 +57,8 @@ Visualizador de audio en tiempo real para navegador, en reconstrucción desde ce
 - Comprobado el 2026-10-11, silenciado, en Firefox y Chrome (Playwright): cambiar la tecla del apagón, apagón a negro y vuelta, congelar con imagen idéntica, estrobo a 3/s con 350 ms mínimos y al pulso cada 500 ms a 120 BPM, crossfader animado, teclas sin efecto al escribir en un campo, sin errores. 123 tests unitarios en verde
 - Fase 8, parte 3 (`src/engine/midi/`, `src/app/midi.ts`, panel `src/ui/Midi.tsx`): Web MIDI, activado a mano y de nuevo en cada visita si se activó; entrada única o todas. Fuente de modulación MIDI (CC o nota, 0–1) con botón Aprender. Asignaciones aprendidas a las acciones del teclado (nota con cualquier velocidad o CC que cruza la mitad) y a valores continuos: crossfader y opacidad de cada capa. Reloj MIDI (24 pulsos por negra, Start reinicia la fase, Stop o 0,5 s sin pulsos lo quitan): da BPM y fase, leído para el momento en que se ve el fotograma; prioridad tap, reloj, rejilla de la pista, estimado. Ajustes en los de la app
 - Comprobado el 2026-10-11, silenciado, en Firefox y Chrome (Playwright) con una entrada MIDI simulada en la página: aprender pad y CC, apagón con un pad, crossfader y opacidad con CC, modulación que sigue un CC, reloj a 128 BPM en el análisis y vuelta a la rejilla al cortarse, MIDI reactivado y asignaciones tras recargar, sin errores. 131 tests unitarios en verde. Sin probar con un dispositivo real ni con el permiso de Firefox (complemento del sitio)
+- Fase 8, parte 4 (`src/app/output.ts`, `src/output/main.ts`, `src/engine/output/bridge.ts`): ventana de salida desde el panel Directo. La entrada `src/main.tsx` carga la app o, con `?output`, solo el renderer. La salida lee de la principal por un puente en `window.opener` (ver `docs/arquitectura.md`): pantalla completa con doble clic, cursor oculto en reposo, los atajos van a la principal, negro con aviso si la principal se cierra, y se reconecta si la principal recarga. Vista previa en la principal opcional (apagada, no pinta)
+- Comprobado el 2026-10-11, silenciado, en Firefox y Chrome (Playwright): la salida sigue los cambios de capas, apagón, tecla B pulsada en la salida, vista previa apagada con la salida en marcha, imagen de la entrada visual igual en las dos ventanas, reconexión tras recargar la principal, cerrar, sin errores. Sin probar con dos pantallas reales
 - La versión anterior (canvas, 8 visualizaciones) está en `.archive/v0/`, fuera de git, y en el historial hasta `7a63da1`
 - Repo privado en GitHub, Pages sin activar. Se publicará al terminar la app (decisión de mykl, 2026-10-10)
 
@@ -78,4 +80,5 @@ Visualizador de audio en tiempo real para navegador, en reconstrucción desde ce
 - [ ] Al terminar la app: repo público, activar Pages con origen GitHub Actions (`gh api -X POST repos/memoriainfinita/Spectra-visio/pages -f build_type=workflow`) y push
 - [ ] Probar la captura de pestaña en Chrome o Edge
 - [ ] Probar stream con CORS real de otro dominio
-- [ ] Fase 8: segunda ventana
+- [ ] Revisión de la fase 8 por mykl en su Firefox (con controlador MIDI si tiene)
+- [ ] Fase 9: OBS y grabación

@@ -22,10 +22,11 @@ const SEEK_STEP_S = 5
 const stage = new OutputStage()
 
 export function initLive(): void {
-  renderer.output = output
+  renderer.output = liveOutput
 }
 
-function output(now: number, frame: AnalysisFrame | null): OutputState {
+// Called by this window's renderer and by the output window's.
+export function liveOutput(now: number, frame: AnalysisFrame | null): OutputState {
   const { blackout, freeze, strobe } = liveStore.get()
   return stage.tick({ now, blackout, freeze, strobe, rate: settingsStore.get().live.strobe, phase: frame && frame.bpm > 0 ? frame.phase : null })
 }

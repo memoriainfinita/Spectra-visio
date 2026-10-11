@@ -44,7 +44,7 @@ Diseño técnico confirmado por mykl el 2026-10-10. Implementa la lista de `docs
 
 ## Salidas
 
-- Segunda ventana: la misma app en modo salida. Audio y análisis siguen en la principal; los datos de análisis viajan en cada fotograma por `BroadcastChannel`
+- Segunda ventana: la misma app con `?output`, abierta por la principal con `window.open`; carga solo el renderer. Audio y análisis siguen en la principal. Las dos ventanas comparten bucle de eventos y memoria, así que la salida lee de la principal por un puente (`window.opener`) en cada fotograma: escena, análisis, apagón y estrobo, controles MIDI, capas de texto, shaders importados y el mismo elemento de la entrada visual. Sin copias ni cámara abierta dos veces; a cambio, la salida tiene que abrirse desde la app. Sustituye a `BroadcastChannel` (decidido en la fase 8)
 - Modo fuente para OBS con parámetros en la URL: visualización, interfaz, fondo, fuente de audio (G). [PENDIENTE: qué audio recibe la fuente de navegador de OBS]
 - Grabación con `MediaRecorder` sobre el canvas más la pista de audio (G)
 

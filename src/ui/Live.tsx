@@ -1,6 +1,7 @@
 import { RotateCcw } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { liveStore, runAction, setActionKey, toggleLive } from '../app/live'
+import { closeOutput, openOutput, outputStore, setPreview } from '../app/output'
 import { settingsStore } from '../app/settings'
 import { ACTIONS, DEFAULT_KEYS, STROBE_RATES, keyCombo, type ActionId, type StrobeRate } from '../engine/live/live'
 import type { MessageKey } from '../i18n'
@@ -17,6 +18,7 @@ export function actionLabel(id: ActionId, t: ReturnType<typeof useT>): string {
 export function Live() {
   const t = useT()
   const live = useStore(liveStore)
+  const out = useStore(outputStore)
   const settings = useStore(settingsStore, (s) => s.live)
   const [capturing, setCapturing] = useState<ActionId | null>(null)
 
@@ -94,6 +96,18 @@ export function Live() {
           {t('action.crossB')}
         </button>
       </div>
+
+      <div className="live-row">
+        <button className={`btn${out.open ? ' on' : ''}`} onClick={() => (out.open ? closeOutput() : openOutput())}>
+          {out.open ? t('output.close') : t('output.open')}
+        </button>
+        <label className="check inline-check">
+          <input type="checkbox" checked={out.preview} disabled={!out.open} onChange={(e) => setPreview(e.target.checked)} />
+          <span>{t('output.preview')}</span>
+        </label>
+      </div>
+      {out.blocked && <p className="muted small" role="status">{t('output.blocked')}</p>}
+      <p className="muted small">{t('output.hint')}</p>
 
       <details className="live-keys">
         <summary>{t('live.keys')}</summary>

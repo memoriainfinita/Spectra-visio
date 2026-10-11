@@ -54,6 +54,8 @@ export class Renderer {
   overlaySource: (() => OverlayData) | null = null
   // Blackout, freeze and strobe for this frame; set by the app, which knows the switches.
   output: ((now: number, analysis: AnalysisFrame | null) => OutputState) | null = null
+  // Stops drawing, for when the output window shows the image instead.
+  paused = false
 
   private readonly scene: () => SceneState
   private readonly analysis: (now: number) => AnalysisFrame | null
@@ -195,6 +197,11 @@ export class Renderer {
     const compositor = this.compositor
     const stack = this.stack
     if (!compositor || !stack) return
+    if (this.paused) {
+      this.last = null
+      if (this.status.get().fps) this.status.set((s) => ({ ...s, fps: 0 }))
+      return
+    }
     const dt = this.last === null ? 0 : Math.min(MAX_DT_S, (now - this.last) / 1000)
     this.last = now
     this.countFps(now)
