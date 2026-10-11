@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { Analyzer, FFT_SIZE, KICK, createFrame } from './analyzer'
+import { Analyzer, FFT_SIZE, KICK, SECTION, createFrame, type TrackClock } from './analyzer'
 import { bandPower, binWeights, logEdges } from './bands'
 import { BeatDetector } from './beat'
 import { DelayLine } from './delay'
@@ -205,5 +205,28 @@ describe('analyzer', () => {
     expect(a.bpm()).toBeCloseTo(100)
     a.useAutoTempo()
     expect(a.bpm()).toBeNull()
+  })
+
+  test('a track analysed beforehand sets tempo, phase and section changes', () => {
+    const a = new Analyzer()
+    const frame = createFrame()
+    const opts = { bands: 32, smoothing: 0.3, autoLevel: true }
+    const track = (position: number): TrackClock => ({ id: 't', position, bpm: 100, offset: 0.2, sections: [10], referenceDb: -40 })
+    a.process({ ...input(-60), track: track(9.9) }, 0, opts, frame)
+    expect(frame.tempoMode).toBe('track')
+    expect(frame.bpm).toBe(100)
+    // 9.9 s is 9.7 s after the first beat: 16.1666 beats.
+    expect(frame.phase).toBeCloseTo(0.1667, 3)
+    expect(frame.referenceDb).toBe(-40)
+    a.process({ ...input(-60), track: track(10.05) }, 16, opts, frame)
+    expect(frame.beats[SECTION]).toBe(1)
+    // Seeking back and over the change again is not a change heard.
+    a.process({ ...input(-60), track: track(2) }, 32, opts, frame)
+    a.process({ ...input(-60), track: track(30) }, 48, opts, frame)
+    expect(frame.beats[SECTION]).toBe(1)
+    // A tapped tempo still wins over the grid.
+    for (const t of [100, 700, 1300]) a.tap(t)
+    a.process({ ...input(-60), track: track(30.02) }, 64, opts, frame)
+    expect(frame.tempoMode).toBe('tap')
   })
 })

@@ -1,13 +1,14 @@
-import { KICK, type AnalysisFrame } from '../analysis/analyzer'
+import { KICK, SECTION, type AnalysisFrame } from '../analysis/analyzer'
 import { NAMED_BANDS, type NamedBand } from '../analysis/bands'
 
 // Modulation: source → transformation (amount, curve, smoothing) → parameter.
 // Sources give 0–1; contributions are added to the parameter's position in its range.
 
 export type BandRef = NamedBand | 'all'
-export type BeatRef = NamedBand | 'kick'
+// 'section': a change of section in a file analysed beforehand.
+export type BeatRef = NamedBand | 'kick' | 'section'
 export const BAND_REFS: readonly BandRef[] = [...NAMED_BANDS, 'all']
-export const BEAT_REFS: readonly BeatRef[] = [...NAMED_BANDS, 'kick']
+export const BEAT_REFS: readonly BeatRef[] = [...NAMED_BANDS, 'kick', 'section']
 
 export const LFO_SHAPES = ['sine', 'triangle', 'saw', 'square'] as const
 export type LfoShape = (typeof LFO_SHAPES)[number]
@@ -77,7 +78,7 @@ interface State {
   started: boolean
 }
 
-const BEAT_SLOT: Record<BeatRef, number> = { ...Object.fromEntries(NAMED_BANDS.map((b, i) => [b, i])), kick: KICK } as Record<BeatRef, number>
+const BEAT_SLOT: Record<BeatRef, number> = { ...Object.fromEntries(NAMED_BANDS.map((b, i) => [b, i])), kick: KICK, section: SECTION } as Record<BeatRef, number>
 const FALLBACK_BPM = 120
 
 // Evaluates modulations once per rendered frame. State (smoothing, beat envelopes) is kept
