@@ -7,7 +7,7 @@ import { attachHls } from '../engine/tv/hls'
 // to be chosen again.
 
 export type InputKind = 'none' | 'camera' | 'video' | 'image' | 'tv'
-export type InputError = 'cameraDenied' | 'cameraMissing' | 'cameraFailed' | 'unsupported' | 'badFile' | 'tvFailed' | 'tvTimeout' | null
+export type InputError = 'cameraDenied' | 'cameraMissing' | 'cameraFailed' | 'unsupported' | 'badFile' | 'tvFailed' | 'tvTimeout' | 'mediaFailed' | null
 
 export interface VisualInputState {
   kind: InputKind
@@ -15,12 +15,14 @@ export interface VisualInputState {
   name: string
   // The channel's stream, while a channel is the input.
   url: string
+  // The page of a video or image found online, with its licence and author.
+  page: string
   width: number
   height: number
   error: InputError
 }
 
-export const visualInputStore = createStore<VisualInputState>({ kind: 'none', name: '', url: '', width: 0, height: 0, error: null })
+export const visualInputStore = createStore<VisualInputState>({ kind: 'none', name: '', url: '', page: '', width: 0, height: 0, error: null })
 // The element being shown, for the panel's preview.
 export const previewStore = createStore<HTMLVideoElement | HTMLImageElement | null>(null)
 
@@ -48,7 +50,7 @@ function release(): void {
 export function stopVisualInput(): void {
   op++
   release()
-  visualInputStore.set({ kind: 'none', name: '', url: '', width: 0, height: 0, error: null })
+  visualInputStore.set({ kind: 'none', name: '', url: '', page: '', width: 0, height: 0, error: null })
 }
 
 const fail = (error: InputError) => visualInputStore.set((s) => ({ ...s, error }))
@@ -100,12 +102,12 @@ export async function startCamera(deviceId?: string): Promise<void> {
     })
     setVisualSource({ element: v, width: v.videoWidth, height: v.videoHeight, live: true })
     previewStore.set(v)
-    visualInputStore.set({ kind: 'camera', name: track?.label ?? '', url: '', width: v.videoWidth, height: v.videoHeight, error: null })
+    visualInputStore.set({ kind: 'camera', name: track?.label ?? '', url: '', page: '', width: v.videoWidth, height: v.videoHeight, error: null })
   } catch (err) {
     if (mine !== op) return
     release()
     const name = err instanceof DOMException ? err.name : ''
-    visualInputStore.set({ kind: 'none', name: '', url: '', width: 0, height: 0, error: name === 'NotAllowedError' ? 'cameraDenied' : name === 'NotFoundError' || name === 'OverconstrainedError' ? 'cameraMissing' : 'cameraFailed' })
+    visualInputStore.set({ kind: 'none', name: '', url: '', page: '', width: 0, height: 0, error: name === 'NotAllowedError' ? 'cameraDenied' : name === 'NotFoundError' || name === 'OverconstrainedError' ? 'cameraMissing' : 'cameraFailed' })
   }
 }
 
@@ -122,7 +124,7 @@ export async function openVisualFile(file: File): Promise<void> {
       if (mine !== op) return
       setVisualSource({ element: v, width: v.videoWidth, height: v.videoHeight, live: true })
       previewStore.set(v)
-      visualInputStore.set({ kind: 'video', name: file.name, url: '', width: v.videoWidth, height: v.videoHeight, error: null })
+      visualInputStore.set({ kind: 'video', name: file.name, url: '', page: '', width: v.videoWidth, height: v.videoHeight, error: null })
     } else {
       const img = new Image()
       img.src = objectUrl
@@ -130,12 +132,12 @@ export async function openVisualFile(file: File): Promise<void> {
       if (mine !== op) return
       setVisualSource({ element: img, width: img.naturalWidth, height: img.naturalHeight, live: false })
       previewStore.set(img)
-      visualInputStore.set({ kind: 'image', name: file.name, url: '', width: img.naturalWidth, height: img.naturalHeight, error: null })
+      visualInputStore.set({ kind: 'image', name: file.name, url: '', page: '', width: img.naturalWidth, height: img.naturalHeight, error: null })
     }
   } catch {
     if (mine !== op) return
     release()
-    visualInputStore.set({ kind: 'none', name: '', url: '', width: 0, height: 0, error: 'badFile' })
+    visualInputStore.set({ kind: 'none', name: '', url: '', page: '', width: 0, height: 0, error: 'badFile' })
   }
 }
 
@@ -161,7 +163,7 @@ export async function startTv(url: string, name: string): Promise<void> {
     setVisualSource({ element: v, width: v.videoWidth, height: v.videoHeight, live: true })
     previewStore.set(v)
     tvVideo = v
-    visualInputStore.set({ kind: 'tv', name, url, width: v.videoWidth, height: v.videoHeight, error: null })
+    visualInputStore.set({ kind: 'tv', name, url, page: '', width: v.videoWidth, height: v.videoHeight, error: null })
     // A channel that stops for good leaves the input instead of freezing on its last frame.
     v.addEventListener('error', () => {
       if (mine === op) {
@@ -173,8 +175,40 @@ export async function startTv(url: string, name: string): Promise<void> {
     if (mine !== op) return
     release()
     const timeout = err instanceof DOMException && err.name === 'TvTimeout'
-    visualInputStore.set({ kind: 'none', name: '', url: '', width: 0, height: 0, error: timeout ? 'tvTimeout' : 'tvFailed' })
+    visualInputStore.set({ kind: 'none', name: '', url: '', page: '', width: 0, height: 0, error: timeout ? 'tvTimeout' : 'tvFailed' })
   } finally {
     clearTimeout(timer)
+  }
+}
+
+// A video (looped, silent) or image found online, read with CORS so WebGL may use it.
+export async function openVisualUrl(url: string, type: 'video' | 'image', name: string, page: string): Promise<void> {
+  const mine = ++op
+  release()
+  visualInputStore.set((s) => ({ ...s, error: null }))
+  try {
+    if (type === 'video') {
+      const v = videoElement()
+      v.crossOrigin = 'anonymous'
+      v.src = url
+      await play(v)
+      if (mine !== op) return
+      setVisualSource({ element: v, width: v.videoWidth, height: v.videoHeight, live: true })
+      previewStore.set(v)
+      visualInputStore.set({ kind: 'video', name, url, page, width: v.videoWidth, height: v.videoHeight, error: null })
+    } else {
+      const img = new Image()
+      img.crossOrigin = 'anonymous'
+      img.src = url
+      await img.decode()
+      if (mine !== op) return
+      setVisualSource({ element: img, width: img.naturalWidth, height: img.naturalHeight, live: false })
+      previewStore.set(img)
+      visualInputStore.set({ kind: 'image', name, url, page, width: img.naturalWidth, height: img.naturalHeight, error: null })
+    }
+  } catch {
+    if (mine !== op) return
+    release()
+    visualInputStore.set({ kind: 'none', name: '', url: '', page: '', width: 0, height: 0, error: 'mediaFailed' })
   }
 }

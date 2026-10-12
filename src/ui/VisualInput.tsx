@@ -1,10 +1,11 @@
-import { Camera, ImagePlus, Tv, X } from 'lucide-react'
+import { Camera, Globe, ImagePlus, Tv, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { cameraDevices, openVisualFile, previewStore, startCamera, stopVisualInput, visualInputStore } from '../app/visualInput'
 import type { MessageKey } from '../i18n'
 import { useStore } from './useStore'
 import { useT } from './useT'
 import { Hint } from './Hint'
+import { MediaBrowser } from './Media'
 import { TvBrowser } from './Tv'
 
 export function VisualInput() {
@@ -12,7 +13,9 @@ export function VisualInput() {
   const state = useStore(visualInputStore)
   const preview = useStore(previewStore)
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([])
-  const [showTv, setShowTv] = useState(false)
+  // The online browser open below: live TV or free videos and images.
+  const [browser, setBrowser] = useState<'tv' | 'media' | null>(null)
+  const toggle = (b: 'tv' | 'media') => setBrowser(browser === b ? null : b)
   const box = useRef<HTMLDivElement>(null)
   const fileInput = useRef<HTMLInputElement>(null)
 
@@ -37,11 +40,14 @@ export function VisualInput() {
           <button className={`btn${state.kind === 'camera' ? ' on' : ''}`} onClick={() => void startCamera()}>
             <Camera size={15} /> {t('vinput.camera')}
           </button>
-          <button className={`btn${state.kind === 'video' || state.kind === 'image' ? ' on' : ''}`} onClick={() => fileInput.current?.click()}>
+          <button className={`btn${(state.kind === 'video' || state.kind === 'image') && !state.page ? ' on' : ''}`} onClick={() => fileInput.current?.click()}>
             <ImagePlus size={15} /> {t('vinput.file')}
           </button>
-          <button className={`btn${state.kind === 'tv' ? ' on' : ''}`} aria-expanded={showTv} onClick={() => setShowTv(!showTv)}>
+          <button className={`btn${state.kind === 'tv' ? ' on' : ''}`} aria-expanded={browser === 'tv'} onClick={() => toggle('tv')}>
             <Tv size={15} /> {t('vinput.tv')}
+          </button>
+          <button className={`btn${state.page ? ' on' : ''}`} aria-expanded={browser === 'media'} onClick={() => toggle('media')}>
+            <Globe size={15} /> {t('vinput.online')}
           </button>
           <button className="btn" disabled={state.kind === 'none'} onClick={stopVisualInput}>
             <X size={15} /> {t('vinput.stop')}
@@ -81,7 +87,8 @@ export function VisualInput() {
         </p>
       )}
       <div className="input-preview" ref={box} hidden={!preview} />
-      {showTv && <TvBrowser />}
+      {browser === 'tv' && <TvBrowser />}
+      {browser === 'media' && <MediaBrowser />}
     </section>
   )
 }
