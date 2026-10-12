@@ -68,10 +68,11 @@ export async function playStation(station: Station): Promise<void> {
   const ctrl = new AbortController()
   probe = ctrl
   radioStore.set((s) => ({ ...s, checking: station.id, message: null }))
-  const ok = await canAnalyse(station.url, ctrl.signal)
+  const result = await canAnalyse(station.url, ctrl.signal)
   if (probe !== ctrl) return
-  radioStore.set((s) => ({ ...s, checking: null, message: ok ? null : 'radio.error.cors' }))
-  if (ok) await inputs.useStream(station.url, station.name)
+  const message = result === 'ok' ? null : result === 'timeout' ? 'radio.error.timeout' : 'radio.error.cors'
+  radioStore.set((s) => ({ ...s, checking: null, message }))
+  if (result === 'ok') await inputs.useStream(station.url, station.name)
 }
 
 // The favourite before or after the one playing; from a station that is not a favourite,

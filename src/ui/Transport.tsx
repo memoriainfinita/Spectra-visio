@@ -79,7 +79,7 @@ export function NowPlaying() {
           <Radio size={26} aria-hidden="true" />
         </div>
         <div className="now-text">
-          <div className="now-title">{live.name}</div>
+          <div className="now-title" title={live.name}>{live.name}</div>
           <div className="now-sub">
             <span className="live-badge">{liveSub(live.status, t)}</span>
           </div>
@@ -140,7 +140,7 @@ export function MiniTransport() {
       >
         <SkipForward size={16} />
       </button>
-      <span className="mini-title">{live.source ? live.name : track ? trackTitle(track) : t('player.nothing')}</span>
+      <span className="mini-title" title={live.source ? live.name : track ? trackTitle(track) : undefined}>{live.source ? live.name : track ? trackTitle(track) : t('player.nothing')}</span>
       {live.source && <span className="live-badge">{liveSub(live.status, t)}</span>}
       {!live.source && track && (
         <span className="time">

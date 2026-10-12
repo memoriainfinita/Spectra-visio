@@ -83,7 +83,8 @@ export const en: Messages = {
   'radio.favorite': 'Add {name} to favourites',
   'radio.unfavorite': 'Remove {name} from favourites',
   'radio.error.search': 'The radio directory could not be reached.',
-  'radio.error.cors': 'This station cannot be analysed: its server sends no CORS headers.',
+  'radio.error.cors': 'This station does not allow its sound to be analysed. Try another.',
+  'radio.error.timeout': 'This station does not answer. Try another.',
   'radio.hint': 'https stations from radio-browser.info, most listened first. The app only contacts the directory when searching. A stream URL can also be pasted:',
   'input.connect':'Connect',
   'input.connecting': 'Connecting…',
@@ -98,6 +99,7 @@ export const en: Messages = {
   'input.error.screenUnsupported':
     'This browser does not share tab or system audio; Chrome and Edge do. Alternative: if your sound card offers a system capture device (on Windows, "Stereo Mix"), pick it under Microphone.',
   'input.error.stream': 'Could not connect. The server must allow CORS.',
+  'input.error.streamTimeout': 'The stream did not start playing within 20 s.',
   'level.title': 'Analysis level',
 
   'analysis.title': 'Analysis',

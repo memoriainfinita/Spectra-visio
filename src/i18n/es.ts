@@ -83,7 +83,8 @@ export const es = {
   'radio.favorite': 'Añadir {name} a favoritas',
   'radio.unfavorite': 'Quitar {name} de favoritas',
   'radio.error.search': 'No se pudo consultar el directorio de radios.',
-  'radio.error.cors': 'Esta emisora no permite el análisis: su servidor no envía CORS.',
+  'radio.error.cors': 'Esta emisora no deja analizar su sonido. Prueba otra.',
+  'radio.error.timeout': 'Esta emisora no responde. Prueba otra.',
   'radio.hint': 'Emisoras https de radio-browser.info, las más escuchadas primero. La app solo contacta con el directorio al buscar. También puedes pegar la URL de un stream:',
   'input.connecting': 'Conectando…',
   'input.screenHint': 'Elige una pestaña o la pantalla y activa compartir audio.',
@@ -97,6 +98,7 @@ export const es = {
   'input.error.screenUnsupported':
     'Este navegador no comparte el audio de pestañas ni del sistema; Chrome y Edge sí. Alternativa: si tu tarjeta de sonido ofrece un dispositivo de captura del sistema (en Windows, «Mezcla estéreo»), elígelo en Micrófono.',
   'input.error.stream': 'No se pudo conectar. El servidor tiene que permitir CORS.',
+  'input.error.streamTimeout': 'El stream no empezó a sonar en 20 s.',
   'level.title': 'Nivel de análisis',
 
   'analysis.title': 'Análisis',

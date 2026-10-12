@@ -29,6 +29,8 @@ export interface InputsState {
 }
 
 export const MAX_INPUT_GAIN = 4
+// A stream that has not started playing by then is given up.
+const STREAM_START_TIMEOUT_MS = 20000
 
 function hostOf(url: string): string {
   try {
@@ -137,7 +139,17 @@ export class Inputs {
       // Without CORS headers the load fails here instead of feeding silence to the analysers.
       el.crossOrigin = 'anonymous'
       el.src = url
-      await el.play()
+      // Kept so a failed or slow start can still be released.
+      this.element = el
+      let timer: ReturnType<typeof setTimeout> | undefined
+      const late = new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new DOMException('No sound yet', 'StreamTimeout')), STREAM_START_TIMEOUT_MS)
+      })
+      try {
+        await Promise.race([el.play(), late])
+      } finally {
+        clearTimeout(timer)
+      }
       const node = graph.ctx.createMediaElementSource(el)
       node.connect(graph.playerBus)
       this.element = el
@@ -194,7 +206,8 @@ export class Inputs {
       this.state.set((s) => ({ ...s, status: 'active' }))
     } catch (err) {
       this.release()
-      const key = err instanceof DOMException && err.name === 'NoAudio' ? 'input.error.noScreenAudio' : kind === 'stream' ? 'input.error.stream' : errorKey(err)
+      const name = err instanceof DOMException ? err.name : ''
+      const key = name === 'NoAudio' ? 'input.error.noScreenAudio' : name === 'StreamTimeout' ? 'input.error.streamTimeout' : kind === 'stream' ? 'input.error.stream' : errorKey(err)
       this.state.set((s) => ({ ...s, kind: 'player', status: 'idle', error: key }))
     }
   }
