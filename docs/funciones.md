@@ -55,7 +55,7 @@ Lista de funciones confirmada por mykl el 2026-10-10. Es el contrato del redise�
 - Parámetros por visualización (paleta, velocidad, sensibilidad, intensidad) con panel
 - Paletas de color globales
 - Cadena de efectos global sobre cualquier visualización: brillo difuso, realimentación, espejo o caleidoscopio, corrección de color, estelas
-- Entradas visuales: webcam, vídeo, imagen, canal de TV en directo (iptv-org) o vídeo e imagen libres de Wikimedia Commons y la NASA, para shaders y efectos
+- Entradas visuales: webcam, vídeo, imagen, canal de TV en directo (iptv-org) o vídeo e imagen libres de Wikimedia Commons y la NASA, para shaders y efectos; los vídeos con pausa, posición, recorte, bucle y velocidad
 - Transiciones con fundido entre visualizaciones
 - Modo automático: cambio por tiempo, por golpe o al cambiar de canción
 - Navegador de visualizaciones: miniaturas, categorías, búsqueda y favoritos

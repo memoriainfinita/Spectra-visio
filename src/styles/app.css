@@ -651,3 +651,12 @@ input[type='range'] { accent-color: var(--accent); }
 .media-item.on { border-color: var(--accent); }
 .media-item img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 4px; background: var(--panel); }
 .media-item span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Video in the visual input */
+
+.video-controls { display: flex; flex-direction: column; gap: 2px; margin-top: 6px; }
+.video-controls .seek { flex: 1; min-width: 120px; }
+.inline-field { display: inline-flex; align-items: center; gap: 6px; margin: 0; font-size: 13px; }
+.inline-field input[type=number] { width: 72px; }
+.video-controls .live-row { gap: 10px; }
+.video-controls .inline-field span { min-width: 4.5em; }

@@ -17,6 +17,7 @@ Visualizador de audio en tiempo real para navegador, reconstruido desde cero en 
 - Todas las funciones de `docs/funciones.md` están hechas. Las dos últimas, del 2026-10-12: «Igualar volumen» entre pistas (A) y el directorio de radios en la fuente Stream (B, diseño aprobado por mykl ese día)
 - Pestaña Ajustes (general, accesibilidad, rendimiento, atajos, copia de seguridad, restablecer), textos de ayuda largos plegados y marca «sin análisis» en las emisoras encontradas: propuestos y aprobados por mykl el 2026-10-12
 - Aprobado por mykl el 2026-10-12, en este orden: sonido de los canales de TV (hecho), música de Audius (hecho), buscador de vídeo e imagen de Wikimedia Commons y NASA en la entrada visual (hecho; NASA solo vídeo), letras de LRCLIB y carátulas de MusicBrainz y Cover Art Archive (hecho, opcional y desactivado por defecto)
+- Control del vídeo en la entrada visual (pausa, posición, recorte, bucle, velocidad): aprobado por mykl el 2026-10-12
 - TV en directo de iptv-org como entrada visual, con grupos de su PLAYLISTS.md, comprobación en segundo plano y favoritos: aprobado por mykl el 2026-10-12
 - Probado por mykl en su Firefox: fases 2 a 8 (2026-10-10 y 2026-10-11) y la disposición de escritorio (2026-10-12)
 - Pendiente de la revisión de mykl: fase 9 (OBS real, grabación) y fase 10 (móvil real, instalar la app, calidad adaptativa en su equipo)

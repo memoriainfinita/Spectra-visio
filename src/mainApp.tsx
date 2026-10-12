@@ -22,6 +22,7 @@ import { initSettings } from './app/settings'
 import { initShaders } from './app/shaders'
 import { initTrackAnalysis } from './app/trackAnalysis'
 import { initUpdate } from './app/update'
+import { initVideoControl } from './app/videoControl'
 import './styles/tokens.css'
 import './styles/app.css'
 
@@ -47,6 +48,7 @@ await initTrackAnalysis()
 await initRadio()
 await initTv()
 initTransport()
+initVideoControl()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
