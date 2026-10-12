@@ -48,6 +48,8 @@ export interface Settings {
   reduceFlashes: boolean
   // The photosensitivity notice was shown and answered.
   flashNotice: boolean
+  // A TV channel in the visual input is also the audio source.
+  tvSound: boolean
 }
 
 // `reduceFlashes` follows the system's reduced motion preference until changed.
@@ -66,6 +68,7 @@ export function defaultSettings(lang: Lang, reduceFlashes = false): Settings {
     performance: DEFAULT_PERFORMANCE,
     reduceFlashes,
     flashNotice: false,
+    tvSound: false,
   }
 }
 
@@ -109,6 +112,7 @@ export function normalizeSettings(raw: unknown, defaults: Settings): Settings {
     performance: r.performance === undefined ? defaults.performance : normalizePerformance(r.performance),
     reduceFlashes: bool(r.reduceFlashes, defaults.reduceFlashes),
     flashNotice: bool(r.flashNotice, defaults.flashNotice),
+    tvSound: bool(r.tvSound, defaults.tvSound),
   }
 }
 

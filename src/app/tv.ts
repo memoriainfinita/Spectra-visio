@@ -3,7 +3,9 @@ import { createStore } from '../core/store'
 import { canAnalyse, type Probe } from '../engine/radio/radio'
 import { ALL_URL, PLAYLISTS_URL, fetchText, parseGroups, parsePlaylist, type Channel, type TvGroup } from '../engine/tv/tv'
 import type { MessageKey } from '../i18n'
-import { startTv } from './visualInput'
+import { inputs } from './engine'
+import { settingsStore } from './settings'
+import { currentTvVideo, startTv, visualInputStore } from './visualInput'
 
 // Live TV in the visual input: iptv-org's groups, one playlist at a time, favourites, and
 // the same checks as the radio: a channel has to send CORS for WebGL to read its frames.
@@ -45,6 +47,36 @@ export async function initTv(): Promise<void> {
   tvFavoritesStore.subscribe(() => {
     set(FAVORITES_KEY, tvFavoritesStore.get()).catch(() => {})
   })
+  // The channel's sound goes when the channel does: another channel, another input, none.
+  visualInputStore.subscribe(() => {
+    const s = inputs.state.get()
+    const v = visualInputStore.get()
+    if (s.tv && s.kind === 'stream' && (v.kind !== 'tv' || v.url !== s.streamUrl)) inputs.usePlayer()
+  })
+}
+
+const soundOf = async (name: string, url: string) => {
+  const el = currentTvVideo()
+  if (el) await inputs.useTvSound(el, name, url)
+}
+
+// Whether the channel is also heard; on, the one showing becomes the audio source now.
+export async function setTvSound(on: boolean): Promise<void> {
+  settingsStore.set((s) => ({ ...s, tvSound: on }))
+  const v = visualInputStore.get()
+  const s = inputs.state.get()
+  if (on && v.kind === 'tv') await soundOf(v.name, v.url)
+  else if (!on && s.tv && s.kind === 'stream') inputs.usePlayer()
+}
+
+// The favourite before or after the channel showing; from one that is not a favourite, the
+// first or the last. Nothing without favourites.
+export async function stepChannel(step: 1 | -1): Promise<void> {
+  const list = tvFavoritesStore.get()
+  if (!list.length) return
+  const i = list.findIndex((c) => c.url === visualInputStore.get().url)
+  const next = i < 0 ? (step > 0 ? 0 : list.length - 1) : (i + step + list.length) % list.length
+  await playChannel(list[next])
 }
 
 function isChannel(raw: unknown): raw is Channel {
@@ -131,5 +163,7 @@ export async function playChannel(channel: Channel): Promise<void> {
   if (probe !== ctrl) return
   tvStore.set((s) => ({ ...s, checking: null, message: result === 'ok' ? null : result === 'timeout' ? 'tv.error.timeout' : 'tv.error.blocked' }))
   noteProbe(channel.id, result)
-  if (result === 'ok') await startTv(channel.url, channel.name)
+  if (result !== 'ok') return
+  await startTv(channel.url, channel.name)
+  if (settingsStore.get().tvSound && visualInputStore.get().url === channel.url) await soundOf(channel.name, channel.url)
 }

@@ -23,6 +23,8 @@ export interface InputsState {
   streamUrl: string
   // Station name, or the server's host for a pasted URL.
   streamName: string
+  // The stream is the sound of the TV channel in the visual input, not a radio.
+  tv: boolean
   error: MessageKey | null
   // Incremented on every source switch (not on error changes), so the UI can follow it.
   switches: number
@@ -56,6 +58,7 @@ export class Inputs {
     gain: 1,
     streamUrl: '',
     streamName: '',
+    tv: false,
     error: null,
     switches: 0,
   })
@@ -63,6 +66,11 @@ export class Inputs {
   private stream: MediaStream | null = null
   private element: HTMLAudioElement | null = null
   private elementNode: AudioNode | null = null
+  // The TV channel's video, owned by the visual input: only its sound is taken here.
+  private tvElement: HTMLMediaElement | null = null
+  private tvNode: AudioNode | null = null
+  // An element gives its sound to the graph once, for good.
+  private readonly tvNodes = new WeakMap<HTMLMediaElement, AudioNode>()
   private readonly player: Player
 
   constructor(player: Player) {
@@ -132,7 +140,7 @@ export class Inputs {
   }
 
   async useStream(url: string, name = ''): Promise<void> {
-    this.state.set((s) => ({ ...s, streamUrl: url, streamName: name || hostOf(url) }))
+    this.state.set((s) => ({ ...s, streamUrl: url, streamName: name || hostOf(url), tv: false }))
     await this.connect('stream', async () => {
       const graph = getGraph()
       const el = new Audio()
@@ -158,17 +166,46 @@ export class Inputs {
     })
   }
 
+  // The sound of a TV channel already playing in the visual input, handled as a stream.
+  async useTvSound(el: HTMLMediaElement, name: string, url: string): Promise<void> {
+    this.state.set((s) => ({ ...s, streamUrl: url, streamName: name, tv: true }))
+    await this.connect('stream', async () => {
+      const graph = getGraph()
+      const node = this.tvNodes.get(el) ?? graph.ctx.createMediaElementSource(el)
+      this.tvNodes.set(el, node)
+      // A muted element would give the graph silence.
+      el.muted = false
+      node.connect(graph.playerBus)
+      this.tvElement = el
+      this.tvNode = node
+      if (el.paused) await el.play()
+      return null
+    })
+  }
+
   // A live stream cannot really pause: it disconnects, and resuming joins it where it is.
+  // A TV channel pauses picture and sound, and resumes at the live point.
   pauseStream(): void {
     const s = this.state.get()
     if (s.kind !== 'stream' || s.status !== 'active') return
-    this.release()
+    if (this.tvElement) this.tvElement.pause()
+    else this.release()
     this.state.set((st) => ({ ...st, status: 'paused' }))
   }
 
   async resumeStream(): Promise<void> {
     const s = this.state.get()
-    if (s.kind === 'stream' && s.status === 'paused') await this.useStream(s.streamUrl, s.streamName)
+    if (s.kind !== 'stream' || s.status !== 'paused') return
+    const el = this.tvElement
+    if (!el) return this.useStream(s.streamUrl, s.streamName)
+    const live = el.seekable.length ? el.seekable.end(el.seekable.length - 1) : NaN
+    if (Number.isFinite(live) && live - el.currentTime > 5) el.currentTime = live - 3
+    try {
+      await el.play()
+      this.state.set((st) => ({ ...st, status: 'active' }))
+    } catch {
+      this.usePlayer()
+    }
   }
 
   clearError(): void {
@@ -178,7 +215,7 @@ export class Inputs {
   // Back to the player as the analysed source.
   usePlayer(): void {
     this.release()
-    this.state.set((s) => ({ ...s, kind: 'player', status: 'idle', error: null, switches: s.switches + 1 }))
+    this.state.set((s) => ({ ...s, kind: 'player', status: 'idle', tv: false, error: null, switches: s.switches + 1 }))
   }
 
   setGain(gain: number): void {
@@ -208,7 +245,7 @@ export class Inputs {
       this.release()
       const name = err instanceof DOMException ? err.name : ''
       const key = name === 'NoAudio' ? 'input.error.noScreenAudio' : name === 'StreamTimeout' ? 'input.error.streamTimeout' : kind === 'stream' ? 'input.error.stream' : errorKey(err)
-      this.state.set((s) => ({ ...s, kind: 'player', status: 'idle', error: key }))
+      this.state.set((s) => ({ ...s, kind: 'player', status: 'idle', tv: false, error: key }))
     }
   }
 
@@ -218,6 +255,11 @@ export class Inputs {
     this.stream = null
     this.elementNode?.disconnect()
     this.elementNode = null
+    // The channel goes on showing, silent again.
+    this.tvNode?.disconnect()
+    this.tvNode = null
+    if (this.tvElement) this.tvElement.muted = true
+    this.tvElement = null
     if (this.element) {
       this.element.pause()
       this.element.removeAttribute('src')
