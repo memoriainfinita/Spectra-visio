@@ -20,7 +20,7 @@ if (!existsSync(cert)) {
 }
 const wav = readFileSync(testWav())
 const server = createServer({ key: readFileSync(key), cert: readFileSync(cert) }, (req, res) => {
-  const cors = req.url === '/ok.wav'
+  const cors = req.url !== '/no.wav'
   res.writeHead(200, { 'Content-Type': 'audio/wav', ...(cors ? { 'Access-Control-Allow-Origin': '*' } : {}) })
   res.end(wav)
 })
@@ -33,7 +33,7 @@ let searches = 0
 await page.route('https://all.api.radio-browser.info/json/servers', (r) => r.fulfill({ json: [{ name: 'radio.test' }] }))
 await page.route('https://radio.test/json/stations/search?**', (r) => {
   searches++
-  return r.fulfill({ json: [station('ok', 'Con CORS', `${base}/ok.wav`), station('no', 'Sin CORS', `${base}/no.wav`), station('http', 'Sin https', 'http://stream.test/plain.wav')] })
+  return r.fulfill({ json: [station('ok', 'Con CORS', `${base}/ok.wav`), station('ok2', 'Otra con CORS', `${base}/ok2.wav`), station('no', 'Sin CORS', `${base}/no.wav`), station('http', 'Sin https', 'http://stream.test/plain.wav')] })
 })
 
 const panel = page.locator('.panel.sources')
@@ -63,7 +63,46 @@ const level = await page.evaluate(() => new Promise((resolve) => {
 }))
 log('with CORS: playing', await panel.locator('.radio-row.current .radio-name').textContent(), '| live dot on Stream', await panel.locator('.seg', { hasText: 'Stream' }).locator('.live-dot').count(), '| level', level.toFixed(2))
 
+// The transport follows the stream: name and badge, pause and resume, Space, favourites.
+const mini = page.locator('.mini-transport')
+const player = page.locator('.panel.player')
+const liveState = () => page.evaluate(() => ({
+  top: document.querySelector('.mini-transport')?.textContent,
+  panel: document.querySelector('.panel.player .now-playing')?.textContent,
+  seek: !!document.querySelector('.panel.player input.seek'),
+  dot: !!document.querySelector('.panel.sources .seg .live-dot') && document.querySelector('.panel.sources .seg .live-dot').closest('.seg').textContent.trim(),
+  system: navigator.mediaSession?.metadata ? `${navigator.mediaSession.metadata.title} / ${navigator.mediaSession.metadata.artist} / ${navigator.mediaSession.playbackState}` : null,
+}))
+log('transport live:', JSON.stringify(await liveState()))
+log('previous/next without favourites disabled:', await mini.getByRole('button', { name: 'Emisora favorita siguiente' }).isDisabled())
+await mini.getByRole('button', { name: 'Pausa' }).click()
+await page.waitForTimeout(800)
+log('paused:', JSON.stringify(await liveState()))
+await player.getByRole('button', { name: 'Reproducir' }).click()
+await panel.locator('.radio-row.current').waitFor()
+await page.waitForTimeout(1000)
+log('resumed from the player panel:', JSON.stringify(await liveState()))
+await page.locator('.topbar h1').click()
+await page.keyboard.press(' ')
+await page.waitForTimeout(800)
+log('Space pauses:', (await liveState()).top)
+await page.keyboard.press(' ')
+await page.waitForTimeout(1500)
+log('Space resumes:', (await liveState()).top)
+await panel.getByRole('button', { name: 'Añadir Otra con CORS a favoritas' }).click()
 await panel.getByRole('button', { name: 'Añadir Con CORS a favoritas' }).click()
+await mini.getByRole('button', { name: 'Emisora favorita siguiente' }).click()
+await page.waitForTimeout(1500)
+log('next favourite (from the first favourite):', (await liveState()).top)
+await mini.getByRole('button', { name: 'Emisora favorita siguiente' }).click()
+await page.waitForTimeout(1500)
+log('next again, wraps:', (await liveState()).top)
+await page.screenshot({ path: OUT + '/radio-' + kind + '.png' })
+await panel.getByRole('button', { name: 'Reproductor' }).click()
+await page.waitForTimeout(500)
+log('back to the player:', JSON.stringify(await liveState()))
+await panel.getByRole('button', { name: 'Stream' }).click()
+await panel.getByRole('button', { name: 'Quitar Otra con CORS de favoritas' }).click()
 await page.reload()
 await page.waitForSelector('.stage canvas')
 await reveal(page)

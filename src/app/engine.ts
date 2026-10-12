@@ -1,6 +1,5 @@
 import { Analysis } from '../engine/analysis/analysis'
 import { Inputs } from '../engine/audio/inputs'
-import { connectMediaSession } from '../engine/player/mediaSession'
 import { Persistence } from '../engine/player/persistence'
 import type { Picked } from '../engine/player/pick'
 import { Player } from '../engine/player/player'
@@ -16,7 +15,6 @@ export const analysis = new Analysis(() => settingsStore.get().analysis)
 export const renderer = new Renderer(() => sceneStore.get(), (now) => analysis.frame(now))
 
 export async function initEngine(): Promise<void> {
-  connectMediaSession(player)
   await persistence.start()
   analysis.start()
   // Playing a track takes the analysis back from the mic, screen or stream.

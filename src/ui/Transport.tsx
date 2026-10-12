@@ -1,6 +1,8 @@
-import { Pause, Play, Repeat, Repeat1, Shuffle, SkipBack, SkipForward, Volume2, VolumeX } from 'lucide-react'
+import { Pause, Play, Radio, Repeat, Repeat1, Shuffle, SkipBack, SkipForward, Volume2, VolumeX } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { player } from '../app/engine'
+import { inputs, player } from '../app/engine'
+import { radioFavoritesStore } from '../app/radio'
+import { transport } from '../app/transport'
 import type { Repeat as RepeatMode } from '../engine/player/queue'
 import { trackTitle } from '../engine/player/types'
 import { formatTime } from './format'
@@ -52,11 +54,38 @@ function SeekBar({ position, duration, label }: { position: number; duration: nu
   )
 }
 
+// While a stream is the source, even paused, the transport shows and controls it.
+function useLive() {
+  const s = useStore(inputs.state)
+  const favorites = useStore(radioFavoritesStore)
+  const source = s.kind === 'stream' && s.status !== 'idle'
+  return { source, playing: source && s.status !== 'paused', status: s.status, name: s.streamName, canStep: favorites.length > 0 }
+}
+
+function liveSub(status: string, t: ReturnType<typeof useT>): string {
+  return status === 'connecting' ? t('input.connecting') : status === 'paused' ? t('player.livePaused') : t('player.live')
+}
+
 export function NowPlaying() {
   const t = useT()
   const s = useStore(player.state)
+  const live = useLive()
   const track = s.tracks.find((tr) => tr.id === s.currentId)
   const meta = track?.meta
+  if (live.source)
+    return (
+      <div className="now-playing">
+        <div className="cover">
+          <Radio size={26} aria-hidden="true" />
+        </div>
+        <div className="now-text">
+          <div className="now-title">{live.name}</div>
+          <div className="now-sub">
+            <span className="live-badge">{liveSub(live.status, t)}</span>
+          </div>
+        </div>
+      </div>
+    )
   return (
     <div className="now-playing">
       <div className="cover">{meta?.cover ? <img src={meta.cover} alt="" /> : <span aria-hidden="true">♪</span>}</div>
@@ -80,25 +109,40 @@ export function MiniTransport() {
   const hasTracks = s.tracks.length > 0
   const track = s.tracks.find((tr) => tr.id === s.currentId)
   const duration = s.duration || track?.meta?.duration || 0
+  const live = useLive()
+  const on = live.source ? live.playing : playing
   return (
     <div className="mini-transport">
-      <button className="icon-btn small" title={t('player.previous')} aria-label={t('player.previous')} disabled={!hasTracks} onClick={() => player.previous()}>
+      <button
+        className="icon-btn small"
+        title={live.source ? t('radio.previous') : t('player.previous')}
+        aria-label={live.source ? t('radio.previous') : t('player.previous')}
+        disabled={live.source ? !live.canStep : !hasTracks}
+        onClick={() => transport.previous()}
+      >
         <SkipBack size={16} />
       </button>
       <button
-        className={`icon-btn small${playing ? ' on' : ''}`}
-        title={playing ? t('player.pause') : t('player.play')}
-        aria-label={playing ? t('player.pause') : t('player.play')}
-        disabled={!hasTracks}
-        onClick={() => player.toggle()}
+        className={`icon-btn small${on ? ' on' : ''}`}
+        title={on ? t('player.pause') : t('player.play')}
+        aria-label={on ? t('player.pause') : t('player.play')}
+        disabled={!live.source && !hasTracks}
+        onClick={() => transport.toggle()}
       >
-        {playing ? <Pause size={16} /> : <Play size={16} />}
+        {on ? <Pause size={16} /> : <Play size={16} />}
       </button>
-      <button className="icon-btn small" title={t('player.next')} aria-label={t('player.next')} disabled={!hasTracks} onClick={() => player.next()}>
+      <button
+        className="icon-btn small"
+        title={live.source ? t('radio.next') : t('player.next')}
+        aria-label={live.source ? t('radio.next') : t('player.next')}
+        disabled={live.source ? !live.canStep : !hasTracks}
+        onClick={() => transport.next()}
+      >
         <SkipForward size={16} />
       </button>
-      <span className="mini-title">{track ? trackTitle(track) : t('player.nothing')}</span>
-      {track && (
+      <span className="mini-title">{live.source ? live.name : track ? trackTitle(track) : t('player.nothing')}</span>
+      {live.source && <span className="live-badge">{liveSub(live.status, t)}</span>}
+      {!live.source && track && (
         <span className="time">
           {formatTime(Math.min(position, duration))} / {formatTime(duration || null)}
         </span>
@@ -116,44 +160,63 @@ export function Transport() {
   // Before a track is decoded, its tags already give the duration.
   const duration = s.duration || s.tracks.find((tr) => tr.id === s.currentId)?.meta?.duration || 0
   const RepeatIcon = s.repeat === 'one' ? Repeat1 : Repeat
+  // A live stream has no position, order or repeat; only play, pause and the stations.
+  const live = useLive()
+  const on = live.source ? live.playing : playing
 
   return (
     <div className="transport">
-      <SeekBar position={position} duration={duration} label={t('player.seek')} />
+      {!live.source && <SeekBar position={position} duration={duration} label={t('player.seek')} />}
 
       <div className="controls">
+        {!live.source && (
+          <button
+            className={`icon-btn${s.shuffle ? ' on' : ''}`}
+            aria-pressed={s.shuffle}
+            title={t('player.shuffle')}
+            aria-label={t('player.shuffle')}
+            onClick={() => player.setShuffle(!s.shuffle)}
+          >
+            <Shuffle size={18} />
+          </button>
+        )}
         <button
-          className={`icon-btn${s.shuffle ? ' on' : ''}`}
-          aria-pressed={s.shuffle}
-          title={t('player.shuffle')}
-          aria-label={t('player.shuffle')}
-          onClick={() => player.setShuffle(!s.shuffle)}
+          className="icon-btn"
+          title={live.source ? t('radio.previous') : t('player.previous')}
+          aria-label={live.source ? t('radio.previous') : t('player.previous')}
+          disabled={live.source ? !live.canStep : !hasTracks}
+          onClick={() => transport.previous()}
         >
-          <Shuffle size={18} />
-        </button>
-        <button className="icon-btn" title={t('player.previous')} aria-label={t('player.previous')} disabled={!hasTracks} onClick={() => player.previous()}>
           <SkipBack size={20} />
         </button>
         <button
           className="icon-btn primary"
-          title={playing ? t('player.pause') : t('player.play')}
-          aria-label={playing ? t('player.pause') : t('player.play')}
-          disabled={!hasTracks}
-          onClick={() => player.toggle()}
+          title={on ? t('player.pause') : t('player.play')}
+          aria-label={on ? t('player.pause') : t('player.play')}
+          disabled={!live.source && !hasTracks}
+          onClick={() => transport.toggle()}
         >
-          {playing ? <Pause size={22} /> : <Play size={22} />}
-        </button>
-        <button className="icon-btn" title={t('player.next')} aria-label={t('player.next')} disabled={!hasTracks} onClick={() => player.next()}>
-          <SkipForward size={20} />
+          {on ? <Pause size={22} /> : <Play size={22} />}
         </button>
         <button
-          className={`icon-btn${s.repeat !== 'off' ? ' on' : ''}`}
-          title={t(`player.repeat.${s.repeat}`)}
-          aria-label={t(`player.repeat.${s.repeat}`)}
-          onClick={() => player.setRepeat(NEXT_REPEAT[s.repeat])}
+          className="icon-btn"
+          title={live.source ? t('radio.next') : t('player.next')}
+          aria-label={live.source ? t('radio.next') : t('player.next')}
+          disabled={live.source ? !live.canStep : !hasTracks}
+          onClick={() => transport.next()}
         >
-          <RepeatIcon size={18} />
+          <SkipForward size={20} />
         </button>
+        {!live.source && (
+          <button
+            className={`icon-btn${s.repeat !== 'off' ? ' on' : ''}`}
+            title={t(`player.repeat.${s.repeat}`)}
+            aria-label={t(`player.repeat.${s.repeat}`)}
+            onClick={() => player.setRepeat(NEXT_REPEAT[s.repeat])}
+          >
+            <RepeatIcon size={18} />
+          </button>
+        )}
       </div>
 
       <div className="options-row">
@@ -178,20 +241,24 @@ export function Transport() {
             if (s.muted) player.setMuted(false)
           }}
         />
-        <label className="crossfade">
-          <span>{t('player.crossfade')}</span>
-          <select value={s.crossfade} onChange={(e) => player.setCrossfade(Number(e.target.value))}>
-            {CROSSFADES.map((n) => (
-              <option key={n} value={n}>
-                {n === 0 ? t('player.crossfade.off') : t('player.crossfade.seconds', { n })}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="check" title={t('player.normalizeHint')}>
-          <input type="checkbox" checked={s.normalize} onChange={(e) => player.setNormalize(e.target.checked)} />
-          <span>{t('player.normalize')}</span>
-        </label>
+        {!live.source && (
+          <>
+            <label className="crossfade">
+              <span>{t('player.crossfade')}</span>
+              <select value={s.crossfade} onChange={(e) => player.setCrossfade(Number(e.target.value))}>
+                {CROSSFADES.map((n) => (
+                  <option key={n} value={n}>
+                    {n === 0 ? t('player.crossfade.off') : t('player.crossfade.seconds', { n })}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="check" title={t('player.normalizeHint')}>
+              <input type="checkbox" checked={s.normalize} onChange={(e) => player.setNormalize(e.target.checked)} />
+              <span>{t('player.normalize')}</span>
+            </label>
+          </>
+        )}
       </div>
     </div>
   )

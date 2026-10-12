@@ -17,18 +17,36 @@ function silentWav(): string {
   return URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }))
 }
 
-export function connectMediaSession(player: Player): void {
+// A live stream playing instead of the player.
+export interface LiveNow {
+  title: string
+  artist: string
+  playing: boolean
+}
+
+// Where the system controls go: the player, or a live stream when one is the source.
+export interface MediaControl {
+  play(): void
+  pause(): void
+  stop(): void
+  previous(): void
+  next(): void
+  live(): LiveNow | null
+  subscribe(listener: () => void): void
+}
+
+export function connectMediaSession(player: Player, control: MediaControl): void {
   if (!('mediaSession' in navigator)) return
   const session = navigator.mediaSession
   const keepAlive = new Audio(silentWav())
   keepAlive.loop = true
 
   const handlers: [MediaSessionAction, MediaSessionActionHandler][] = [
-    ['play', () => void player.play()],
-    ['pause', () => player.pause()],
-    ['stop', () => player.stop()],
-    ['previoustrack', () => player.previous()],
-    ['nexttrack', () => player.next()],
+    ['play', () => control.play()],
+    ['pause', () => control.pause()],
+    ['stop', () => control.stop()],
+    ['previoustrack', () => control.previous()],
+    ['nexttrack', () => control.next()],
     ['seekbackward', (d) => player.seek(player.position() - (d.seekOffset ?? 10))],
     ['seekforward', (d) => player.seek(player.position() + (d.seekOffset ?? 10))],
     ['seekto', (d) => d.seekTime !== undefined && player.seek(d.seekTime)],
@@ -41,8 +59,25 @@ export function connectMediaSession(player: Player): void {
     }
   }
 
+  const LIVE = Symbol('live')
   let lastTrack: unknown = null
-  player.state.subscribe(() => {
+  let lastLive = ''
+  const update = () => {
+    const live = control.live()
+    if (live) {
+      // The stream's own <audio> keeps the controls active; no position for a live stream.
+      keepAlive.pause()
+      const key = `${live.title}\n${live.artist}`
+      if (key !== lastLive) {
+        lastLive = key
+        // Forces the player's metadata back once the stream stops being the source.
+        lastTrack = LIVE
+        session.metadata = new MediaMetadata({ title: live.title, artist: live.artist })
+      }
+      session.playbackState = live.playing ? 'playing' : 'paused'
+      return
+    }
+    lastLive = ''
     const s = player.state.get()
     const track = s.tracks.find((t) => t.id === s.currentId) ?? null
     if (track !== lastTrack) {
@@ -67,5 +102,7 @@ export function connectMediaSession(player: Player): void {
         // Ignored: some browsers reject position updates during transitions.
       }
     }
-  })
+  }
+  player.state.subscribe(update)
+  control.subscribe(update)
 }
