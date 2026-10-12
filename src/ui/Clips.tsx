@@ -7,6 +7,7 @@ import { nameOf } from '../engine/render/visual'
 import { CLIP_COLUMNS } from '../engine/scene/scene'
 import { useStore } from './useStore'
 import { useT } from './useT'
+import { Hint } from './Hint'
 
 const COLUMNS = Array.from({ length: CLIP_COLUMNS }, (_, c) => c)
 
@@ -91,7 +92,7 @@ export function Clips() {
           </tbody>
         </table>
       </div>
-      <p className="muted small">{t('clips.hint')}</p>
+      <Hint text={t('clips.hint')} />
     </section>
   )
 }

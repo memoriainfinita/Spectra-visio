@@ -27,6 +27,7 @@ import type { MessageKey } from '../i18n'
 import { ParamList } from './ParamList'
 import { useStore } from './useStore'
 import { useT } from './useT'
+import { Hint } from './Hint'
 
 // The layer stack, top first as it is seen, the crossfader and the selected layer's
 // visualization with its parameters.
@@ -105,7 +106,7 @@ export function Visuals() {
         <input type="range" aria-label={t('visuals.crossfade')} min={0} max={1} step={0.01} value={scene.crossfade} onChange={(e) => setCrossfade(Number(e.target.value))} />
         <span className="mono">B</span>
       </div>
-      <p className="muted small">{t('visuals.hint')}</p>
+      <Hint text={t('visuals.hint')} />
 
       <label className="field">
         <span>{t('visuals.transition')}</span>

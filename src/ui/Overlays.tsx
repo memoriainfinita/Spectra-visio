@@ -6,6 +6,7 @@ import { logoStore, removeLogo, setLogo, setOverlay, setOverlayStyle } from '../
 import { sceneStore } from '../app/scene'
 import { ANCHORS, FONTS, HOLD_MAX, SIZE_MAX, SIZE_MIN, TEXT_MAX, type OverlayItem, type OverlayKind } from '../engine/overlay/settings'
 import type { MessageKey } from '../i18n'
+import { Hint } from './Hint'
 import { useStore } from './useStore'
 import { useT } from './useT'
 
@@ -114,7 +115,7 @@ export function Overlays() {
             }}
           />
         </div>
-        <p className="small muted">{t('overlay.lrcHint')}</p>
+        <Hint text={t('overlay.lrcHint')} />
         {lrcError && (
           <p className="error" role="alert">
             {t('overlay.badLrc')}

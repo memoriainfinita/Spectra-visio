@@ -7,6 +7,7 @@ import { MIDI_TARGETS, type ControlId, type MidiTarget } from '../engine/midi/mi
 import { actionLabel } from './Live'
 import { useStore } from './useStore'
 import { useT } from './useT'
+import { Hint } from './Hint'
 
 type T = ReturnType<typeof useT>
 
@@ -71,7 +72,7 @@ export function Midi() {
       {!midiSupported && <p className="muted small">{t('midi.unsupported')}</p>}
       {state.status === 'pending' && <p className="muted small">{t('midi.pending')}</p>}
       {state.status === 'denied' && <p className="muted small">{t('midi.denied')}</p>}
-      {state.status === 'off' && midiSupported && <p className="muted small">{t('midi.offHint')}</p>}
+      {state.status === 'off' && midiSupported && <Hint text={t('midi.offHint')} />}
 
       {on && (
         <>
@@ -99,7 +100,7 @@ export function Midi() {
 
       <details className="live-keys">
         <summary>{t('midi.map')}</summary>
-        <p className="muted small">{t('midi.mapHint')}</p>
+        <Hint text={t('midi.mapHint')} />
         <ul className="key-list">
           {MIDI_TARGETS.map((target) => {
             const label = targetLabel(target, t)

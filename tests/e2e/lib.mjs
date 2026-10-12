@@ -67,10 +67,10 @@ export async function loadTrack(page) {
   await page.getByRole('button', { name: 'Añadir archivos' }).first().click()
   await (await chooser).setFiles(testWav())
   await page.waitForTimeout(1500)
-  const play = page.getByRole('button', { name: 'Reproducir' }).first()
+  const play = page.getByRole('button', { name: 'Reproducir', exact: true }).first()
   if (await play.count()) await play.click()
   await page.waitForTimeout(500)
-  return page.getByRole('button', { name: 'Pausa' }).first().count()
+  return page.getByRole('button', { name: 'Pausa', exact: true }).first().count()
 }
 
 // Output canvas read right after the renderer's frame: 32 × 18 cells of mean RGB.

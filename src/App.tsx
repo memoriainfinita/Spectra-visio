@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
-import { setKeepFiles } from './app/engine'
 import { settingsStore } from './app/settings'
-import { LANGS, isLang, type MessageKey } from './i18n'
+import type { MessageKey } from './i18n'
 import { AnalysisPanel } from './ui/Analysis'
 import { Auto } from './ui/Auto'
 import { Browser } from './ui/Browser'
@@ -9,7 +8,6 @@ import { Clips } from './ui/Clips'
 import { Live } from './ui/Live'
 import { Midi } from './ui/Midi'
 import { Output } from './ui/Output'
-import { opfsSupported } from './storage/opfs'
 import { useFileDrop, usePlayerShortcuts } from './ui/hooks'
 import { Queue } from './ui/Queue'
 import { Sources } from './ui/Sources'
@@ -20,6 +18,7 @@ import { FlashNotice } from './ui/FlashNotice'
 import { PerformBar } from './ui/PerformBar'
 import { Presets } from './ui/Presets'
 import { Overlays } from './ui/Overlays'
+import { Settings } from './ui/Settings'
 import { Shaders } from './ui/Shaders'
 import { VisualInput } from './ui/VisualInput'
 import { MiniTransport, NowPlaying, Transport } from './ui/Transport'
@@ -29,7 +28,7 @@ import { useT } from './ui/useT'
 
 // Wide screens get the stage with the side tabs; narrow ones one column of panels.
 const WIDE = '(min-width: 801px)'
-const TABS = ['audio', 'visual', 'effects', 'live', 'output'] as const
+const TABS = ['audio', 'visual', 'effects', 'live', 'output', 'settings'] as const
 type Tab = (typeof TABS)[number]
 const TAB_KEY = 'spectra.tab'
 
@@ -51,21 +50,6 @@ function savedTab(): Tab {
   } catch {
     return 'visual'
   }
-}
-
-function Settings() {
-  const t = useT()
-  const keepFiles = useStore(settingsStore, (s) => s.keepFiles)
-  if (!opfsSupported) return null
-  return (
-    <section className="panel settings">
-      <label className="check">
-        <input type="checkbox" checked={keepFiles} onChange={(e) => void setKeepFiles(e.target.checked)} />
-        <span>{t('settings.keepFiles')}</span>
-      </label>
-      <p className="muted small">{t('settings.keepFilesHint')}</p>
-    </section>
-  )
 }
 
 const player = (
@@ -143,12 +127,8 @@ const GROUPS: Record<Tab, ReactNode> = {
       <Midi />
     </>
   ),
-  output: (
-    <>
-      <Output />
-      <Settings />
-    </>
-  ),
+  output: <Output />,
+  settings: <Settings />,
 }
 
 function SideTabs() {
@@ -221,22 +201,6 @@ export function App() {
           <p className="muted small">{t('app.tagline')}</p>
         </div>
         {wide && <MiniTransport />}
-        <label className="field">
-          <span>{t('settings.language')}</span>
-          <select
-            value={lang}
-            onChange={(e) => {
-              const next = e.target.value
-              if (isLang(next)) settingsStore.set((s) => ({ ...s, lang: next }))
-            }}
-          >
-            {LANGS.map((l) => (
-              <option key={l} value={l}>
-                {t(`lang.${l}`)}
-              </option>
-            ))}
-          </select>
-        </label>
       </header>
 
       <UpdateBanner />

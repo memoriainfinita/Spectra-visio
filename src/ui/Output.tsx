@@ -6,10 +6,10 @@ import { deleteKept, downloadKept, mimeSupported, recordStore, toggleRecording }
 import { settingsStore } from '../app/settings'
 import { OUTPUT_ASPECTS, OUTPUT_SIZES, formatPixels, type OutputAspect, type OutputSize } from '../engine/output/format'
 import { RECORD_FPS, RECORD_QUALITIES, formatLabel, type RecordFps, type RecordQuality } from '../engine/record/recorder'
-import { FPS_CAPS, type FpsCap } from '../engine/render/quality'
 import type { Settings } from '../storage/settings'
 import { useStore } from './useStore'
 import { useT } from './useT'
+import { Hint } from './Hint'
 
 const MB = 1024 * 1024
 
@@ -31,7 +31,6 @@ function useElapsed(started: number, running: boolean): number {
 }
 
 const setFormat = (value: Partial<Settings['format']>) => settingsStore.set((s) => ({ ...s, format: { ...s.format, ...value } }))
-const setPerformance = (value: Partial<Settings['performance']>) => settingsStore.set((s) => ({ ...s, performance: { ...s.performance, ...value } }))
 const setRecord = (value: Partial<Settings['record']>) => settingsStore.set((s) => ({ ...s, record: { ...s.record, ...value } }))
 
 function Obs() {
@@ -92,7 +91,7 @@ function Obs() {
         <button className="btn" disabled={!dirty} onClick={() => setObsConnection(url.trim(), password)}>
           {t('obs.save')}
         </button>
-        <p className="muted small">{t('obs.serverHint')}</p>
+        <Hint text={t('obs.serverHint')} />
       </details>
       <label className="field">
         <span>{t('obs.sourceUrl')}</span>
@@ -108,7 +107,7 @@ function Obs() {
         <input type="checkbox" checked={black} onChange={(e) => setBlack(e.target.checked)} />
         <span>{t('obs.black')}</span>
       </label>
-      <p className="muted small">{t('obs.hint')}</p>
+      <Hint text={t('obs.hint')} />
     </>
   )
 }
@@ -120,7 +119,6 @@ export function Output() {
   const rec = useStore(recordStore)
   const format = useStore(settingsStore, (s) => s.format)
   const record = useStore(settingsStore, (s) => s.record)
-  const perf = useStore(settingsStore, (s) => s.performance)
   const recording = rec.status === 'recording'
   const busy = rec.status !== 'idle'
   const elapsed = useElapsed(rec.started, recording)
@@ -142,7 +140,7 @@ export function Output() {
         </label>
       </div>
       {out.blocked && <p className="muted small" role="status">{t('output.blocked')}</p>}
-      <p className="muted small">{t('output.hint')}</p>
+      <Hint text={t('output.hint')} />
 
       <h3 className="sub-head">{t('format.title')}</h3>
       <div className="live-row">
@@ -162,32 +160,7 @@ export function Output() {
         </select>
         {pixels && <span className="mono muted small">{pixels.width} × {pixels.height}</span>}
       </div>
-      <p className="muted small">{pixels ? t('format.fixedHint') : t('format.autoHint')}</p>
-
-      <h3 className="sub-head">{t('perf.title')}</h3>
-      <label className="check">
-        <input type="checkbox" checked={perf.adaptive} onChange={(e) => setPerformance({ adaptive: e.target.checked })} />
-        <span>{t('perf.adaptive')}</span>
-      </label>
-      <label className="check">
-        <input type="checkbox" checked={perf.lowPower} onChange={(e) => setPerformance({ lowPower: e.target.checked })} />
-        <span>{t('perf.lowPower')}</span>
-      </label>
-      <label className="check">
-        <input type="checkbox" checked={perf.showFps} onChange={(e) => setPerformance({ showFps: e.target.checked })} />
-        <span>{t('perf.showFps')}</span>
-      </label>
-      <label className="field">
-        <span>{t('perf.maxFps')}</span>
-        <select value={perf.maxFps} onChange={(e) => setPerformance({ maxFps: Number(e.target.value) as FpsCap })}>
-          {FPS_CAPS.map((c) => (
-            <option key={c} value={c}>
-              {c ? t('record.fpsN', { n: c }) : t('perf.unlimited')}
-            </option>
-          ))}
-        </select>
-      </label>
-      <p className="muted small">{t('perf.hint')}</p>
+      <Hint text={pixels ? t('format.fixedHint') : t('format.autoHint')} />
 
       <h3 className="sub-head">{t('record.title')}</h3>
       {mimeSupported ? (
@@ -220,7 +193,7 @@ export function Output() {
             </select>
             <span className="mono muted small">{formatLabel(mimeSupported)}</span>
           </div>
-          <p className="muted small">{t('record.hint')}</p>
+          <Hint text={t('record.hint')} />
           {rec.error && (
             <p className="error" role="alert">
               {t('record.error', { msg: rec.error })}

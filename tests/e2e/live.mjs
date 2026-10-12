@@ -5,6 +5,7 @@ const kind = process.argv[2] ?? 'firefox'
 const { browser, page, errors } = await open(kind)
 const log = (...a) => console.log(`[${kind}]`, ...a)
 const live = page.locator('.panel.live')
+const keys = page.locator('.panel.settings-keys')
 const vis = page.locator('.panel.visuals')
 const mean = async () => stats(await grab(page)).mean
 const body = () => page.locator('body').click({ position: { x: 5, y: 5 } })
@@ -18,10 +19,9 @@ log('space pauses:', await page.getByRole('button', { name: 'Reproducir' }).coun
 await page.keyboard.press(' ')
 
 // Rebind the blackout to q.
-await live.locator('summary').click()
-await live.getByRole('button', { name: 'Tecla de Apagón' }).click()
+await keys.getByRole('button', { name: 'Tecla de Apagón' }).click()
 await page.keyboard.press('q')
-log('blackout key now:', await live.getByRole('button', { name: 'Tecla de Apagón' }).textContent())
+log('blackout key now:', await keys.getByRole('button', { name: 'Tecla de Apagón' }).textContent())
 await body()
 const before = await mean()
 await page.keyboard.press('q')

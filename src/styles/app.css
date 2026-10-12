@@ -623,3 +623,23 @@ input[type='range'] { accent-color: var(--accent); }
 }
 .live-badge { display: inline-block; flex: none; line-height: 16px; padding: 1px 7px; border: 1px solid var(--accent-2); border-radius: 999px; color: var(--accent-2); font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; }
 .cover svg { color: var(--muted); }
+.radio-row.unusable .radio-name { color: var(--muted); }
+.radio-flag { margin-right: 6px; padding: 0 5px; border: 1px solid var(--border); border-radius: 4px; font-size: 11px; }
+
+/* Help folded behind a button */
+
+.hint { margin-top: 6px; }
+.hint > summary { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; list-style: none; }
+.hint > summary::-webkit-details-marker { display: none; }
+.hint-mark { display: inline-grid; place-items: center; width: 16px; height: 16px; border: 1px solid currentColor; border-radius: 50%; font-size: 11px; font-weight: 700; line-height: 1; }
+.hint[open] > summary { color: var(--text); }
+.hint > p { margin: 4px 0 0; }
+@media (pointer: coarse) {
+  .hint > summary { min-height: 44px; }
+}
+
+/* Settings */
+
+.confirm { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.confirm > span { flex-basis: 100%; font-size: 13px; }
+.btn.danger { border-color: var(--danger); color: var(--danger); }

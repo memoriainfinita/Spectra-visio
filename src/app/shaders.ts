@@ -18,7 +18,7 @@ export const shadersStore = createStore<UserShader[]>([])
 
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v)
 
-function normalize(raw: unknown): UserShader[] {
+export function normalizeShaders(raw: unknown): UserShader[] {
   if (!Array.isArray(raw)) return []
   const out: UserShader[] = []
   for (const r of raw) {
@@ -44,7 +44,7 @@ function register(list: UserShader[]): void {
 
 export async function initShaders(): Promise<void> {
   try {
-    shadersStore.set(normalize(await get(KEY)))
+    shadersStore.set(normalizeShaders(await get(KEY)))
   } catch {
     // IndexedDB unavailable: shaders last for this visit only.
   }

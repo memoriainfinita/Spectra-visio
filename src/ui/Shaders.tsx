@@ -7,6 +7,7 @@ import { getVisual } from '../engine/render/registry'
 import { USER_PREFIX } from '../engine/shaders/userVisual'
 import { useStore } from './useStore'
 import { useT } from './useT'
+import { Hint } from './Hint'
 
 
 export function Shaders() {
@@ -63,7 +64,7 @@ export function Shaders() {
           />
         </div>
       </header>
-      <p className="muted small">{t('shaders.hint')}</p>
+      <Hint text={t('shaders.hint')} />
 
       {pasting && (
         <form
