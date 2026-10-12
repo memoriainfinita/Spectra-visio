@@ -1,4 +1,4 @@
-import { fitGrid, loudness, roughTempo, sections, spectrum, type Grid } from './features'
+import { fitGrid, loudness, peak, roughTempo, sections, spectrum, type Grid } from './features'
 
 export interface PrepassRequest {
   id: number
@@ -8,6 +8,8 @@ export interface PrepassRequest {
 
 export interface PrepassResult {
   loudness: number | null
+  // Sample peak in dBFS; null for silence.
+  peak: number | null
   grid: Grid | null
   sections: number[]
 }
@@ -24,7 +26,8 @@ scope.onmessage = (e) => {
     const spec = spectrum(channels, rate)
     const tempo = roughTempo(spec)
     const grid = tempo ? fitGrid(spec, tempo) : null
-    const result: PrepassResult = { loudness: Number.isFinite(level) ? level : null, grid, sections: sections(spec, grid) }
+    const top = peak(channels)
+    const result: PrepassResult = { loudness: Number.isFinite(level) ? level : null, peak: Number.isFinite(top) ? top : null, grid, sections: sections(spec, grid) }
     scope.postMessage({ id, result })
   } catch (err) {
     scope.postMessage({ id, error: String(err) })

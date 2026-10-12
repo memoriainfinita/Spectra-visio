@@ -9,8 +9,8 @@ test('missing data gives an empty session with default prefs', () => {
 })
 
 test('prefs are clamped and invalid values replaced', () => {
-  const s = normalizeSession({ prefs: { volume: 3, muted: 'x', repeat: 'twice', crossfade: -2, shuffle: true } })
-  expect(s.prefs).toEqual({ volume: 1, muted: false, shuffle: true, repeat: 'off', crossfade: 0 })
+  const s = normalizeSession({ prefs: { volume: 3, muted: 'x', repeat: 'twice', crossfade: -2, shuffle: true, normalize: 'yes' } })
+  expect(s.prefs).toEqual({ volume: 1, muted: false, shuffle: true, repeat: 'off', crossfade: 0, normalize: true })
 })
 
 test('invalid tracks are dropped; handle tracks need a file handle', () => {

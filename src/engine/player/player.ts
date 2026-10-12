@@ -13,6 +13,8 @@ export const LONG_TRACK_S = 20 * 60
 export const LONG_TRACK_BYTES = 100 * 1024 * 1024
 // Lead time for scheduled starts, so the first samples are never late.
 const START_DELAY = 0.05
+// Time constant (s) of a level change on a playing track.
+const LEVEL_RAMP = 0.3
 // "Previous" restarts the track instead when past this point.
 const RESTART_THRESHOLD = 3
 const META_CONCURRENCY = 2
@@ -30,10 +32,16 @@ export class Player {
     shuffle: false,
     repeat: 'off',
     crossfade: 0,
+    normalize: true,
     error: null,
   })
 
+  // Levelling gain in dB for a track, from its analysis; null while it is not known. Set
+  // by the app, which owns the analysis.
+  levelOf: (id: string) => number | null = () => null
+
   private order: string[] = []
+  private readonly voiceTrack = new WeakMap<Voice, string>()
   private voice: Voice | null = null
   private nextVoice: Voice | null = null
   private nextId: string | null = null
@@ -71,8 +79,8 @@ export class Player {
   }
 
   prefs(): PlayerPrefs {
-    const { volume, muted, shuffle, repeat, crossfade } = this.state.get()
-    return { volume, muted, shuffle, repeat, crossfade }
+    const { volume, muted, shuffle, repeat, crossfade, normalize } = this.state.get()
+    return { volume, muted, shuffle, repeat, crossfade, normalize }
   }
 
   applyPrefs(prefs: PlayerPrefs): void {
@@ -266,6 +274,21 @@ export class Player {
     this.rescheduleNext()
   }
 
+  setNormalize(normalize: boolean): void {
+    this.state.set((s) => ({ ...s, normalize }))
+    this.refreshLevels()
+  }
+
+  // dB that levelling adds to a track now; 0 when it is off or the track is not analysed.
+  appliedLevel(id: string): number {
+    return this.state.get().normalize ? (this.levelOf(id) ?? 0) : 0
+  }
+
+  // Applies the levels again, for an analysis that has just finished.
+  refreshLevels(): void {
+    for (const voice of [this.voice, this.nextVoice]) if (voice) this.applyLevel(voice, false)
+  }
+
   applyVolume(): void {
     const graph = peekGraph()
     if (!graph) return
@@ -295,7 +318,7 @@ export class Player {
     }
     if (op !== this.op) return
     this.failures = 0
-    this.voice = this.makeVoice(source)
+    this.voice = this.makeVoice(source, id)
     this.startVoice(offset)
   }
 
@@ -349,7 +372,7 @@ export class Player {
     const voice = this.voice
     if (op !== this.op || this.state.get().currentId !== current || !voice || this.nextVoice) return
     const ctx = getGraph().ctx
-    const next = this.makeVoice(source)
+    const next = this.makeVoice(source, nextId)
     const endAt = this.startedAt + (voice.duration - this.startOffset)
     let fade = Math.min(this.state.get().crossfade, voice.duration / 2, next.duration / 2)
     let at = endAt - fade
@@ -450,11 +473,25 @@ export class Player {
     if (target && target !== id) void this.load(target, 0)
   }
 
-  private makeVoice(source: Source): Voice {
+  private makeVoice(source: Source, id: string): Voice {
     const graph = getGraph()
-    return source.kind === 'buffer'
-      ? new BufferVoice(graph.ctx, source.buffer, graph.playerBus)
-      : new ElementVoice(graph.ctx, source.file, source.duration, graph.playerBus)
+    const voice =
+      source.kind === 'buffer'
+        ? new BufferVoice(graph.ctx, source.buffer, graph.playerBus)
+        : new ElementVoice(graph.ctx, source.file, source.duration, graph.playerBus)
+    this.voiceTrack.set(voice, id)
+    this.applyLevel(voice, true)
+    return voice
+  }
+
+  // Sets a voice's levelling gain: at once for a new voice, smoothly for one that plays.
+  private applyLevel(voice: Voice, now: boolean): void {
+    const id = this.voiceTrack.get(voice)
+    const graph = peekGraph()
+    if (!id || !graph) return
+    const gain = 10 ** (this.appliedLevel(id) / 20)
+    if (now) voice.level.gain.value = gain
+    else voice.level.gain.setTargetAtTime(gain, graph.ctx.currentTime, LEVEL_RAMP)
   }
 
   private source(id: string): Promise<Source> {
