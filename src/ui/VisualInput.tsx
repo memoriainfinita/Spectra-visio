@@ -7,6 +7,7 @@ import { useT } from './useT'
 import { Hint } from './Hint'
 import { MediaBrowser } from './Media'
 import { TvBrowser } from './Tv'
+import { VideoControls } from './VideoControls'
 
 export function VisualInput() {
   const t = useT()
@@ -87,6 +88,7 @@ export function VisualInput() {
         </p>
       )}
       <div className="input-preview" ref={box} hidden={!preview} />
+      <VideoControls />
       {browser === 'tv' && <TvBrowser />}
       {browser === 'media' && <MediaBrowser />}
     </section>
