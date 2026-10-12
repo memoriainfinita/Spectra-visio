@@ -13,7 +13,7 @@ const APP = process.env.SPECTRA_URL ?? 'http://localhost:4173/'
 
 const CHECKS = [
   'visuals', 'effects', 'transitions', 'presets', 'browser', 'shaders', 'milkdrop', 'milkdrop-isolation',
-  'visual-input', 'overlays', 'seek', 'levelling', 'radio', 'auto', 'layers', 'live', 'midi', 'output-window', 'record', 'obs',
+  'visual-input', 'tv', 'overlays', 'seek', 'levelling', 'radio', 'auto', 'layers', 'live', 'midi', 'output-window', 'record', 'obs',
   'safety', 'safety-output', 'keyboard', 'touch', 'tabs', 'fold', 'settings', 'pwa',
 ]
 const args = process.argv.slice(2)
