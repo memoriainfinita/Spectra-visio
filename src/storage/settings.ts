@@ -50,6 +50,8 @@ export interface Settings {
   flashNotice: boolean
   // A TV channel in the visual input is also the audio source.
   tvSound: boolean
+  // Look up what a playing track lacks: synced lyrics (LRCLIB), cover (MusicBrainz).
+  online: { lyrics: boolean; covers: boolean }
 }
 
 // `reduceFlashes` follows the system's reduced motion preference until changed.
@@ -69,6 +71,7 @@ export function defaultSettings(lang: Lang, reduceFlashes = false): Settings {
     reduceFlashes,
     flashNotice: false,
     tvSound: false,
+    online: { lyrics: false, covers: false },
   }
 }
 
@@ -93,6 +96,12 @@ function normalizeAnalysis(raw: unknown, defaults: AnalysisSettings): AnalysisSe
   }
 }
 
+function normalizeOnline(raw: unknown, defaults: Settings['online']): Settings['online'] {
+  if (typeof raw !== 'object' || raw === null) return defaults
+  const r = raw as Record<string, unknown>
+  return { lyrics: bool(r.lyrics, defaults.lyrics), covers: bool(r.covers, defaults.covers) }
+}
+
 // Stored data can be missing, from an older version or hand-edited: keep each valid field,
 // fall back to the defaults for the rest.
 export function normalizeSettings(raw: unknown, defaults: Settings): Settings {
@@ -113,6 +122,7 @@ export function normalizeSettings(raw: unknown, defaults: Settings): Settings {
     reduceFlashes: bool(r.reduceFlashes, defaults.reduceFlashes),
     flashNotice: bool(r.flashNotice, defaults.flashNotice),
     tvSound: bool(r.tvSound, defaults.tvSound),
+    online: normalizeOnline(r.online, defaults.online),
   }
 }
 

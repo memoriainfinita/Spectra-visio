@@ -13,7 +13,7 @@ Real-time audio visualizer for the browser: a music player with visuals, a VJ to
 - **Modulation:** any parameter of a visualization or effect can follow a band, a beat, an oscillator or a MIDI control
 - **Effects, presets and browser:** effect chains per layer and on the composition, colour palettes, saved and exported presets, thumbnails with categories, search and favourites
 - **Live:** up to 8 layers with blend modes and an A/B crossfader, a clip grid, blackout, freeze and strobe, configurable shortcuts, MIDI learn and MIDI clock, auto mode, and an output window for a projector
-- **Overlays:** track title, synced lyrics (LRC), text and logo
+- **Overlays:** track title, synced lyrics (LRC, or looked up on LRCLIB if turned on), text and logo
 - **Output:** fixed resolutions up to 4K, recording to video with sound, and a transparent source for OBS through obs-websocket
 - **Everywhere:** installable and offline, touch gestures, keyboard access, photosensitivity notice with a flash limiter, adaptive quality, frame cap and low power mode, Spanish and English, and a backup file to move settings, presets, shaders and favourite stations and channels to another browser
 
