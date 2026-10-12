@@ -95,6 +95,5 @@ Las revisiones y pruebas manuales pendientes se harán todas juntas en una sola 
 - [ ] Probar stream con CORS real de otro dominio
 - [ ] Probar MIDI con un controlador real
 - [ ] Revisión de la fase 9 por mykl (OBS real, grabación en su Firefox)
-- [ ] Decidir si hace falta plegar paneles poco usados dentro de las pestañas (lienzo de diseño en https://claude.ai/artifact/YQZeJBzbvudQkcqn84u8ow)
 - [ ] Revisión de la fase 10 por mykl (móvil real, instalar la app, calidad adaptativa en su equipo)
 - [ ] Al publicar: comprobar la conexión a OBS desde GitHub Pages (permiso de red local)
