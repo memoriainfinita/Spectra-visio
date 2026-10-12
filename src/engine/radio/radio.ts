@@ -72,18 +72,25 @@ export async function searchStations(text: string, by: SearchBy, signal?: AbortS
   return out
 }
 
-// Whether the stream sends CORS headers, without which the analysers would only get silence.
-// Only the headers are read; the request is dropped as soon as they arrive.
-export async function canAnalyse(url: string, signal?: AbortSignal): Promise<boolean> {
+// 'ok' when the stream answers with CORS headers, without which the analysers would only
+// get silence; 'blocked' when it answers without them (or fails); 'timeout' when it does
+// not answer. Only the headers are read; the request is dropped as soon as they arrive.
+export type Probe = 'ok' | 'blocked' | 'timeout'
+
+export async function canAnalyse(url: string, signal?: AbortSignal): Promise<Probe> {
   const ctrl = new AbortController()
   const stop = () => ctrl.abort()
   signal?.addEventListener('abort', stop)
-  const timer = setTimeout(stop, PROBE_TIMEOUT_MS)
+  let timedOut = false
+  const timer = setTimeout(() => {
+    timedOut = true
+    ctrl.abort()
+  }, PROBE_TIMEOUT_MS)
   try {
     const res = await fetch(url, { mode: 'cors', signal: ctrl.signal })
-    return res.ok
+    return res.ok ? 'ok' : 'blocked'
   } catch {
-    return false
+    return timedOut ? 'timeout' : 'blocked'
   } finally {
     clearTimeout(timer)
     ctrl.abort()
