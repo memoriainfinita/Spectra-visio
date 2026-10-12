@@ -32,7 +32,7 @@ log('output, reduced:', JSON.stringify(await trace(out, 1200)))
 await page.locator('.panel.live').getByLabel('Reducir destellos').uncheck()
 
 // Frame cap: count the output window's frames by its canvas changing.
-await panel.getByLabel('Límite de fps').selectOption('30')
+await page.locator('.panel.settings-perf').getByLabel('Límite de fps').selectOption('30')
 await out.waitForTimeout(1500)
 const changes = await out.evaluate(() => new Promise((resolve) => {
   const src = document.querySelector('canvas')
@@ -43,7 +43,7 @@ const changes = await out.evaluate(() => new Promise((resolve) => {
   requestAnimationFrame(step)
 }))
 log('output with cap 30:', JSON.stringify(changes))
-await panel.getByLabel('Límite de fps').selectOption('0')
+await page.locator('.panel.settings-perf').getByLabel('Límite de fps').selectOption('0')
 await out.close()
 await sh.getByRole('button', { name: 'Borrar Blink' }).click()
 log('errors:', errors.filter((e) => !e.includes('WebGL context was lost')).join('\n  ') || 'none')

@@ -2,6 +2,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { App } from './App'
+import { wipeIfAsked } from './app/backup'
 import { initEngine } from './app/engine'
 import { initLibrary } from './app/library'
 import { initLive } from './app/live'
@@ -22,6 +23,8 @@ import { initUpdate } from './app/update'
 import './styles/tokens.css'
 import './styles/app.css'
 
+// A requested wipe of all the app's data runs before anything reads it.
+await wipeIfAsked()
 await initSettings()
 // Imported shaders first: the scene and the presets may point at them.
 await initShaders()

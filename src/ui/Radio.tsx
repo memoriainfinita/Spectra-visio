@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { inputs } from '../app/engine'
 import { playStation, radioFavoritesStore, radioStore, searchRadio, toggleRadioFavorite } from '../app/radio'
 import type { SearchBy, Station } from '../engine/radio/radio'
+import { Hint } from './Hint'
 import { useStore } from './useStore'
 import { useT } from './useT'
 
@@ -57,12 +58,21 @@ export function RadioBrowser() {
         <ul className="radio-list">
           {list.map((s) => {
             const fav = favorites.some((f) => f.id === s.id)
+            const probe = radio.probes[s.id]
+            const flag = probe === 'blocked' ? t('radio.flag.blocked') : probe === 'timeout' ? t('radio.flag.timeout') : null
             return (
-              <li key={s.id} className={`radio-row${playing(s) ? ' current' : ''}`}>
-                <button className="radio-main" title={s.url} onClick={() => void playStation(s)}>
+              <li key={s.id} className={`radio-row${playing(s) ? ' current' : ''}${flag ? ' unusable' : ''}`}>
+                <button className="radio-main" title={s.name} onClick={() => void playStation(s)}>
                   <span className="radio-name">{s.name}</span>
                   <span className="radio-sub">
-                    {radio.checking === s.id ? t('radio.checking') : [s.country, [s.codec, s.bitrate ? `${s.bitrate} kbps` : ''].filter(Boolean).join(' '), s.tags.join(', ')].filter(Boolean).join(' · ')}
+                    {radio.checking === s.id ? (
+                      t('radio.checking')
+                    ) : (
+                      <>
+                        {flag && <span className="radio-flag">{flag}</span>}
+                        {[s.country, [s.codec, s.bitrate ? `${s.bitrate} kbps` : ''].filter(Boolean).join(' '), s.tags.join(', ')].filter(Boolean).join(' · ')}
+                      </>
+                    )}
                   </span>
                 </button>
                 <button
@@ -79,7 +89,8 @@ export function RadioBrowser() {
           })}
         </ul>
       )}
-      <p className="muted small">{t('radio.hint')}</p>
+      <Hint text={t('radio.hint')} />
+      <p className="muted small">{t('radio.pasteUrl')}</p>
     </div>
   )
 }

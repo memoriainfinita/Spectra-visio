@@ -4,6 +4,7 @@ import { cameraDevices, openVisualFile, previewStore, startCamera, stopVisualInp
 import type { MessageKey } from '../i18n'
 import { useStore } from './useStore'
 import { useT } from './useT'
+import { Hint } from './Hint'
 
 export function VisualInput() {
   const t = useT()
@@ -53,7 +54,7 @@ export function VisualInput() {
           />
         </div>
       </header>
-      <p className="muted small">{t('vinput.hint')}</p>
+      <Hint text={t('vinput.hint')} />
       {state.kind === 'camera' && devices.length > 1 && (
         <label className="field">
           <span>{t('vinput.device')}</span>

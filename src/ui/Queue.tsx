@@ -7,6 +7,7 @@ import { trackTitle } from '../engine/player/types'
 import { formatTime } from './format'
 import { useStore } from './useStore'
 import { useT } from './useT'
+import { Hint } from './Hint'
 
 export function Queue() {
   const t = useT()
@@ -113,7 +114,7 @@ export function Queue() {
           })}
         </ol>
       )}
-      {s.tracks.length > 1 && <p className="muted small">{t('queue.moveHint')}</p>}
+      {s.tracks.length > 1 && <Hint text={t('queue.moveHint')} />}
     </section>
   )
 }

@@ -5,6 +5,7 @@ import { sceneStore } from '../app/scene'
 import { getVisual } from '../engine/render/registry'
 import { nameOf } from '../engine/render/visual'
 import { NAME_MAX } from '../engine/scene/preset'
+import { Hint } from './Hint'
 import { useStore } from './useStore'
 import { useT } from './useT'
 
@@ -64,7 +65,7 @@ export function Presets() {
           {t('presets.save')}
         </button>
       </form>
-      <p className="muted small">{t('presets.hint', { n: layer })}</p>
+      <Hint text={t('presets.hint', { n: layer })} />
       {message && <p className="muted small" role="status">{message}</p>}
 
       {presets.length === 0 ? (

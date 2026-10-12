@@ -1,8 +1,8 @@
 // Radio directory in the Stream source. The directory is faked through the browser's
 // network; the two stations come from a local https server, because Playwright's faked
 // responses skip the browser's CORS check: one stream sends CORS and plays, the other does
-// not and is turned away before it replaces anything. A real search follows when the
-// network allows. Needs openssl for the test certificate.
+// not and is turned away before it replaces anything; the background check marks it
+// first. A real search follows with SPECTRA_REAL_RADIO=1. Needs openssl for the test certificate.
 import { spawnSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 import { createServer } from 'node:https'
@@ -44,6 +44,10 @@ await panel.getByRole('searchbox', { name: 'Buscar' }).fill('jazz')
 await panel.getByRole('button', { name: 'Buscar', exact: true }).click()
 await panel.locator('.radio-row').first().waitFor()
 log('results:', (await panel.locator('.radio-name').allTextContents()).join(' | '), '| searches', searches)
+const flags = () => panel.locator('.radio-row').evaluateAll((rows) => rows.map((r) => `${r.querySelector('.radio-name').textContent}: ${r.querySelector('.radio-flag')?.textContent ?? '-'}`).join(' | '))
+await panel.locator('.radio-row.unusable').first().waitFor({ timeout: 15000 })
+await page.waitForTimeout(1000)
+log('background check:', await flags())
 
 await panel.getByRole('button', { name: /^Sin CORS/ }).click()
 await panel.locator('.radio .error').waitFor({ timeout: 15000 })
@@ -112,16 +116,21 @@ log('favourites after reload:', (await panel.locator('.radio-name').allTextConte
 await panel.getByRole('button', { name: 'Quitar Con CORS de favoritas' }).click()
 log('after removing:', await panel.locator('.radio .muted.small').first().textContent())
 
-// The real directory, if it can be reached.
-await page.unrouteAll({ behavior: 'ignoreErrors' })
-await page.reload()
-await page.waitForSelector('.stage canvas')
-await reveal(page)
-await panel.getByRole('button', { name: 'Stream' }).click()
-await panel.getByRole('searchbox', { name: 'Buscar' }).fill('jazz')
-await panel.getByRole('button', { name: 'Buscar', exact: true }).click()
-await page.waitForFunction(() => document.querySelector('.radio-row') || document.querySelector('.radio .error') || document.querySelector('.radio .muted.small')?.textContent.includes('Ninguna'), null, { timeout: 20000 }).catch(() => {})
-log('real directory, "jazz" by name:', await panel.locator('.radio-row').count(), 'stations, all https:', (await panel.locator('.radio-main').evaluateAll((els) => els.every((e) => e.title.startsWith('https://')))))
+// The real directory, only when asked (SPECTRA_REAL_RADIO=1): it takes half a minute and
+// depends on outside servers.
+if (process.env.SPECTRA_REAL_RADIO) {
+  await page.unrouteAll({ behavior: 'ignoreErrors' })
+  await page.reload()
+  await page.waitForSelector('.stage canvas')
+  await reveal(page)
+  await panel.getByRole('button', { name: 'Stream' }).click()
+  await panel.getByRole('searchbox', { name: 'Buscar' }).fill('jazz')
+  await panel.getByRole('button', { name: 'Buscar', exact: true }).click()
+  await page.waitForFunction(() => document.querySelector('.radio-row') || document.querySelector('.radio .error') || document.querySelector('.radio .muted.small')?.textContent.includes('Ninguna'), null, { timeout: 20000 }).catch(() => {})
+  log('real directory, "jazz" by name:', await panel.locator('.radio-row').count(), 'stations')
+  await page.waitForTimeout(20000)
+  log('real directory, after the background check:', await panel.locator('.radio-flag').allTextContents().then((f) => `${f.length} marked (${f.filter((x) => x === 'sin análisis').length} sin análisis)`))
+}
 // Expected: the browser reports the blocked check on the station without CORS, and reading
 // the app's meter canvas from here makes Chrome suggest willReadFrequently.
 log('errors:', errors.filter((e) => !/willReadFrequently|CORS|Cross-Origin|Access-Control|no.wav|ERR_FAILED/.test(e)).join('\n  ') || 'none')

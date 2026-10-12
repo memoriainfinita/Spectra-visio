@@ -5,6 +5,7 @@ import { CATEGORIES } from '../engine/render/visual'
 import type { MessageKey } from '../i18n'
 import { useStore } from './useStore'
 import { useT } from './useT'
+import { Hint } from './Hint'
 
 function setAutoSettings(patch: Partial<AutoSettings>): void {
   settingsStore.set((s) => ({ ...s, auto: { ...s.auto, ...patch } }))
@@ -83,7 +84,7 @@ export function Auto() {
           ))}
         </select>
       </label>
-      <p className="muted small">{t('auto.hint')}</p>
+      <Hint text={t('auto.hint')} />
     </section>
   )
 }
