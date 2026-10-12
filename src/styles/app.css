@@ -643,3 +643,6 @@ input[type='range'] { accent-color: var(--accent); }
 .confirm { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .confirm > span { flex-basis: 100%; font-size: 13px; }
 .btn.danger { border-color: var(--danger); color: var(--danger); }
+
+.audius { margin-top: 10px; }
+.audius > summary { cursor: pointer; }
