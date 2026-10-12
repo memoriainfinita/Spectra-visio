@@ -1,0 +1,41 @@
+// Milkdrop shares the app's context: other layers and effects must render as without it.
+import { open, loadTrack, grab, stats, pickLayer } from './lib.mjs'
+
+const kind = process.argv[2] ?? 'firefox'
+const { browser, page, errors } = await open(kind)
+const log = (...a) => console.log(`[${kind}]`, ...a)
+const br = page.locator('.panel.browser')
+const vis = page.locator('.panel.visuals')
+const fx = page.locator('.panel.effects')
+const layer = (n) => pickLayer(page, n === 'A' ? 1 : 2)
+const mean = async () => { let s = 0; for (let i = 0; i < 6; i++) { s += stats(await grab(page)).mean; await page.waitForTimeout(150) } return +(s / 6).toFixed(1) }
+
+await loadTrack(page)
+await page.evaluate(() => { document.querySelectorAll('.panel.overlays input[type=checkbox]').forEach((c) => c.checked && c.click()) })
+while (await fx.getByRole('button', { name: 'Quitar efecto' }).count()) await fx.getByRole('button', { name: 'Quitar efecto' }).first().click()
+await vis.locator('.field').filter({ hasText: 'Transición' }).locator('input').fill('0')
+await layer('A')
+await br.getByRole('button', { name: 'Poner Plasma en la capa 1' }).click()
+await vis.getByLabel('Velocidad', { exact: true }).fill('0')
+await layer('B')
+await br.getByRole('button', { name: 'Poner Milkdrop en la capa 2' }).click()
+await vis.getByLabel('Intensidad', { exact: true }).fill('0')
+// Layer 2 (Milkdrop, black) at half opacity over plasma: the result is half the plasma.
+await vis.getByLabel('Fusión de la capa 2 con las de abajo').selectOption({ label: 'Normal' })
+await vis.getByLabel('Opacidad de la capa 2').fill('0.5')
+await vis.getByRole('slider', { name: 'Crossfader' }).fill('0')
+await page.waitForTimeout(1500)
+const alone = await mean()
+await vis.locator('.crossfade-row input[type=range]').fill('0.5')
+await page.waitForTimeout(3000)
+const half = await mean()
+log(`plasma alone ${alone}, with Milkdrop (black) at half opacity: ${half}, expected ${(alone / 2).toFixed(1)}`)
+await fx.getByLabel('Añadir efecto').selectOption({ label: 'Brillo difuso' })
+await page.waitForTimeout(1000)
+log('with bloom', await mean())
+await vis.locator('.crossfade-row input[type=range]').fill('0')
+await page.waitForTimeout(500)
+log('bloom, A only', await mean())
+while (await fx.getByRole('button', { name: 'Quitar efecto' }).count()) await fx.getByRole('button', { name: 'Quitar efecto' }).first().click()
+log('errors:', errors.length ? '\n  ' + errors.join('\n  ') : 'none')
+await browser.close()

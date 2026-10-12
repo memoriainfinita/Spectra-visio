@@ -7,3 +7,5 @@ dist
 artifacts
 coverage
 .archive/
+tests/e2e/out
+tests/e2e/music/*.mp3

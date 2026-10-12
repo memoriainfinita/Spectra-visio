@@ -1,0 +1,82 @@
+// Phase 8 part 1: layer stack, per-layer effects, clips.
+import { open, loadTrack, grab, stats, reveal } from './lib.mjs'
+
+const kind = process.argv[2] ?? 'firefox'
+const { browser, page, errors } = await open(kind)
+const log = (...a) => console.log(`[${kind}]`, ...a)
+const vis = page.locator('.panel.visuals')
+const clips = page.locator('.panel.clips')
+const fx = page.locator('.panel.effects')
+const s = async () => stats(await grab(page))
+const layerNames = async () => (await vis.locator('.layer-pick').allTextContents()).join(' | ')
+
+log('playing:', await loadTrack(page))
+await vis.locator('.field').filter({ hasText: 'Transición' }).locator('input').fill('0')
+log('start layers:', await layerNames())
+
+// Layer 3 with plasma, on top, blended with add.
+await vis.getByRole('button', { name: 'Añadir capa' }).click()
+await page.locator('.panel.browser').getByRole('button', { name: 'Poner Plasma en la capa 3' }).click()
+await page.waitForTimeout(400)
+log('after add:', await layerNames())
+const op = vis.getByLabel('Opacidad de la capa 3')
+await op.fill('0')
+await page.waitForTimeout(300)
+const off = await s()
+await op.fill('1')
+await page.waitForTimeout(300)
+const on = await s()
+log('layer 3 opacity 0 -> 1, mean', off.mean, '->', on.mean)
+
+// Solo layer 3: only plasma. Then a mirror on that layer only.
+await vis.getByRole('button', { name: 'Solo la capa 3' }).click()
+await page.waitForTimeout(300)
+log('solo 3:', JSON.stringify(await s()))
+await fx.locator('select').first().selectOption({ label: 'Espejo' })
+await page.waitForTimeout(300)
+log('solo 3 + layer mirror (asymX ~0):', JSON.stringify(await s()))
+await vis.getByRole('button', { name: 'Solo la capa 3' }).click()
+await vis.locator('.layer-pick').filter({ hasText: /^1 / }).click()
+log('effects panel on layer 1:', await fx.locator('.empty').textContent())
+await fx.getByRole('button', { name: 'Composición' }).click()
+log('composition effects:', await fx.locator('.empty').textContent())
+
+// Bypass and crossfader.
+await vis.getByRole('button', { name: 'Anular la capa 3' }).click()
+await page.waitForTimeout(300)
+const a = await s()
+await vis.getByLabel('Crossfader', { exact: true }).fill('1')
+await page.waitForTimeout(300)
+const b = await s()
+log('crossfader A -> B (layer 3 bypassed): mean', a.mean, '->', b.mean)
+await vis.getByLabel('Crossfader', { exact: true }).fill('0')
+await vis.getByRole('button', { name: 'Anular la capa 3' }).click()
+
+// Clips: save layer 1 in cell 1, change it, launch the cell; key 2 for a column.
+await clips.getByRole('button', { name: 'Guardar la capa 1 en la celda 1' }).click()
+await page.locator('.panel.browser').getByRole('button', { name: 'Poner Túnel en la capa 1' }).click()
+await clips.getByRole('button', { name: 'Guardar la capa 1 en la celda 2' }).click()
+log('layer 1 now:', (await layerNames()).split(' | ').at(-1))
+await clips.getByRole('button', { name: /^Lanzar .* en la capa 1$/ }).first().click()
+log('after cell 1:', (await layerNames()).split(' | ').at(-1), '| active cells', await clips.locator('.clip.active').count())
+await page.locator('body').click({ position: { x: 5, y: 5 } })
+await page.keyboard.press('2')
+await page.waitForTimeout(200)
+log('after key 2:', (await layerNames()).split(' | ').at(-1))
+await clips.getByRole('button', { name: /^Lanzar Túnel en la capa 1$/ }).click({ button: 'right' })
+log('cells with a clip after right click:', await clips.locator('.clip:not(.empty)').count())
+
+// Move layer 3 down and remove layer 2; then reload.
+await vis.getByRole('button', { name: 'Bajar la capa 3' }).click()
+log('after move:', await layerNames())
+await vis.getByRole('button', { name: 'Quitar la capa 3' }).click()
+log('after remove:', await layerNames())
+await page.waitForTimeout(800)
+await page.reload()
+await page.waitForSelector('.stage canvas')
+await reveal(page)
+await page.waitForSelector('.stage canvas')
+await page.waitForTimeout(800)
+log('after reload:', await layerNames(), '| clips', await clips.locator('.clip:not(.empty)').count(), '| fps', await page.locator('.stage-bar .mono').textContent())
+log('errors:', errors.length ? errors.join('\n  ') : 'none')
+await browser.close()
