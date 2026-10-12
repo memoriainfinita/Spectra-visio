@@ -2,6 +2,7 @@ import { ListMusic, Mic, Monitor, Radio } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { inputs } from '../app/engine'
 import { MAX_INPUT_GAIN, type InputKind } from '../engine/audio/inputs'
+import { AudiusBrowser } from './Audius'
 import { RadioBrowser } from './Radio'
 import { peekGraph } from '../engine/audio/graph'
 import { useStore } from './useStore'
@@ -92,6 +93,7 @@ export function Sources() {
           <p className="muted">{t('input.error.screenUnsupported')}</p>
         ))}
 
+      {view === 'player' && <AudiusBrowser />}
       {view === 'stream' && <RadioBrowser />}
       {view === 'stream' && (
         <form

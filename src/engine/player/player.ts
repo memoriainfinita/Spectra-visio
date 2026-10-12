@@ -55,13 +55,17 @@ export class Player {
   private promoteTimer: ReturnType<typeof setTimeout> | undefined
   private readonly cache = new Map<string, Promise<Source>>()
   private readonly metaJobs = new Map<string, Promise<TrackMeta | null>>()
+  // What is known of a track from where it came (an online catalogue), used where its tags
+  // say nothing.
+  private readonly knownMeta = new Map<string, TrackMeta>()
   private metaQueue: string[] = []
   private metaRunning = 0
 
   // ---- Queue -------------------------------------------------------------------------
 
-  // Returns the new track ids, in the order of `files`.
-  add(files: File[]): string[] {
+  // Returns the new track ids, in the order of `files`. `known` gives, per file, the title,
+  // artist or cover to use where the tags have none; its cover is owned by the player then.
+  add(files: File[], known: (TrackMeta | undefined)[] = []): string[] {
     if (files.length === 0) return []
     const wasEmpty = this.state.get().tracks.length === 0
     const added: Track[] = files.map((file) => ({
@@ -72,6 +76,7 @@ export class Player {
       meta: null,
       failed: false,
     }))
+    added.forEach((t, i) => known[i] && this.knownMeta.set(t.id, known[i]))
     this.setTracks([...this.state.get().tracks, ...added])
     for (const t of added) this.requestMeta(t.id)
     if (wasEmpty) void this.play(added[0].id)
@@ -112,6 +117,8 @@ export class Player {
     const s = this.state.get()
     const track = s.tracks.find((t) => t.id === id)
     if (!track) return
+    releaseMeta(this.knownMeta.get(id) ?? null)
+    this.knownMeta.delete(id)
     if (s.currentId === id) {
       const after = following(this.order, id, s.repeat, false)
       const playing = s.status === 'playing' || s.status === 'loading'
@@ -558,6 +565,13 @@ export class Player {
       meta = await readMeta(track.file)
     } catch {
       meta = {}
+    }
+    const known = this.knownMeta.get(id)
+    if (known) {
+      this.knownMeta.delete(id)
+      const fromTags = Object.fromEntries(Object.entries(meta).filter(([, v]) => v !== undefined && v !== ''))
+      if (fromTags.cover && known.cover) URL.revokeObjectURL(known.cover)
+      meta = { ...known, ...fromTags }
     }
     if (!this.state.get().tracks.some((t) => t.id === id)) {
       releaseMeta(meta)
