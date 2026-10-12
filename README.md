@@ -9,7 +9,7 @@ Real-time audio visualizer for the browser: a music player with visuals, a VJ to
 - **Player:** files, folders or drag and drop; gapless playback, optional crossfade and volume levelling between tracks; tags and cover art; media keys; the queue survives a reload
 - **Sources:** music from Audius into the list, microphone, tab or system audio (Chrome and Edge), internet radio from the radio-browser.info directory or any stream URL (needs CORS)
 - **Analysis:** logarithmic bands in left, right and centre; beats per band; BPM with tap tempo; latency compensation. Files are pre-analysed in the background for tempo grid, sections and loudness
-- **Visuals:** 21 built-in visualizations on a WebGL2 compositor, Milkdrop presets through Butterchurn, and imported ISF or Shadertoy shaders. Camera, video, image or a live TV channel from the iptv-org lists as visual input
+- **Visuals:** 21 built-in visualizations on a WebGL2 compositor, Milkdrop presets through Butterchurn, and imported ISF or Shadertoy shaders. Camera, video, image, a live TV channel from the iptv-org lists, or free videos and images from Wikimedia Commons and NASA as visual input
 - **Modulation:** any parameter of a visualization or effect can follow a band, a beat, an oscillator or a MIDI control
 - **Effects, presets and browser:** effect chains per layer and on the composition, colour palettes, saved and exported presets, thumbnails with categories, search and favourites
 - **Live:** up to 8 layers with blend modes and an A/B crossfader, a clip grid, blackout, freeze and strobe, configurable shortcuts, MIDI learn and MIDI clock, auto mode, and an output window for a projector
