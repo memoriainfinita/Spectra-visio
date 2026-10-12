@@ -41,6 +41,8 @@ export interface PlayerState {
   repeat: Repeat
   // Seconds of overlap between tracks; 0 is plain gapless.
   crossfade: number
+  // Levelling between analysed tracks (see level.ts).
+  normalize: boolean
   error: PlayerError | null
 }
 

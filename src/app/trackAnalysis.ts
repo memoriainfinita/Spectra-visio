@@ -1,6 +1,7 @@
 import { get, set } from 'idb-keyval'
 import { createStore } from '../core/store'
 import type { TrackClock } from '../engine/analysis/analyzer'
+import { levelGain } from '../engine/player/level'
 import { LONG_TRACK_BYTES, LONG_TRACK_S } from '../engine/player/player'
 import { analyzeFile, type TrackAnalysis } from '../engine/prepass/prepass'
 import type { Track } from '../engine/player/types'
@@ -13,7 +14,7 @@ import { settingsStore } from './settings'
 const KEY = 'trackAnalysis'
 const CACHE_MAX = 1000
 // Bumped when the analysis changes, so older results are redone.
-const VERSION = 1
+const VERSION = 2
 // Analysis reference level (the level that maps to 1) for a track of a given loudness: the
 // automatic levelling settled 9 to 31 dB below the integrated loudness on six tracks, 16 in
 // the middle.
@@ -53,6 +54,12 @@ export async function initTrackAnalysis(): Promise<void> {
   } catch {
     // IndexedDB unavailable: files are analysed again on every visit.
   }
+  // Levelling between tracks reads their loudness; a level that arrives mid-track eases in.
+  player.levelOf = (id) => {
+    const r = trackAnalysisOf(id)
+    return r && r.loudness !== null ? levelGain(r.loudness, r.peak) : null
+  }
+  trackAnalysisStore.subscribe(() => player.refreshLevels())
   player.state.subscribe(sync)
   sync()
   analysis.trackSource = trackClock
@@ -69,7 +76,8 @@ function trackClock(): TrackClock | null {
     bpm: r.bpm,
     offset: r.offset,
     sections: r.sections,
-    referenceDb: settingsStore.get().analysis.trackLevel && r.loudness !== null ? r.loudness + REFERENCE_VS_LUFS : null,
+    // The analysis hears the track after levelling.
+    referenceDb: settingsStore.get().analysis.trackLevel && r.loudness !== null ? r.loudness + player.appliedLevel(s.currentId) + REFERENCE_VS_LUFS : null,
   }
 }
 

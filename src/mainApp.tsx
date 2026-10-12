@@ -11,6 +11,7 @@ import { initOutput } from './app/output'
 import { initOverlays } from './app/overlays'
 import { initPower } from './app/power'
 import { initPresets } from './app/presets'
+import { initRadio } from './app/radio'
 import { initRecord } from './app/record'
 import { initScene } from './app/scene'
 import { initSettings } from './app/settings'
@@ -36,6 +37,7 @@ initUpdate()
 await initRecord()
 await initOverlays()
 await initTrackAnalysis()
+await initRadio()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

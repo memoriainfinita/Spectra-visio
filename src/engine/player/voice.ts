@@ -7,6 +7,8 @@ export interface Voice {
   readonly duration: number
   // Per-voice gain, used for crossfades.
   readonly fade: GainNode
+  // Per-voice gain after the fade, for levelling between tracks.
+  readonly level: GainNode
   start(when: number, offset: number): void
   stop(): void
   dispose(): void
@@ -15,6 +17,7 @@ export interface Voice {
 
 export class BufferVoice implements Voice {
   readonly fade: GainNode
+  readonly level: GainNode
   onEnded: (() => void) | null = null
   private node: AudioBufferSourceNode | null = null
   private readonly ctx: BaseAudioContext
@@ -24,7 +27,8 @@ export class BufferVoice implements Voice {
     this.ctx = ctx
     this.buffer = buffer
     this.fade = ctx.createGain()
-    this.fade.connect(destination)
+    this.level = ctx.createGain()
+    this.fade.connect(this.level).connect(destination)
   }
 
   get duration(): number {
@@ -63,11 +67,13 @@ export class BufferVoice implements Voice {
   dispose(): void {
     this.stop()
     this.fade.disconnect()
+    this.level.disconnect()
   }
 }
 
 export class ElementVoice implements Voice {
   readonly fade: GainNode
+  readonly level: GainNode
   onEnded: (() => void) | null = null
   private readonly el: HTMLAudioElement
   private readonly source: MediaElementAudioSourceNode
@@ -84,7 +90,8 @@ export class ElementVoice implements Voice {
     this.el.src = this.url
     this.source = ctx.createMediaElementSource(this.el)
     this.fade = ctx.createGain()
-    this.source.connect(this.fade).connect(destination)
+    this.level = ctx.createGain()
+    this.source.connect(this.fade).connect(this.level).connect(destination)
     this.knownDuration = duration
     this.el.addEventListener('ended', () => this.onEnded?.())
   }
@@ -111,6 +118,7 @@ export class ElementVoice implements Voice {
     this.stop()
     this.source.disconnect()
     this.fade.disconnect()
+    this.level.disconnect()
     this.el.removeAttribute('src')
     this.el.load()
     URL.revokeObjectURL(this.url)

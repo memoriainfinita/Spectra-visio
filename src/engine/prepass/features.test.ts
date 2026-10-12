@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { PREPASS_RATE, fitGrid, loudness, roughTempo, sections, spectrum } from './features'
+import { PREPASS_RATE, fitGrid, loudness, peak, roughTempo, sections, spectrum } from './features'
 
 const R = PREPASS_RATE
 
@@ -39,6 +39,15 @@ describe('loudness', () => {
     // The 400 ms blocks across the cut are partly silent but pass the relative gate.
     expect(Math.abs(loudness([withSilence], R) + 9.03)).toBeLessThan(0.15)
     expect(loudness([new Float32Array(R * 5)], R)).toBe(-Infinity)
+  })
+})
+
+describe('peak', () => {
+  it('reads the highest sample of any channel in dBFS', () => {
+    const left = new Float32Array([0, 0.25, -0.5])
+    const right = new Float32Array([0.1, -0.2, 0])
+    expect(peak([left, right])).toBeCloseTo(-6.02, 2)
+    expect(peak([new Float32Array(8)])).toBe(-Infinity)
   })
 })
 

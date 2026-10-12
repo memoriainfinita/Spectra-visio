@@ -8,6 +8,7 @@ export interface PlayerPrefs {
   shuffle: boolean
   repeat: Repeat
   crossfade: number
+  normalize: boolean
 }
 
 // A list entry that can be brought back: a copy in the app's storage, or (Chrome) a
@@ -30,7 +31,7 @@ export interface Session {
   position: number
 }
 
-export const DEFAULT_PREFS: PlayerPrefs = { volume: 0.8, muted: false, shuffle: false, repeat: 'off', crossfade: 0 }
+export const DEFAULT_PREFS: PlayerPrefs = { volume: 0.8, muted: false, shuffle: false, repeat: 'off', crossfade: 0, normalize: true }
 
 const REPEATS: readonly Repeat[] = ['off', 'all', 'one']
 
@@ -46,6 +47,7 @@ function normalizePrefs(raw: unknown): PlayerPrefs {
     shuffle: typeof r.shuffle === 'boolean' ? r.shuffle : DEFAULT_PREFS.shuffle,
     repeat: REPEATS.includes(r.repeat as Repeat) ? (r.repeat as Repeat) : DEFAULT_PREFS.repeat,
     crossfade: num(r.crossfade, 0, 12, DEFAULT_PREFS.crossfade),
+    normalize: typeof r.normalize === 'boolean' ? r.normalize : DEFAULT_PREFS.normalize,
   }
 }
 

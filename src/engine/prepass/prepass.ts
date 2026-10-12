@@ -12,6 +12,8 @@ export interface TrackAnalysis {
   sections: number[]
   // Integrated loudness in LUFS; null for silence.
   loudness: number | null
+  // Sample peak in dBFS; null for silence.
+  peak: number | null
   // Onset strength on the grid against average (see GRID_MIN_STRENGTH); 0 without a tempo.
   strength: number
 }
@@ -60,6 +62,7 @@ export async function analyzeFile(file: File): Promise<TrackAnalysis> {
     offset: grid?.offset ?? 0,
     sections: r.sections,
     loudness: r.loudness,
+    peak: r.peak,
     strength: r.grid ? Math.round(r.grid.strength * 100) / 100 : 0,
   }
 }

@@ -605,3 +605,19 @@ input[type='range'] { accent-color: var(--accent); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }
+
+/* Radio directory */
+
+.radio { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+.radio-search { display: flex; flex-wrap: wrap; gap: 6px; }
+.radio-search input { flex: 1; min-width: 140px; }
+.radio-list { list-style: none; margin: 0; padding: 0; max-height: 320px; overflow: auto; border: 1px solid var(--border); border-radius: 8px; }
+.radio-row { display: flex; align-items: center; gap: 6px; padding: 0 6px; }
+.radio-row + .radio-row { border-top: 1px solid var(--border); }
+.radio-main { flex: 1; min-width: 0; display: flex; flex-direction: column; padding: 6px 2px; background: none; border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.radio-name, .radio-sub { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.radio-sub { font-size: 12px; color: var(--muted); }
+.radio-row.current .radio-name { color: var(--accent); }
+@media (pointer: coarse) {
+  .radio-main { min-height: 44px; }
+}

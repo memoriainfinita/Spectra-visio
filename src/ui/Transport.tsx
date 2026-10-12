@@ -188,6 +188,10 @@ export function Transport() {
             ))}
           </select>
         </label>
+        <label className="check" title={t('player.normalizeHint')}>
+          <input type="checkbox" checked={s.normalize} onChange={(e) => player.setNormalize(e.target.checked)} />
+          <span>{t('player.normalize')}</span>
+        </label>
       </div>
     </div>
   )

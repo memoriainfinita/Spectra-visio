@@ -61,6 +61,14 @@ function kWeighting(rate: number): Biquad[] {
   return [shelf, highPass]
 }
 
+// Highest sample of any channel in dBFS; -Infinity for silence. At the prepass rate it can
+// read a little under the real peak, which falls between samples.
+export function peak(channels: readonly Float32Array[]): number {
+  let max = 0
+  for (const ch of channels) for (let i = 0; i < ch.length; i++) max = Math.max(max, Math.abs(ch[i]))
+  return 20 * Math.log10(max)
+}
+
 const ABSOLUTE_GATE = -70
 const RELATIVE_GATE = 10
 
