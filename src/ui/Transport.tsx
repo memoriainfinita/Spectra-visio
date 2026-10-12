@@ -71,6 +71,42 @@ export function NowPlaying() {
   )
 }
 
+// The top bar's player on wide screens: previous, play, next and the current track.
+export function MiniTransport() {
+  const t = useT()
+  const s = useStore(player.state)
+  const position = usePosition()
+  const playing = s.status === 'playing' || s.status === 'loading'
+  const hasTracks = s.tracks.length > 0
+  const track = s.tracks.find((tr) => tr.id === s.currentId)
+  const duration = s.duration || track?.meta?.duration || 0
+  return (
+    <div className="mini-transport">
+      <button className="icon-btn small" title={t('player.previous')} aria-label={t('player.previous')} disabled={!hasTracks} onClick={() => player.previous()}>
+        <SkipBack size={16} />
+      </button>
+      <button
+        className={`icon-btn small${playing ? ' on' : ''}`}
+        title={playing ? t('player.pause') : t('player.play')}
+        aria-label={playing ? t('player.pause') : t('player.play')}
+        disabled={!hasTracks}
+        onClick={() => player.toggle()}
+      >
+        {playing ? <Pause size={16} /> : <Play size={16} />}
+      </button>
+      <button className="icon-btn small" title={t('player.next')} aria-label={t('player.next')} disabled={!hasTracks} onClick={() => player.next()}>
+        <SkipForward size={16} />
+      </button>
+      <span className="mini-title">{track ? trackTitle(track) : t('player.nothing')}</span>
+      {track && (
+        <span className="time">
+          {formatTime(Math.min(position, duration))} / {formatTime(duration || null)}
+        </span>
+      )}
+    </div>
+  )
+}
+
 export function Transport() {
   const t = useT()
   const s = useStore(player.state)
