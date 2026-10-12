@@ -1,5 +1,5 @@
 import { applyPerformance } from '../engine/render/quality'
-import { keepAwake } from '../engine/wakeLock'
+import { keepAwake } from '../engine/power/wakeLock'
 import { inputs, player, renderer } from './engine'
 import { settingsStore } from './settings'
 

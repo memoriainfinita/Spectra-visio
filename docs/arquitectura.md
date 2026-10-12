@@ -23,7 +23,7 @@ Diseño técnico confirmado por mykl el 2026-10-10. Implementa la lista de `docs
 
 - Un único canvas WebGL2 de salida. Cada visualización dibuja en una textura: las de Canvas 2D en un canvas oculto que se sube a la GPU, las WebGL directamente
 - Compositor como Resolume: pila de hasta 8 capas, cada una con opacidad, modo de fusión sobre las de abajo, anular, solo, lado del crossfader (A, B o fuera) y su cadena de efectos → efectos de composición → capas de texto y letras (E, F). Rejilla de clips: 9 por capa; una columna lanza un clip por capa
-- Butterchurn 2.6.7, MIT, en su propio canvas, usado como textura de entrada. API: `createVisualizer(audioContext, canvas, opciones)`, `connectAudio(nodo)`, `loadPreset(preset, segundosDeFundido)`, `render()` por fotograma, `setRendererSize(ancho, alto)`. `butterchurn-presets` 2.4.7 es de 2022
+- Butterchurn 2.6.7, MIT, con los 100 presets del paquete principal de `butterchurn-presets` 2.4.7 (de 2022). Pinta con el contexto WebGL de la app a través de un proxy que lleva su salida a una textura y anota lo que crea para borrarlo, porque no tiene `dispose`; con canvas propio, la copia entre contextos costaba a Firefox 18-19 ms por fotograma. Recibe la onda del análisis de la app, sin `AudioContext` propio. Código y presets (unos 840 KB) se cargan solo al usarlo
 - ISF con lector propio: la cabecera JSON da los parámetros; el audio llega como textura, una fila por canal
 - Fondo transparente en el modo fuente para OBS (G)
 - Calidad adaptativa (H): la resolución interna baja en pasos (100, 85, 70, 50 %) tras 2 s por debajo del 85 % de los fps objetivo (el límite, o 60) y sube tras 5 s por encima del 95 %. Un paso que no da al menos un 10 % más de fps se deshace y no se repite en 60 s: el límite estaba en otra parte (CPU, ritmo del navegador). No actúa con formato fijo
@@ -62,7 +62,7 @@ Diseño técnico confirmado por mykl el 2026-10-10. Implementa la lista de `docs
 - Media Session. Firefox solo activa las teclas multimedia con un elemento multimedia sonando (bug 2067534): un `<audio>` silencioso en bucle mientras reproduce. Teclas comprobadas por mykl en su Firefox
 - Despliegue en GitHub Pages con GitHub Actions, ruta base relativa `./` como nona, activo desde la fase 1 (I)
 - Código anterior a la reconstrucción en `.archive/v0/`, fuera de git; en el historial hasta el commit `7a63da1`
-- Tests con Vitest: análisis, modulación, lectores ISF y LRC, presets (I)
+- Tests con Vitest de la lógica sin navegador: análisis y análisis previo, modulación, efectos, escena y presets, lista y sesión, lectores ISF y LRC, MIDI, acciones de directo, modo automático, OBS, grabación, formato de salida, calidad adaptativa, idiomas y ajustes (I)
 
 ## Orden de implementación
 
