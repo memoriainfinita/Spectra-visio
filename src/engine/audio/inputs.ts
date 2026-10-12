@@ -14,18 +14,29 @@ export interface InputDevice {
 
 export interface InputsState {
   kind: InputKind
-  status: 'idle' | 'connecting' | 'active'
+  // A stream can be paused: it stays the source, and resuming reconnects to the live point.
+  status: 'idle' | 'connecting' | 'active' | 'paused'
   devices: InputDevice[]
   deviceId: string
   // Linear gain on the analysis input: 1 is unchanged.
   gain: number
   streamUrl: string
+  // Station name, or the server's host for a pasted URL.
+  streamName: string
   error: MessageKey | null
   // Incremented on every source switch (not on error changes), so the UI can follow it.
   switches: number
 }
 
 export const MAX_INPUT_GAIN = 4
+
+function hostOf(url: string): string {
+  try {
+    return new URL(url).host
+  } catch {
+    return url
+  }
+}
 
 function errorKey(err: unknown): MessageKey {
   const name = err instanceof DOMException ? err.name : ''
@@ -42,6 +53,7 @@ export class Inputs {
     deviceId: '',
     gain: 1,
     streamUrl: '',
+    streamName: '',
     error: null,
     switches: 0,
   })
@@ -117,8 +129,8 @@ export class Inputs {
     })
   }
 
-  async useStream(url: string): Promise<void> {
-    this.state.set((s) => ({ ...s, streamUrl: url }))
+  async useStream(url: string, name = ''): Promise<void> {
+    this.state.set((s) => ({ ...s, streamUrl: url, streamName: name || hostOf(url) }))
     await this.connect('stream', async () => {
       const graph = getGraph()
       const el = new Audio()
@@ -132,6 +144,19 @@ export class Inputs {
       this.elementNode = node
       return null
     })
+  }
+
+  // A live stream cannot really pause: it disconnects, and resuming joins it where it is.
+  pauseStream(): void {
+    const s = this.state.get()
+    if (s.kind !== 'stream' || s.status !== 'active') return
+    this.release()
+    this.state.set((st) => ({ ...st, status: 'paused' }))
+  }
+
+  async resumeStream(): Promise<void> {
+    const s = this.state.get()
+    if (s.kind === 'stream' && s.status === 'paused') await this.useStream(s.streamUrl, s.streamName)
   }
 
   clearError(): void {

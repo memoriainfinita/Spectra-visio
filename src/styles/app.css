@@ -621,3 +621,5 @@ input[type='range'] { accent-color: var(--accent); }
 @media (pointer: coarse) {
   .radio-main { min-height: 44px; }
 }
+.live-badge { flex: none; padding: 1px 7px; border: 1px solid var(--accent-2); border-radius: 999px; color: var(--accent-2); font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; }
+.cover svg { color: var(--muted); }

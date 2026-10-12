@@ -1,10 +1,11 @@
 import { ChevronLeft, ChevronRight, EyeOff, Maximize, Minimize, Pause, Play, SkipForward } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { player, renderer } from '../app/engine'
+import { inputs, player, renderer } from '../app/engine'
 import { stepVisual } from '../app/gestures'
 import { liveStore, toggleLive } from '../app/live'
 import { outputStore } from '../app/output'
 import { settingsStore } from '../app/settings'
+import { transport } from '../app/transport'
 import { useStore } from './useStore'
 import { useT } from './useT'
 
@@ -22,7 +23,10 @@ export function Stage() {
   const status = useStore(renderer.status)
   const paused = useStore(outputStore, (s) => s.open && !s.preview)
   const showFps = useStore(settingsStore, (s) => s.performance.showFps)
-  const playing = useStore(player.state, (s) => s.status === 'playing')
+  const playerPlaying = useStore(player.state, (s) => s.status === 'playing')
+  const streamPlaying = useStore(inputs.state, (s) => s.kind === 'stream' && (s.status === 'active' || s.status === 'connecting'))
+  const streamSource = useStore(inputs.state, (s) => s.kind === 'stream' && s.status !== 'idle')
+  const playing = streamSource ? streamPlaying : playerPlaying
   const blackout = useStore(liveStore, (s) => s.blackout)
   const box = useRef<HTMLElement>(null)
   const canvas = useRef<HTMLCanvasElement>(null)
@@ -133,8 +137,8 @@ export function Stage() {
       {bar && (
         <div className="touch-bar">
           {barButton(t('stage.previousVisual'), <ChevronLeft size={26} />, () => stepVisual(-1))}
-          {barButton(playing ? t('player.pause') : t('player.play'), playing ? <Pause size={26} /> : <Play size={26} />, () => void player.toggle())}
-          {barButton(t('player.next'), <SkipForward size={26} />, () => void player.next())}
+          {barButton(playing ? t('player.pause') : t('player.play'), playing ? <Pause size={26} /> : <Play size={26} />, () => transport.toggle())}
+          {barButton(t('player.next'), <SkipForward size={26} />, () => transport.next())}
           {barButton(t('live.blackout'), <EyeOff size={26} />, () => toggleLive('blackout'), blackout)}
           {barButton(t('stage.nextVisual'), <ChevronRight size={26} />, () => stepVisual(1))}
         </div>

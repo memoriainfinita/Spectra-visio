@@ -18,7 +18,7 @@ export function RadioBrowser() {
   const [by, setBy] = useState<SearchBy>('name')
   const [showFavorites, setShowFavorites] = useState(false)
   const list = showFavorites ? favorites : radio.results
-  const playing = (s: Station) => input.kind === 'stream' && input.status === 'active' && input.streamUrl === s.url
+  const playing = (s: Station) => input.kind === 'stream' && (input.status === 'active' || input.status === 'paused') && input.streamUrl === s.url
 
   return (
     <div className="radio">

@@ -5,6 +5,7 @@ import { toggleAuto } from './auto'
 import { moveCrossfader } from './crossfader'
 import { analysis, player, renderer } from './engine'
 import { toggleRecording } from './record'
+import { transport } from './transport'
 import { launchColumn, sceneStore } from './scene'
 import { settingsStore } from './settings'
 
@@ -49,11 +50,11 @@ export function runAction(id: ActionId): void {
   }
   switch (id) {
     case 'play':
-      return void player.toggle()
+      return transport.toggle()
     case 'next':
-      return void player.next()
+      return transport.next()
     case 'previous':
-      return void player.previous()
+      return transport.previous()
     case 'seekForward':
       return player.seek(player.position() + SEEK_STEP_S)
     case 'seekBack':

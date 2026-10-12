@@ -71,5 +71,15 @@ export async function playStation(station: Station): Promise<void> {
   const ok = await canAnalyse(station.url, ctrl.signal)
   if (probe !== ctrl) return
   radioStore.set((s) => ({ ...s, checking: null, message: ok ? null : 'radio.error.cors' }))
-  if (ok) await inputs.useStream(station.url)
+  if (ok) await inputs.useStream(station.url, station.name)
+}
+
+// The favourite before or after the one playing; from a station that is not a favourite,
+// the first or the last. Nothing without favourites.
+export async function stepStation(step: 1 | -1): Promise<void> {
+  const list = radioFavoritesStore.get()
+  if (!list.length) return
+  const i = list.findIndex((s) => s.url === inputs.state.get().streamUrl)
+  const next = i < 0 ? (step > 0 ? 0 : list.length - 1) : (i + step + list.length) % list.length
+  await playStation(list[next])
 }
