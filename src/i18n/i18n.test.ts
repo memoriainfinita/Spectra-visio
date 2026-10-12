@@ -12,7 +12,7 @@ test('detectLang takes the first supported language', () => {
 
 test('translate fills params and leaves unknown placeholders', () => {
   expect(translate('es', 'queue.regain', { n: 3 })).toBe('Recuperar el acceso a 3 archivos de la sesión anterior')
-  expect(translate('en', 'app.rebuilding', { phase: 2 })).toBe('Rebuild in progress: phase 2 of {total}.')
+  expect(translate('en', 'clips.save', { n: 2 })).toBe('Save layer 2 in cell {c}')
 })
 
 test('every language has the same keys and no empty messages', () => {

@@ -2,7 +2,6 @@
 export const es = {
   'app.title': 'SpectraVisio',
   'app.tagline': 'Visualizador de audio en tiempo real',
-  'app.rebuilding': 'Reconstrucción en curso: fase {phase} de {total}.',
   'update.ready': 'Hay una versión nueva de la app.',
   'update.readyRecording': 'Hay una versión nueva; se podrá recargar al terminar la grabación.',
   'update.reload': 'Recargar',
@@ -429,7 +428,7 @@ export const es = {
   'vinput.error.cameraFailed': 'No se pudo abrir la cámara.',
   'vinput.error.unsupported': 'Este navegador no da acceso a la cámara.',
   'vinput.error.badFile': 'No se pudo abrir el archivo como imagen o vídeo.',
-  'overlay.title': 'Capas',
+  'overlay.title': 'Rótulos',
   'overlay.titleItem': 'Título de la canción',
   'overlay.lyrics': 'Letra sincronizada',
   'overlay.text': 'Texto',

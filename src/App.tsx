@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
 import { setKeepFiles } from './app/engine'
 import { settingsStore } from './app/settings'
-import { LANGS, isLang } from './i18n'
+import { LANGS, isLang, type MessageKey } from './i18n'
 import { AnalysisPanel } from './ui/Analysis'
 import { Auto } from './ui/Auto'
 import { Browser } from './ui/Browser'
@@ -26,9 +26,6 @@ import { MiniTransport, NowPlaying, Transport } from './ui/Transport'
 import { UpdateBanner } from './ui/UpdateBanner'
 import { useStore } from './ui/useStore'
 import { useT } from './ui/useT'
-
-const PHASE = 10
-const TOTAL_PHASES = 10
 
 // Wide screens get the stage with the side tabs; narrow ones one column of panels.
 const WIDE = '(min-width: 801px)'
@@ -78,6 +75,37 @@ const player = (
   </section>
 )
 
+// A panel used now and then, folded under its title; each one remembers whether it is open.
+function Fold({ id, title, children }: { id: string; title: MessageKey; children: ReactNode }) {
+  const t = useT()
+  const key = `spectra.fold.${id}`
+  const [open, setOpen] = useState(() => {
+    try {
+      return localStorage.getItem(key) === '1'
+    } catch {
+      return false
+    }
+  })
+  return (
+    <details
+      className="fold"
+      open={open}
+      onToggle={(e) => {
+        const next = e.currentTarget.open
+        setOpen(next)
+        try {
+          localStorage.setItem(key, next ? '1' : '0')
+        } catch {
+          // Only a convenience: it opens folded next time.
+        }
+      }}
+    >
+      <summary>{t(title)}</summary>
+      {children}
+    </details>
+  )
+}
+
 // The panels of each tab. Hidden tabs stay mounted, so nothing half-typed is lost.
 const GROUPS: Record<Tab, ReactNode> = {
   audio: (
@@ -92,10 +120,18 @@ const GROUPS: Record<Tab, ReactNode> = {
     <>
       <Visuals />
       <Browser />
-      <Presets />
-      <Shaders />
-      <VisualInput />
-      <Overlays />
+      <Fold id="presets" title="presets.title">
+        <Presets />
+      </Fold>
+      <Fold id="shaders" title="shaders.title">
+        <Shaders />
+      </Fold>
+      <Fold id="vinput" title="vinput.title">
+        <VisualInput />
+      </Fold>
+      <Fold id="overlays" title="overlay.title">
+        <Overlays />
+      </Fold>
     </>
   ),
   effects: <Effects />,
@@ -182,7 +218,7 @@ export function App() {
       <header className="topbar">
         <div>
           <h1>{t('app.title')}</h1>
-          <p className="muted small">{t('app.rebuilding', { phase: PHASE, total: TOTAL_PHASES })}</p>
+          <p className="muted small">{t('app.tagline')}</p>
         </div>
         {wide && <MiniTransport />}
         <label className="field">

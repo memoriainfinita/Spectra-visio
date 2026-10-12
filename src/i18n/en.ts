@@ -3,7 +3,6 @@ import type { Messages } from './es'
 export const en: Messages = {
   'app.title': 'SpectraVisio',
   'app.tagline': 'Real-time audio visualizer',
-  'app.rebuilding': 'Rebuild in progress: phase {phase} of {total}.',
   'update.ready': 'A new version of the app is available.',
   'update.readyRecording': 'A new version is available; it can be loaded once the recording ends.',
   'update.reload': 'Reload',

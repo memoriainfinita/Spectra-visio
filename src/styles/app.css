@@ -552,6 +552,11 @@ input[type='range'] { accent-color: var(--accent); }
 .side-tab.on { color: var(--text); border-bottom-color: var(--accent); }
 .side-body { flex: 1; min-height: 0; overflow: auto; padding: 12px; display: flex; flex-direction: column; gap: 12px; }
 .side-body[hidden] { display: none; }
+.fold > summary { cursor: pointer; padding: 12px 14px; font-size: 15px; font-weight: 600; background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); }
+.fold[open] > summary { border-radius: var(--radius) var(--radius) 0 0; border-bottom: 0; }
+.fold > .panel { border-top-left-radius: 0; border-top-right-radius: 0; }
+.fold > .panel > .panel-head > h2 { display: none; }
+.fold > .panel > .panel-head:not(:has(> :not(h2))) { display: none; }
 .side .visual-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
 
 @media (max-width: 800px) {
