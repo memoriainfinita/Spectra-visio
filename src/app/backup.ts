@@ -6,9 +6,10 @@ import { presetsStore } from './presets'
 import { mergeRadioFavorites, radioFavoritesStore } from './radio'
 import { reducedMotion, settingsStore } from './settings'
 import { normalizeShaders, shadersStore } from './shaders'
+import { mergeTvFavorites, tvFavoritesStore } from './tv'
 
 // A backup file carries the settings, the shortcuts with them, the presets, the imported
-// shaders and the favourite stations, to move them to another browser or computer. The
+// shaders and the favourite stations and channels, to move them to another browser or computer. The
 // OBS password stays out of it, and so do the files of the list.
 
 const BACKUP_APP = 'spectra-visio'
@@ -27,6 +28,7 @@ export function downloadBackup(): void {
     presets: presetsStore.get(),
     shaders: shadersStore.get(),
     radioFavorites: radioFavoritesStore.get(),
+    tvFavorites: tvFavoritesStore.get(),
   }
   const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }))
   const a = document.createElement('a')
@@ -42,13 +44,14 @@ export interface RestoreResult {
   presets: number
   shaders: number
   favorites: number
+  channels: number
 }
 
-// The settings are replaced; presets, shaders and favourites are added to the ones here,
+// The settings are replaced; presets, shaders and favourites of both kinds are added to the ones here,
 // skipping those already present. What belongs to this browser stays: the OBS password,
 // whether files are kept, and the answered photosensitivity notice.
 export async function restoreBackup(file: File): Promise<RestoreResult> {
-  const none = { invalid: true, presets: 0, shaders: 0, favorites: 0 }
+  const none = { invalid: true, presets: 0, shaders: 0, favorites: 0, channels: 0 }
   let raw: Record<string, unknown>
   try {
     const parsed: unknown = JSON.parse(await file.text())
@@ -72,7 +75,7 @@ export async function restoreBackup(file: File): Promise<RestoreResult> {
   const presets = normalizePresets(raw.presets).filter((p) => !presetIds.has(p.id))
   if (presets.length) presetsStore.set((list) => [...list, ...presets])
 
-  return { invalid: false, presets: presets.length, shaders: shaders.length, favorites: mergeRadioFavorites(raw.radioFavorites) }
+  return { invalid: false, presets: presets.length, shaders: shaders.length, favorites: mergeRadioFavorites(raw.radioFavorites), channels: mergeTvFavorites(raw.tvFavorites) }
 }
 
 // Factory settings. Kept files and the answered notice stay as they are.

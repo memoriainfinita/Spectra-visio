@@ -1,16 +1,18 @@
-import { Camera, ImagePlus, X } from 'lucide-react'
+import { Camera, ImagePlus, Tv, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { cameraDevices, openVisualFile, previewStore, startCamera, stopVisualInput, visualInputStore } from '../app/visualInput'
 import type { MessageKey } from '../i18n'
 import { useStore } from './useStore'
 import { useT } from './useT'
 import { Hint } from './Hint'
+import { TvBrowser } from './Tv'
 
 export function VisualInput() {
   const t = useT()
   const state = useStore(visualInputStore)
   const preview = useStore(previewStore)
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([])
+  const [showTv, setShowTv] = useState(false)
   const box = useRef<HTMLDivElement>(null)
   const fileInput = useRef<HTMLInputElement>(null)
 
@@ -37,6 +39,9 @@ export function VisualInput() {
           </button>
           <button className={`btn${state.kind === 'video' || state.kind === 'image' ? ' on' : ''}`} onClick={() => fileInput.current?.click()}>
             <ImagePlus size={15} /> {t('vinput.file')}
+          </button>
+          <button className={`btn${state.kind === 'tv' ? ' on' : ''}`} aria-expanded={showTv} onClick={() => setShowTv(!showTv)}>
+            <Tv size={15} /> {t('vinput.tv')}
           </button>
           <button className="btn" disabled={state.kind === 'none'} onClick={stopVisualInput}>
             <X size={15} /> {t('vinput.stop')}
@@ -76,6 +81,7 @@ export function VisualInput() {
         </p>
       )}
       <div className="input-preview" ref={box} hidden={!preview} />
+      {showTv && <TvBrowser />}
     </section>
   )
 }
