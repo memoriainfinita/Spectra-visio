@@ -139,6 +139,26 @@ function Performance() {
   )
 }
 
+const setOnline = (value: Partial<SettingsData['online']>) => settingsStore.set((s) => ({ ...s, online: { ...s.online, ...value } }))
+
+function Online() {
+  const t = useT()
+  const online = useStore(settingsStore, (s) => s.online)
+  return (
+    <Panel id="online" title="settings.online">
+      <label className="check">
+        <input type="checkbox" checked={online.lyrics} onChange={(e) => setOnline({ lyrics: e.target.checked })} />
+        <span>{t('settings.onlineLyrics')}</span>
+      </label>
+      <label className="check">
+        <input type="checkbox" checked={online.covers} onChange={(e) => setOnline({ covers: e.target.checked })} />
+        <span>{t('settings.onlineCovers')}</span>
+      </label>
+      <Hint text={t('settings.onlineHint')} />
+    </Panel>
+  )
+}
+
 function Backup() {
   const t = useT()
   const input = useRef<HTMLInputElement>(null)
@@ -196,6 +216,7 @@ export function Settings() {
       <General />
       <Accessibility />
       <Performance />
+      <Online />
       <Panel id="keys" title="live.keys">
         <Shortcuts />
       </Panel>

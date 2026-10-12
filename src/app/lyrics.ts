@@ -5,12 +5,15 @@ import { matchLyrics } from '../engine/player/files'
 import type { Track } from '../engine/player/types'
 
 // Lyrics the user loaded per track (picked along with the audio or chosen later). They
-// take precedence over lyrics in the tags.
+// take precedence over lyrics in the tags, and those over lyrics found online.
 
 const KEY = 'lyrics'
+const ONLINE_KEY = 'lyricsOnline'
 
 // Track id → LRC text.
 export const lyricsStore = createStore<Record<string, string>>({})
+// Track id → LRC text found on LRCLIB.
+export const onlineLyricsStore = createStore<Record<string, string>>({})
 
 const parsed = new Map<string, { text: string; lines: LrcLine[] }>()
 
@@ -22,36 +25,44 @@ function linesOf(id: string, text: string): LrcLine[] {
   return lines
 }
 
-export type LyricsSource = 'file' | 'tags' | null
+export type LyricsSource = 'file' | 'tags' | 'online' | null
 
 export function lyricsSource(track: Track | undefined): LyricsSource {
   if (!track) return null
   if (lyricsStore.get()[track.id]) return 'file'
-  return track.meta?.lyrics ? 'tags' : null
+  if (track.meta?.lyrics) return 'tags'
+  return onlineLyricsStore.get()[track.id] ? 'online' : null
 }
 
 export function lyricsOf(track: Track | undefined): readonly LrcLine[] | null {
   if (!track) return null
-  const text = lyricsStore.get()[track.id] ?? track.meta?.lyrics
+  const text = lyricsStore.get()[track.id] ?? track.meta?.lyrics ?? onlineLyricsStore.get()[track.id]
   return text ? linesOf(track.id, text) : null
 }
 
+const strings = (raw: unknown) => (raw && typeof raw === 'object' ? (Object.fromEntries(Object.entries(raw).filter(([, v]) => typeof v === 'string')) as Record<string, string>) : {})
+
 export async function initLyrics(): Promise<void> {
   try {
-    const raw: unknown = await get(KEY)
-    if (raw && typeof raw === 'object') lyricsStore.set(Object.fromEntries(Object.entries(raw).filter(([, v]) => typeof v === 'string')) as Record<string, string>)
+    lyricsStore.set(strings(await get(KEY)))
+    onlineLyricsStore.set(strings(await get(ONLINE_KEY)))
   } catch {
     // IndexedDB unavailable: lyrics last for this visit only.
   }
   lyricsStore.subscribe(() => {
     set(KEY, lyricsStore.get()).catch(() => {})
   })
+  onlineLyricsStore.subscribe(() => {
+    set(ONLINE_KEY, onlineLyricsStore.get()).catch(() => {})
+  })
 }
 
 // Lyrics of tracks that left the queue go with them.
 export function keepLyricsOf(ids: Set<string>): void {
-  const lyrics = lyricsStore.get()
-  if (Object.keys(lyrics).some((id) => !ids.has(id))) lyricsStore.set(Object.fromEntries(Object.entries(lyrics).filter(([id]) => ids.has(id))))
+  for (const store of [lyricsStore, onlineLyricsStore]) {
+    const lyrics = store.get()
+    if (Object.keys(lyrics).some((id) => !ids.has(id))) store.set(Object.fromEntries(Object.entries(lyrics).filter(([id]) => ids.has(id))))
+  }
 }
 
 // Lyrics files picked with the audio, matched to the new tracks by name.

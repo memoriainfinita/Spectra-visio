@@ -106,6 +106,12 @@ export class Player {
     }
   }
 
+  // A cover found elsewhere, for a track whose tags have none.
+  setCover(id: string, url: string): void {
+    this.updateTrack(id, (t) => (t.meta && !t.meta.cover ? { ...t, meta: { ...t.meta, cover: url } } : t))
+    if (this.state.get().currentId === id) this.state.set((s) => ({ ...s }))
+  }
+
   // Gives a restored track its file once it is readable.
   attachFile(id: string, file: File): void {
     this.metaJobs.delete(id)

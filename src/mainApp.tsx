@@ -6,6 +6,7 @@ import { wipeIfAsked } from './app/backup'
 import { initEngine } from './app/engine'
 import { initLibrary } from './app/library'
 import { initLive } from './app/live'
+import { initLookup } from './app/lookup'
 import { initMidi } from './app/midi'
 import { initObs } from './app/obs'
 import { initOutput } from './app/output'
@@ -41,6 +42,7 @@ initPower()
 initUpdate()
 await initRecord()
 await initOverlays()
+await initLookup()
 await initTrackAnalysis()
 await initRadio()
 await initTv()

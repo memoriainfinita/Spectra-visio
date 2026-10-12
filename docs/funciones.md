@@ -29,6 +29,7 @@ Lista de funciones confirmada por mykl el 2026-10-10. Es el contrato del redise�
 - Elección del dispositivo de entrada
 - Audio del sistema o de una pestaña
 - Música de Audius (artistas independientes) a la lista del reproductor
+- Letras sincronizadas (LRCLIB) y carátulas (MusicBrainz) en línea para pistas que no las traen, opcional
 - Directorio de radios por internet; las emisoras sin cabeceras CORS no se pueden analizar
 - Ganancia de entrada y nivelado automático del análisis
 
