@@ -1,6 +1,20 @@
 import { Pause, Play, X } from 'lucide-react'
 import { settingsStore } from '../app/settings'
-import { VIDEO_RATES, clearVideoSpan, markVideoEnd, markVideoStart, seekVideo, setVideoLoop, setVideoRate, setVideoSpan, toggleVideo, videoControlStore } from '../app/videoControl'
+import {
+  VIDEO_RATES,
+  clearVideoSpan,
+  markVideoEnd,
+  markVideoStart,
+  seekVideo,
+  setVideoDirection,
+  setVideoEnd,
+  setVideoRate,
+  setVideoSpan,
+  toggleVideo,
+  videoControlStore,
+  type VideoDirection,
+  type VideoEnd,
+} from '../app/videoControl'
 import { formatTime } from './format'
 import { useStore } from './useStore'
 import { useT } from './useT'
@@ -19,8 +33,8 @@ export function VideoControls() {
   return (
     <div className="video-controls" role="group" aria-label={t('vctl.label')}>
       <div className="live-row">
-        <button className="icon-btn small" aria-label={c.paused ? t('vctl.play') : t('vctl.pause')} title={c.paused ? t('vctl.play') : t('vctl.pause')} onClick={toggleVideo}>
-          {c.paused ? <Play size={15} /> : <Pause size={15} />}
+        <button className="icon-btn small" aria-label={c.playing ? t('vctl.pause') : t('vctl.play')} title={c.playing ? t('vctl.pause') : t('vctl.play')} onClick={toggleVideo}>
+          {c.playing ? <Pause size={15} /> : <Play size={15} />}
         </button>
         <input className="seek" type="range" min={0} max={c.duration || 0} step={0.01} value={Math.min(c.time, c.duration)} aria-label={t('vctl.position')} onChange={(e) => seekVideo(Number(e.target.value))} />
         <span className="mono muted small">
@@ -49,9 +63,22 @@ export function VideoControls() {
         <button className="btn" disabled={!trimmed} onClick={clearVideoSpan}>
           <X size={15} /> {t('vctl.clear')}
         </button>
-        <label className="check inline-check">
-          <input type="checkbox" checked={c.loop} onChange={(e) => setVideoLoop(e.target.checked)} />
-          <span>{t('vctl.loop')}</span>
+      </div>
+      <div className="live-row">
+        <label className="field inline-field">
+          <span>{t('vctl.direction')}</span>
+          <select value={c.direction} onChange={(e) => setVideoDirection(e.target.value as VideoDirection)}>
+            <option value="forward">{t('vctl.forward')}</option>
+            <option value="backward">{t('vctl.backward')}</option>
+          </select>
+        </label>
+        <label className="field inline-field">
+          <span>{t('vctl.atEnd')}</span>
+          <select value={c.atEnd} onChange={(e) => setVideoEnd(e.target.value as VideoEnd)}>
+            <option value="loop">{t('vctl.loop')}</option>
+            <option value="pingpong">{t('vctl.pingpong')}</option>
+            <option value="once">{t('vctl.once')}</option>
+          </select>
         </label>
         <label className="field inline-field">
           <span>{t('vctl.rate')}</span>
