@@ -27,6 +27,10 @@ export const previewStore = createStore<HTMLVideoElement | HTMLImageElement | nu
 let stream: MediaStream | null = null
 let objectUrl: string | null = null
 let stopHls: (() => void) | null = null
+// The TV channel's video while one is the input, for its sound.
+let tvVideo: HTMLVideoElement | null = null
+
+export const currentTvVideo = () => tvVideo
 let op = 0
 
 function release(): void {
@@ -36,6 +40,7 @@ function release(): void {
   objectUrl = null
   stopHls?.()
   stopHls = null
+  tvVideo = null
   setVisualSource(null)
   previewStore.set(null)
 }
@@ -155,6 +160,7 @@ export async function startTv(url: string, name: string): Promise<void> {
     if (mine !== op) return
     setVisualSource({ element: v, width: v.videoWidth, height: v.videoHeight, live: true })
     previewStore.set(v)
+    tvVideo = v
     visualInputStore.set({ kind: 'tv', name, url, width: v.videoWidth, height: v.videoHeight, error: null })
     // A channel that stops for good leaves the input instead of freezing on its last frame.
     v.addEventListener('error', () => {

@@ -1,7 +1,7 @@
 import { Star } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { settingsStore } from '../app/settings'
-import { checkChannels, loadTvGroups, openTvGroup, playChannel, toggleTvFavorite, tvFavoritesStore, tvStore } from '../app/tv'
+import { checkChannels, loadTvGroups, openTvGroup, playChannel, setTvSound, toggleTvFavorite, tvFavoritesStore, tvStore } from '../app/tv'
 import { visualInputStore } from '../app/visualInput'
 import type { GroupBy, TvGroup } from '../engine/tv/tv'
 import type { Lang, MessageKey } from '../i18n'
@@ -46,6 +46,7 @@ export function TvBrowser() {
   const tv = useStore(tvStore)
   const favorites = useStore(tvFavoritesStore)
   const input = useStore(visualInputStore)
+  const sound = useStore(settingsStore, (s) => s.tvSound)
   const [by, setBy] = useState<GroupBy | 'all'>('category')
   const [filter, setFilter] = useState('')
   const [limit, setLimit] = useState(PAGE)
@@ -109,6 +110,10 @@ export function TvBrowser() {
           </select>
         )}
       </div>
+      <label className="check">
+        <input type="checkbox" checked={sound} onChange={(e) => void setTvSound(e.target.checked)} />
+        <span>{t('tv.sound')}</span>
+      </label>
       <input type="search" placeholder={t('tv.filter')} aria-label={t('tv.filter')} value={filter} onChange={(e) => (setFilter(e.target.value), setLimit(PAGE))} />
       <div className="segmented radio-tabs" role="group" aria-label={t('tv.list')}>
         <button className={`seg${!showFavorites ? ' on' : ''}`} aria-pressed={!showFavorites} onClick={() => (setShowFavorites(false), setLimit(PAGE))}>

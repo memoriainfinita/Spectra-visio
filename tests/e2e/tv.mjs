@@ -1,6 +1,6 @@
 // Live TV as the visual input. iptv-org's group list and playlist are faked through the
 // browser's network; the channels come from a local https server with an HLS test pattern
-// made by ffmpeg: one sends CORS and plays as the input, the other does not, is marked in
+// and a tone made by ffmpeg: one sends CORS and plays as the input, the other does not, is marked in
 // the background and turned away. Needs openssl and ffmpeg. With SPECTRA_REAL_TV=1, a real
 // group follows.
 import { spawnSync } from 'node:child_process'
@@ -14,10 +14,10 @@ const log = (...a) => console.log(`[${kind}]`, ...a)
 const key = join(OUT, 'radio-key.pem')
 const cert = join(OUT, 'radio-cert.pem')
 if (!existsSync(cert)) spawnSync('openssl', ['req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-keyout', key, '-out', cert, '-days', '3650', '-subj', '/CN=127.0.0.1'], { stdio: 'ignore' })
-const hlsDir = join(OUT, 'hls')
+const hlsDir = join(OUT, 'hls-av')
 if (!existsSync(join(hlsDir, 'index.m3u8'))) {
   mkdirSync(hlsDir, { recursive: true })
-  spawnSync('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'lavfi', '-i', 'testsrc=size=320x180:rate=25', '-t', '30', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-g', '25', '-hls_time', '1', '-hls_playlist_type', 'vod', join(hlsDir, 'index.m3u8')], { stdio: 'inherit' })
+  spawnSync('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'lavfi', '-i', 'testsrc=size=320x180:rate=25', '-f', 'lavfi', '-i', 'sine=frequency=220:sample_rate=44100', '-t', '30', '-c:v', 'libx264', '-c:a', 'aac', '-pix_fmt', 'yuv420p', '-g', '25', '-hls_time', '1', '-hls_playlist_type', 'vod', join(hlsDir, 'index.m3u8')], { stdio: 'inherit' })
 }
 if (!existsSync(cert) || !existsSync(join(hlsDir, 'index.m3u8'))) {
   log('skipped: openssl and ffmpeg are needed for the test stream')
@@ -98,7 +98,40 @@ log('favourites after reload:', (await panel.locator('.radio-name').allTextConte
 await panel.getByRole('button', { name: /^Canal con CORS/ }).click()
 await panel.locator('.radio-row.current').waitFor({ timeout: 25000 })
 log('from favourites:', await status())
+
+// Its sound: the channel becomes the audio source and the transport follows it.
+const level = () => page.evaluate(() => new Promise((resolve) => {
+  const c = document.querySelector('.meter canvas')
+  setTimeout(() => {
+    const row = c.getContext('2d', { willReadFrequently: true }).getImageData(0, 4, c.width, 1).data
+    let filled = 0
+    for (let x = 0; x < c.width; x++) if (row[x * 4 + 2] > 200 && row[x * 4] < 160) filled = x + 1
+    resolve(+(filled / c.width).toFixed(2))
+  }, 300)
+}))
+const mini = page.locator('.mini-transport')
+const top = () => mini.textContent()
+log('before sound: top', await top(), '| level', await level())
+await panel.getByLabel('Usar también su sonido').check()
+await page.waitForTimeout(1500)
+log('sound on: top', await top(), '| level', await level(), '| source', await page.evaluate(() => document.querySelector('.panel.sources .seg .live-dot')?.closest('.seg').textContent.trim()))
+await mini.getByRole('button', { name: 'Pausa' }).click()
+await page.waitForTimeout(800)
+log('paused: top', await top(), '| picture paused', await page.evaluate(() => document.querySelector('.input-preview video')?.paused))
+await page.locator('.topbar h1').click()
+await page.keyboard.press(' ')
+await page.waitForTimeout(1500)
+log('Space resumes: top', await top(), '| level', await level())
+log('next favourite button:', await mini.getByRole('button', { name: 'Canal favorito siguiente' }).isEnabled())
+await panel.getByLabel('Usar también su sonido').uncheck()
+await page.waitForTimeout(800)
+log('sound off: top', await top(), '| input', await status())
+await panel.getByLabel('Usar también su sonido').check()
+await page.waitForTimeout(1000)
 await panel.getByRole('button', { name: 'Quitar', exact: true }).click()
+await page.waitForTimeout(500)
+log('input removed: top', await top())
+await panel.getByLabel('Usar también su sonido').uncheck()
 log('removed:', await status())
 await panel.getByRole('button', { name: 'Quitar Canal con CORS de favoritos' }).click()
 

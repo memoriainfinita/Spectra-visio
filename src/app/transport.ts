@@ -3,6 +3,7 @@ import { translate } from '../i18n'
 import { inputs, player } from './engine'
 import { stepStation } from './radio'
 import { settingsStore } from './settings'
+import { stepChannel } from './tv'
 
 // Play, pause, previous and next follow what is playing: a stream in the Stream source
 // (paused, it is still the source), otherwise the player. The buttons, the shortcuts, the
@@ -36,13 +37,13 @@ export const transport = {
     if (streamIsSource()) inputs.pauseStream()
     else player.stop()
   },
-  // With a stream, the neighbouring favourite station.
+  // With a stream, the neighbouring favourite station, or channel for a TV channel's sound.
   next(): void {
-    if (streamIsSource()) void stepStation(1)
+    if (streamIsSource()) void (inputs.state.get().tv ? stepChannel(1) : stepStation(1))
     else void player.next()
   },
   previous(): void {
-    if (streamIsSource()) void stepStation(-1)
+    if (streamIsSource()) void (inputs.state.get().tv ? stepChannel(-1) : stepStation(-1))
     else void player.previous()
   },
 }

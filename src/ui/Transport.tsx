@@ -2,6 +2,7 @@ import { Pause, Play, Radio, Repeat, Repeat1, Shuffle, SkipBack, SkipForward, Vo
 import { useEffect, useRef, useState } from 'react'
 import { inputs, player } from '../app/engine'
 import { radioFavoritesStore } from '../app/radio'
+import { tvFavoritesStore } from '../app/tv'
 import { transport } from '../app/transport'
 import type { Repeat as RepeatMode } from '../engine/player/queue'
 import { trackTitle } from '../engine/player/types'
@@ -57,9 +58,12 @@ function SeekBar({ position, duration, label }: { position: number; duration: nu
 // While a stream is the source, even paused, the transport shows and controls it.
 function useLive() {
   const s = useStore(inputs.state)
-  const favorites = useStore(radioFavoritesStore)
+  const stations = useStore(radioFavoritesStore)
+  const channels = useStore(tvFavoritesStore)
   const source = s.kind === 'stream' && s.status !== 'idle'
-  return { source, playing: source && s.status !== 'paused', status: s.status, name: s.streamName, canStep: favorites.length > 0 }
+  const prev = s.tv ? 'tv.previous' : 'radio.previous'
+  const next = s.tv ? 'tv.next' : 'radio.next'
+  return { source, playing: source && s.status !== 'paused', status: s.status, name: s.streamName, canStep: (s.tv ? channels : stations).length > 0, prev, next } as const
 }
 
 function liveSub(status: string, t: ReturnType<typeof useT>): string {
@@ -115,8 +119,8 @@ export function MiniTransport() {
     <div className="mini-transport">
       <button
         className="icon-btn small"
-        title={live.source ? t('radio.previous') : t('player.previous')}
-        aria-label={live.source ? t('radio.previous') : t('player.previous')}
+        title={live.source ? t(live.prev) : t('player.previous')}
+        aria-label={live.source ? t(live.prev) : t('player.previous')}
         disabled={live.source ? !live.canStep : !hasTracks}
         onClick={() => transport.previous()}
       >
@@ -133,8 +137,8 @@ export function MiniTransport() {
       </button>
       <button
         className="icon-btn small"
-        title={live.source ? t('radio.next') : t('player.next')}
-        aria-label={live.source ? t('radio.next') : t('player.next')}
+        title={live.source ? t(live.next) : t('player.next')}
+        aria-label={live.source ? t(live.next) : t('player.next')}
         disabled={live.source ? !live.canStep : !hasTracks}
         onClick={() => transport.next()}
       >
@@ -182,8 +186,8 @@ export function Transport() {
         )}
         <button
           className="icon-btn"
-          title={live.source ? t('radio.previous') : t('player.previous')}
-          aria-label={live.source ? t('radio.previous') : t('player.previous')}
+          title={live.source ? t(live.prev) : t('player.previous')}
+          aria-label={live.source ? t(live.prev) : t('player.previous')}
           disabled={live.source ? !live.canStep : !hasTracks}
           onClick={() => transport.previous()}
         >
@@ -200,8 +204,8 @@ export function Transport() {
         </button>
         <button
           className="icon-btn"
-          title={live.source ? t('radio.next') : t('player.next')}
-          aria-label={live.source ? t('radio.next') : t('player.next')}
+          title={live.source ? t(live.next) : t('player.next')}
+          aria-label={live.source ? t(live.next) : t('player.next')}
           disabled={live.source ? !live.canStep : !hasTracks}
           onClick={() => transport.next()}
         >
