@@ -1,6 +1,6 @@
 ---
 created: 2026-09-29
-last_updated: 2026-10-12
+last_updated: 2026-10-13
 ---
 
 # Spectra-visio — state
@@ -19,6 +19,7 @@ Visualizador de audio en tiempo real para navegador, reconstruido desde cero en 
 - Aprobado por mykl el 2026-10-12, en este orden: sonido de los canales de TV (hecho), música de Audius (hecho), buscador de vídeo e imagen de Wikimedia Commons y NASA en la entrada visual (hecho; NASA solo vídeo), letras de LRCLIB y carátulas de MusicBrainz y Cover Art Archive (hecho, opcional y desactivado por defecto)
 - Control del vídeo en la entrada visual (pausa, posición, recorte, bucle, velocidad): aprobado por mykl el 2026-10-12
 - TV en directo de iptv-org como entrada visual, con grupos de su PLAYLISTS.md, comprobación en segundo plano y favoritos: aprobado por mykl el 2026-10-12
+- Rediseño de la interfaz en fase de diseño (2026-10-13). Lienzo: https://claude.ai/artifact/FBhdK7Ax88cCEdWscXNa1X. Dirección elegida por mykl: A2 (capas y bibliotecas a la izquierda, escenario, rejilla de clips y panel de mandos en el centro, inspector por niveles composición, capa y clip a la derecha) con muelles por zonas, Mi panel a medida y diseños guardados (tableros «A2 con muelles»). Sin modos separados: en directo se puede editar todo. Incluye panel de mandos con variaciones, moduladores compartidos con «Mapear», buscador Ctrl K y deshacer. Pendiente: su visto bueno a esos dos tableros y el orden de implementación por fases
 - Probado por mykl en su Firefox: fases 2 a 8 (2026-10-10 y 2026-10-11) y la disposición de escritorio (2026-10-12)
 - Pendiente de la revisión de mykl: fase 9 (OBS real, grabación) y fase 10 (móvil real, instalar la app, calidad adaptativa en su equipo)
 - Comprobado por Claude, silenciado, en Chrome y Firefox con Playwright: todas las fases, con el detalle de cada una en `state-history.md` (2026-10-12). Las comprobaciones viven en `tests/e2e/` y se pasan con `pnpm e2e`. 170 tests unitarios en verde
@@ -46,6 +47,7 @@ Visualizador de audio en tiempo real para navegador, reconstruido desde cero en 
 
 Las revisiones y pruebas manuales pendientes se harán todas juntas en una sola ronda, cuando mykl lo diga (2026-10-12).
 
+- [ ] Rediseño de la interfaz: visto bueno de mykl a «A2 con muelles» del lienzo, plan por fases e implementación
 - [ ] Al terminar la app: repo público, activar Pages con origen GitHub Actions (`gh api -X POST repos/memoriainfinita/Spectra-visio/pages -f build_type=workflow`) y push
 - [ ] Probar la captura de pestaña en Chrome o Edge
 - [ ] Probar stream con CORS real de otro dominio
