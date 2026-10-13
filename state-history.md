@@ -99,3 +99,9 @@ El estado de state.md se había convertido en un diario de fases. Se copia aquí
 - Comprobado el 2026-10-11, silenciado, en Chrome y Firefox (Playwright): aviso con foco en su primer botón y no repetido; un shader que parpadea a 10 Hz pasa de 0–255 a 0–18 de brillo con «Reducir destellos», también en la ventana de salida; estrobo desactivado; límite 30 fps en la principal y en la salida; bajo consumo a 30 fps y 75 %; 390 × 844 táctil sin desbordamiento horizontal ni controles de menos de 44 px, deslizar, barra, apagón desde la barra, doble toque a pantalla completa; Tab alcanza los 270 controles, todos con nombre y foco visible; manifiesto, recarga sin conexión con Milkdrop y la fuente `?source`, aviso de versión nueva y recarga. Regresión de la ventana de salida, OBS simulado y grabación sin errores. 150 tests unitarios en verde. Sin probar: un móvil real, instalar la app, Safari, la calidad adaptativa con una GPU lenta real
 - La versión anterior (canvas, 8 visualizaciones) está en `.archive/v0/`, fuera de git, y en el historial hasta `7a63da1`
 - Repo privado en GitHub, Pages sin activar. Se publicará al terminar la app (decisión de mykl, 2026-10-10)
+
+### 2026-10-13 — Descartados los modos Preparar y Directo
+Se propusieron dos modos separados, como el show mode de QLab o el Perform Mode de TouchDesigner. mykl los rechazó: en directo tiene que poder editar cualquier cosa. Quedó una interfaz única con niveles de cercanía, deshacer y confirmación solo en lo destructivo.
+
+### 2026-10-13 — Imágenes de la NASA fuera del buscador de vídeo e imagen libres
+El CDN de images-assets.nasa.gov guarda copias sin la cabecera CORS y las sirve también a peticiones CORS, también con Range y con parámetros en la URL; las imágenes fallaban casi siempre. Los vídeos, pedidos por rangos que llegan al servidor de origen, funcionaron. La NASA quedó solo para vídeo.

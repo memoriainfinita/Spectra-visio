@@ -19,7 +19,17 @@ Visualizador de audio en tiempo real para navegador, reconstruido desde cero en 
 - Aprobado por mykl el 2026-10-12, en este orden: sonido de los canales de TV (hecho), música de Audius (hecho), buscador de vídeo e imagen de Wikimedia Commons y NASA en la entrada visual (hecho; NASA solo vídeo), letras de LRCLIB y carátulas de MusicBrainz y Cover Art Archive (hecho, opcional y desactivado por defecto)
 - Control del vídeo en la entrada visual (pausa, posición, recorte, bucle, velocidad): aprobado por mykl el 2026-10-12
 - TV en directo de iptv-org como entrada visual, con grupos de su PLAYLISTS.md, comprobación en segundo plano y favoritos: aprobado por mykl el 2026-10-12
-- Rediseño de la interfaz en fase de diseño (2026-10-13). Lienzo: https://claude.ai/artifact/FBhdK7Ax88cCEdWscXNa1X. Dirección elegida por mykl: A2 (capas y bibliotecas a la izquierda, escenario, rejilla de clips y panel de mandos en el centro, inspector por niveles composición, capa y clip a la derecha) con muelles por zonas, Mi panel a medida y diseños guardados (tableros «A2 con muelles»). Sin modos separados: en directo se puede editar todo. Incluye panel de mandos con variaciones, moduladores compartidos con «Mapear», buscador Ctrl K y deshacer. Pendiente: su visto bueno a esos dos tableros y el orden de implementación por fases
+- Rediseño de la interfaz: diseño aprobado por mykl el 2026-10-13 («me gusta»), sin implementar. Lienzo: https://claude.ai/artifact/FBhdK7Ax88cCEdWscXNa1X, tableros «A2 con muelles» (en uso y moviendo un panel). Decisiones:
+  - Una sola interfaz, sin modos Preparar y Directo: en directo se puede editar todo. Lo de directo siempre a la vista, lo seleccionado a un clic, lo de preparar tras un menú o una biblioteca
+  - Base A2: barra superior (transporte, fuente de audio desplegable, BPM y tap, diseños guardados, buscador, estado de grabación y OBS, Ajustes); zona izquierda Capas y Bibliotecas; centro escenario, rejilla de clips (capas × columnas 1–9) y Mi panel; zona derecha Inspector, Audio y Moduladores
+  - Inspector por niveles Composición, Capa y Clip, como Resolume, con 4 mandos propios por nivel y secciones plegables (visualización, parámetros, efectos, modulación, entrada visual y vídeo, preset)
+  - Muelles por zonas, no flotantes: se sueltan como pestaña, debajo partiendo una zona, en la franja bajo el escenario o en otra ventana; el escenario nunca se tapa. Diseños guardados (Directo, Preparar, Dos pantallas), bloquear y restablecer
+  - Mi panel: rejilla de 8 × 2 donde se arrastra cualquier control de la app (botones, crossfader, mandos, variaciones)
+  - Panel de mandos tipo Resolume y macros de Ableton: varios destinos por mando con rango e inversión, nombre, aprender MIDI, variaciones lanzables
+  - Moduladores compartidos tipo Bitwig (LFO, banda, golpe) con «Mapear» que resalta destinos, lista de asignaciones y banda de modulación en cada parámetro; las modulaciones por parámetro actuales siguen funcionando
+  - Buscador Ctrl K de controles y acciones; Ctrl Z deshace parámetros, efectos, capas y mandos; confirmación solo en lo destructivo
+  - Pendiente de dibujar: el diseño para portátil de 1280 × 800 (inspector como pestaña junto a Capas)
+  - Orden de implementación propuesto, por confirmar: 1 muelles y diseños guardados, 2 inspector por niveles, 3 panel de mandos con variaciones, 4 moduladores compartidos, 5 buscador y deshacer
 - Probado por mykl en su Firefox: fases 2 a 8 (2026-10-10 y 2026-10-11) y la disposición de escritorio (2026-10-12)
 - Pendiente de la revisión de mykl: fase 9 (OBS real, grabación) y fase 10 (móvil real, instalar la app, calidad adaptativa en su equipo)
 - Comprobado por Claude, silenciado, en Chrome y Firefox con Playwright: todas las fases, con el detalle de cada una en `state-history.md` (2026-10-12). Las comprobaciones viven en `tests/e2e/` y se pasan con `pnpm e2e`. 170 tests unitarios en verde
@@ -47,7 +57,7 @@ Visualizador de audio en tiempo real para navegador, reconstruido desde cero en 
 
 Las revisiones y pruebas manuales pendientes se harán todas juntas en una sola ronda, cuando mykl lo diga (2026-10-12).
 
-- [ ] Rediseño de la interfaz: visto bueno de mykl a «A2 con muelles» del lienzo, plan por fases e implementación
+- [ ] Rediseño de la interfaz: confirmar con mykl el orden por fases y empezar por la fase 1 (muelles y diseños guardados)
 - [ ] Al terminar la app: repo público, activar Pages con origen GitHub Actions (`gh api -X POST repos/memoriainfinita/Spectra-visio/pages -f build_type=workflow`) y push
 - [ ] Probar la captura de pestaña en Chrome o Edge
 - [ ] Probar stream con CORS real de otro dominio
