@@ -28,8 +28,13 @@ Visualizador de audio en tiempo real para navegador, reconstruido desde cero en 
   - Panel de mandos tipo Resolume y macros de Ableton: varios destinos por mando con rango e inversión, nombre, aprender MIDI, variaciones lanzables
   - Moduladores compartidos tipo Bitwig (LFO, banda, golpe) con «Mapear» que resalta destinos, lista de asignaciones y banda de modulación en cada parámetro; las modulaciones por parámetro actuales siguen funcionando
   - Buscador Ctrl K de controles y acciones; Ctrl Z deshace parámetros, efectos, capas y mandos; confirmación solo en lo destructivo
-  - Pendiente de dibujar: el diseño para portátil de 1280 × 800 (inspector como pestaña junto a Capas)
-  - Orden de implementación propuesto, por confirmar: 1 muelles y diseños guardados, 2 inspector por niveles, 3 panel de mandos con variaciones, 4 moduladores compartidos, 5 buscador y deshacer
+  - Portátil de 1280 × 800 (tablero «A2 con muelles en portátil»), aprobado por mykl el 2026-10-13 («me convence», con cosas por añadir): una sola zona lateral izquierda con pestañas Capas, Inspector, Audio y Moduladores; Bibliotecas tras el menú ⋯; selector de capas arriba del Inspector; diseños guardados en un desplegable, con «Portátil» como uno más
+  - Cuarta ronda del lienzo, aprobada por mykl el 2026-10-13 («me gusta todo»): barra superior completa con menús Fuente, Diseño y Salida; pestañas Audio y Moduladores; Inspector en Composición; Bibliotecas (Visualizaciones, Shaders, Presets, Música, Entrada visual, Grabaciones) como pestaña temporal; Ajustes en ventana con secciones, MIDI y «Salida y OBS» entre ellas; móvil con pestañas abajo e Inspector como hoja. Aprender MIDI con clic derecho sobre cualquier control
+  - Quinta ronda del lienzo, aprobada por mykl el 2026-10-13 («me gusta»): Inspector por dentro (nivel Clip con lanzar al pulsar, al golpe o al compás; Efectos; Entrada visual y vídeo; Rótulos), Shaders y Presets con pegar código, diseños Preparar y Dos pantallas, aviso de fotosensibilidad, app vacía con una capa de partida, avisos abajo a la derecha que nunca salen en la salida, medidor de fps, resto de Ajustes; búsqueda en Audius y radios, Grabaciones (varias; hoy la app guarda solo la última), capas con modo de fusión, menú de clip (vaciar pasa a ser una opción), variaciones con transición en golpes o compases, móvil (Más, horizontal), diseño según ancho (< 800 móvil, 800–1279 portátil, ≥ 1280 escritorio) y escenario sin paneles con Tab
+  - Funciones nuevas que aparecen en el lienzo y no están en `docs/funciones.md`: lanzar clips al golpe o al compás, varias grabaciones guardadas, menú de clip, transiciones de variaciones
+  - Lienzo reordenado el 2026-10-13: página «Diseño aprobado» por temas y página «Descartadas» con las rondas 1 y 2 y el mapa
+  - Logo: el prisma de Spectra, sacado de `3_archived/SPECTRA MASTER ARCHIVE/spectra/SPECTRA LOGO COLOR.svg` (grupo WHITE, sin el texto), junto al nombre en la barra. Pedido por mykl el 2026-10-13
+  - Orden de implementación confirmado por mykl el 2026-10-13: 1 muelles y diseños guardados, 2 inspector por niveles, 3 panel de mandos con variaciones, 4 moduladores compartidos, 5 buscador y deshacer
 - Probado por mykl en su Firefox: fases 2 a 8 (2026-10-10 y 2026-10-11) y la disposición de escritorio (2026-10-12)
 - Pendiente de la revisión de mykl: fase 9 (OBS real, grabación) y fase 10 (móvil real, instalar la app, calidad adaptativa en su equipo)
 - Comprobado por Claude, silenciado, en Chrome y Firefox con Playwright: todas las fases, con el detalle de cada una en `state-history.md` (2026-10-12). Las comprobaciones viven en `tests/e2e/` y se pasan con `pnpm e2e`. 170 tests unitarios en verde
@@ -57,7 +62,8 @@ Visualizador de audio en tiempo real para navegador, reconstruido desde cero en 
 
 Las revisiones y pruebas manuales pendientes se harán todas juntas en una sola ronda, cuando mykl lo diga (2026-10-12).
 
-- [ ] Rediseño de la interfaz: confirmar con mykl el orden por fases y empezar por la fase 1 (muelles y diseños guardados)
+- [ ] Pasar a `docs/funciones.md` las funciones nuevas del lienzo, con revisión de mykl
+- [ ] Rediseño de la interfaz: fase 1 (muelles y diseños guardados)
 - [ ] Al terminar la app: repo público, activar Pages con origen GitHub Actions (`gh api -X POST repos/memoriainfinita/Spectra-visio/pages -f build_type=workflow`) y push
 - [ ] Probar la captura de pestaña en Chrome o Edge
 - [ ] Probar stream con CORS real de otro dominio
