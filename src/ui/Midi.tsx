@@ -8,6 +8,7 @@ import { actionLabel } from './Live'
 import { useStore } from './useStore'
 import { useT } from './useT'
 import { Hint } from './Hint'
+import { Row, Switch } from './SettingRow'
 
 type T = ReturnType<typeof useT>
 
@@ -58,61 +59,62 @@ export function Midi() {
   const settings = useStore(settingsStore, (s) => s.midi)
   const on = state.status === 'on'
 
+  const status = !midiSupported
+    ? t('midi.unsupported')
+    : state.status === 'pending'
+      ? t('midi.pending')
+      : state.status === 'denied'
+        ? t('midi.denied')
+        : on
+          ? t('midi.onDesc', { n: state.inputs.length })
+          : t('midi.offDesc')
+
   return (
-    <section className="panel midi">
+    <section className="panel midi settings-section settings-midi">
       <header className="panel-head">
         <h2>{t('midi.title')}</h2>
-        {!on && midiSupported && (
-          <button className="btn" disabled={state.status === 'pending'} onClick={() => void enableMidi()}>
-            {t('midi.enable')}
-          </button>
-        )}
       </header>
+      <div className="setting-rows">
+        <Row title={t('midi.connection')} desc={status} hint={state.status === 'off' && midiSupported ? t('midi.offHint') : undefined}>
+          {!on && midiSupported && (
+            <button className="btn" disabled={state.status === 'pending'} onClick={() => void enableMidi()}>
+              {t('midi.enable')}
+            </button>
+          )}
+        </Row>
 
-      {!midiSupported && <p className="muted small">{t('midi.unsupported')}</p>}
-      {state.status === 'pending' && <p className="muted small">{t('midi.pending')}</p>}
-      {state.status === 'denied' && <p className="muted small">{t('midi.denied')}</p>}
-      {state.status === 'off' && midiSupported && <Hint text={t('midi.offHint')} />}
+        {on && (
+          <>
+            <Row title={t('midi.input')} desc={t('midi.inputDesc')}>
+              <select aria-label={t('midi.input')} value={settings.input ?? ''} onChange={(e) => setMidiInput(e.target.value || null)}>
+                <option value="">{t('midi.allInputs', { n: state.inputs.length })}</option>
+                {state.inputs.map((i) => (
+                  <option key={i.id} value={i.id}>
+                    {i.name}
+                  </option>
+                ))}
+              </select>
+            </Row>
+            <Row title={t('midi.clock')} desc={state.clockBpm ? t('midi.clockBpm', { n: state.clockBpm }) : t('midi.noClock')}>
+              <Switch label={t('midi.clock')} checked={settings.clock} onChange={setMidiClock} />
+            </Row>
+            <Row title={t('midi.lastTitle')} desc={<span role="status">{state.last ? t('midi.last', { name: controlName(state.last, t) }) : t('midi.none')}</span>} />
+          </>
+        )}
 
-      {on && (
-        <>
-          <label className="field">
-            <span>{t('midi.input')}</span>
-            <select value={settings.input ?? ''} onChange={(e) => setMidiInput(e.target.value || null)}>
-              <option value="">{t('midi.allInputs', { n: state.inputs.length })}</option>
-              {state.inputs.map((i) => (
-                <option key={i.id} value={i.id}>
-                  {i.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <p className="muted small" role="status">
-            {state.last ? t('midi.last', { name: controlName(state.last, t) }) : t('midi.none')}
-          </p>
-          <label className="check">
-            <input type="checkbox" checked={settings.clock} onChange={(e) => setMidiClock(e.target.checked)} />
-            <span>{t('midi.clock')}</span>
-            <span className="mono">{state.clockBpm ? t('midi.clockBpm', { n: state.clockBpm }) : t('midi.noClock')}</span>
-          </label>
-        </>
-      )}
-
-      <details className="live-keys">
-        <summary>{t('midi.map')}</summary>
-        <Hint text={t('midi.mapHint')} />
-        <ul className="key-list">
+        <details className="live-keys setting-group">
+          <summary>{t('midi.map')}</summary>
+          <Hint text={t('midi.mapHint')} />
           {MIDI_TARGETS.map((target) => {
             const label = targetLabel(target, t)
             return (
-              <li key={target} className="key-row">
-                <span>{label}</span>
+              <Row key={target} title={label}>
                 <MidiLearn label={label} control={settings.map[target] ?? null} onLearn={(c) => mapTarget(target, c)} onClear={() => mapTarget(target, null)} />
-              </li>
+              </Row>
             )
           })}
-        </ul>
-      </details>
+        </details>
+      </div>
     </section>
   )
 }

@@ -72,7 +72,7 @@ await page.evaluate(() => {
   }, 5)
 })
 await page.waitForTimeout(2500)
-log('clock: panel', await midi.locator('.check .mono').textContent(), '| analysis', (await page.locator('.panel.analysis .tempo-row').textContent()).replace(/\s+/g, ' '))
+log('clock: panel', await midi.locator('.setting-row', { has: page.getByRole('switch', { name: 'Seguir el reloj MIDI' }) }).locator('.setting-desc').textContent(), '| analysis', (await page.locator('.panel.analysis .tempo-row').textContent()).replace(/\s+/g, ' '))
 await page.waitForTimeout(1500)
 log('clock gone: analysis', (await page.locator('.panel.analysis .tempo-row').textContent()).replace(/\s+/g, ' ').slice(0, 60))
 

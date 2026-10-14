@@ -125,7 +125,7 @@ function revealAll(page) {
       const style = document.createElement('style')
       style.id = 'reveal-all'
       style.textContent = `[data-reveal]{position:static!important;inset:auto!important;width:auto!important;max-height:none!important;overflow:visible!important;box-shadow:none!important;background:none!important;padding:0!important;display:block!important}
-        .modal-box{max-height:none!important} .app.wide{height:auto!important} .layout-docks,.dock-zone,.dock-stack,.dock-body{min-height:auto!important;max-height:none!important;overflow:visible!important}
+        .modal-box{max-height:none!important;height:auto!important} .app.wide{height:auto!important} .layout-docks,.dock-zone,.dock-stack,.dock-body{min-height:auto!important;max-height:none!important;overflow:visible!important}
         .topbar.bar{flex-wrap:wrap!important;align-items:flex-start!important} .pop{flex:1 1 100%!important}
         .app.wide .stage:not(.full){flex:none!important;height:60vh!important}`
       document.head.appendChild(style)
