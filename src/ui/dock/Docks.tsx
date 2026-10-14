@@ -136,8 +136,9 @@ export function Zone({ zone, layout, locked }: { zone: ZoneId; layout: Layout; l
           <DockStack zone={zone} index={i} tabs={s.tabs} active={s.active} size={sized ? (s.size ?? 1) : null} layout={layout} locked={locked} />
         </Fragment>
       ))}
-      {ui.editing && (
-        <DropArea target={{ zone, mode: 'end' }} className={stacks.length ? 'end' : 'empty'}>
+      {/* Where stacks exist, dropping below the last one is the same as at the end. */}
+      {ui.editing && !stacks.length && (
+        <DropArea target={{ zone, mode: 'end' }} className="empty">
           {t('dock.dropHere')}
         </DropArea>
       )}

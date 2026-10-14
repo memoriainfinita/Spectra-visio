@@ -674,7 +674,6 @@ input[type='range'] { accent-color: var(--accent); }
 .drop-area { display: grid; place-items: center; text-align: center; padding: 8px; border: 2px dashed rgba(110, 247, 255, 0.5); border-radius: 10px; color: var(--accent); font-size: 13px; }
 .drop-area.over { border-style: solid; border-color: var(--accent); background: rgba(110, 247, 255, 0.18); color: var(--text); }
 .drop-area.empty { flex: 1; min-height: 80px; }
-.drop-area.end { flex: none; min-height: 44px; }
 .drop-area.window { border-color: rgba(255, 139, 241, 0.6); color: var(--accent-2); padding: 6px 12px; }
 .dock-ghost { position: fixed; left: 0; top: 0; z-index: 50; pointer-events: none; padding: 6px 12px; border: 1px solid var(--accent-2); border-radius: 8px; background: #131629; color: var(--accent-2); font-size: 13px; box-shadow: var(--shadow); }
 .toast { position: fixed; right: 16px; bottom: 16px; z-index: 60; max-width: 360px; margin: 0; padding: 10px 14px; border: 1px solid var(--danger); border-radius: 10px; background: #131629; color: var(--text); font-size: 13px; }

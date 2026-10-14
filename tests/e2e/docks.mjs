@@ -87,7 +87,7 @@ const drag = async (name, to) => {
   if (!shot++) await page.screenshot({ path: `${OUT}/docks-drag-${kind}.png` })
   await page.mouse.up()
 }
-await drag('Rótulos', '.zone-strip .drop-area.end')
+await drag('Rótulos', '.zone-strip .dock-stack:last-of-type .drop-area:last-child')
 log('overlays dragged under the stage:', await where('overlays'))
 await drag('Rótulos', '.zone-left .dock-stack .drop-area >> nth=0')
 log('overlays dragged as a tab on the left:', await where('overlays'))
@@ -189,6 +189,13 @@ await page.evaluate(() => { document.querySelector('.stage canvas').dataset.k = 
 await page.setViewportSize({ width: 1024, height: 768 })
 await page.waitForTimeout(400)
 log('1024:', await layoutMenu().textContent(), '| zones', await page.locator('.dock-zone').count(), '| same canvas', await page.locator('.stage canvas[data-k=same]').count())
+// The empty right zone of the laptop layout takes a dock while editing.
+await layoutMenu().click()
+await page.getByRole('button', { name: 'Editar el diseño…' }).click()
+log('editing laptop: drop areas outside drags', await page.locator('.drop-area').count())
+await drag('Efectos', '.zone-right .drop-area.empty')
+await button('Hecho').click()
+log('effects into the empty zone:', await where('effects'), '| stacks right', await page.locator('.zone-right .dock-stack').count())
 await page.setViewportSize({ width: 700, height: 900 })
 await page.waitForTimeout(400)
 log('700: tablists', await page.locator('.dock-tabs').count(), '| panels', await page.locator('section.panel').count(), '| same canvas', await page.locator('.stage canvas[data-k=same]').count())
