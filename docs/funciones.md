@@ -68,6 +68,9 @@ Lista de funciones confirmada por mykl el 2026-10-10. Es el contrato del redise�
 - Sincronía con reloj MIDI externo (caja de ritmos, DAW)
 - Atajos configurables; teclas numéricas para lanzar columnas de clips
 - Composición por capas al estilo Resolume Arena: capas apiladas con opacidad y modo de fusión, crossfader entre lados A y B, efectos por capa y de composición, rejilla de clips
+- Lanzar clips al pulsar o al siguiente golpe
+- Menú de clip con clic derecho: lanzar, guardar la capa aquí, copiar, pegar, renombrar y vaciar; el nombre por defecto es el de la visualización
+- Columnas de clips con nombre y lanzables con una nota MIDI, además de las teclas numéricas
 - Salida en segunda ventana para proyector, controlada desde la principal
 - Apagón, congelar imagen y estrobo con límite fotosensible global
 
@@ -100,6 +103,8 @@ Lista de funciones confirmada por mykl el 2026-10-10. Es el contrato del redise�
 - Spotify, YouTube y servicios con DRM: solo mediante captura de pestaña o de audio del sistema
 - Spout, Syphon y NDI: hacia OBS, fuente de navegador o captura de ventana
 - OSC y Ableton Link: necesitan un puente nativo
+- Lanzar clips al compás: en directo la app no sabe dónde cae el primer tiempo del compás
+- Varias grabaciones guardadas en la app: el archivo se descarga al parar y la última queda para recuperarla
 
 ## Soporte de navegadores
 
