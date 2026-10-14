@@ -15,14 +15,17 @@ const openSource = async () => {
   if (!(await page.locator('.panel.sources').isVisible())) await page.getByRole('button', { name: /^Fuente:/ }).click()
 }
 const keys = page.locator('.panel.settings-keys')
-const blackoutKey = () => keys.getByRole('button', { name: /^(Tecla de Apagón|Key for Blackout)$/ }).textContent()
+const blackoutKey = () => keys.locator('button[aria-label="Tecla de Apagón"], button[aria-label="Key for Blackout"]').textContent()
 const fpsCap = () => page.locator('.panel.settings-perf select').inputValue()
+// One section shows at a time: pick it on the left.
+const go = (name) => page.getByRole('tab', { name, exact: true }).click()
 
 await openSettings()
 log('panels:', (await page.locator('#settings-body .panel h2').allTextContents()).join(' | '))
 log('language in the top bar:', await page.locator('.topbar').getByLabel('Idioma').count(), '| keys left in Directo:', await page.locator('.panel.live .key-list').count())
 
 // Long help in a bubble: over it with the mouse, pinned with a click, from the keyboard.
+await go('Copia de seguridad')
 const help = page.locator('.panel.settings-backup .hint')
 const hintButton = help.locator('.hint-button')
 const bubble = help.locator('[role=tooltip]')
@@ -51,15 +54,19 @@ await page.keyboard.press('Tab')
 log('Tab away:', await shown())
 
 // Language.
+await go('General')
 await page.locator('.panel.settings-general').getByLabel('Idioma').selectOption('en')
 log('english:', await page.locator('[role=tab]').allTextContents().then((t) => t.join(' ')))
 await page.locator('.panel.settings-general').getByLabel('Language').selectOption('es')
 
 // Change two settings, export them.
+await go('Atajos de teclado')
 await keys.getByRole('button', { name: 'Tecla de Apagón' }).click()
 await page.keyboard.press('q')
+await go('Rendimiento')
 await page.locator('.panel.settings-perf select').selectOption('30')
 log('changed: blackout', await blackoutKey(), '| fps cap', await fpsCap())
+await go('Copia de seguridad')
 const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Exportar' }).click()])
 const file = join(OUT, `backup-${kind}.json`)
 await download.saveAs(file)
@@ -67,6 +74,7 @@ const backup = JSON.parse(readFileSync(file, 'utf8'))
 log('exported:', download.suggestedFilename(), '| keys:', Object.keys(backup).join(','), '| blackout', backup.settings.live.keys.blackout, '| obs password empty', backup.settings.obs.password === '')
 
 // Reset asks first; Cancel leaves everything.
+await go('Restablecer')
 await page.getByRole('button', { name: 'Restablecer los ajustes' }).click()
 log('reset asks:', await page.locator('.panel.settings-reset .confirm span').textContent())
 await page.getByRole('button', { name: 'Cancelar' }).click()
@@ -79,6 +87,7 @@ log('after reset: blackout', await blackoutKey(), '| fps cap', await fpsCap())
 backup.radioFavorites = [{ id: 'test-fm', name: 'Test FM', url: 'https://radio.test/stream', country: 'Spain', codec: 'MP3', bitrate: 128, tags: ['test'] }]
 const withFav = join(OUT, `backup-fav-${kind}.json`)
 writeFileSync(withFav, JSON.stringify(backup))
+await go('Copia de seguridad')
 const input = page.locator('.panel.settings-backup input[type=file]')
 await input.setInputFiles(withFav)
 await page.locator('.panel.settings-backup [role=status]').waitFor()
@@ -97,6 +106,7 @@ log('favourites:', await page.locator('.panel.sources').getByRole('button', { na
 
 // The notice again.
 await openSettings()
+await go('Accesibilidad')
 await page.getByRole('button', { name: 'Volver a mostrar el aviso de fotosensibilidad' }).click()
 log('notice shown:', await page.locator('dialog.notice-dialog').isVisible())
 await page.keyboard.press('Escape')
@@ -105,6 +115,7 @@ log('after Escape:', await page.locator('dialog.notice-dialog').count())
 await openSettings()
 
 // Erase everything: the page reloads with nothing kept.
+await go('Restablecer')
 await page.getByRole('button', { name: 'Borrar todos los datos' }).click()
 log('erase asks:', await page.locator('.panel.settings-reset .confirm span').textContent())
 await Promise.all([page.waitForEvent('load'), page.getByRole('button', { name: 'Borrar y recargar' }).click()])
@@ -118,6 +129,7 @@ await page.locator('.panel.sources').getByRole('button', { name: 'Stream' }).cli
 log('after erase:', await page.locator('.panel.sources').getByRole('button', { name: /^Favoritas/ }).textContent())
 await page.screenshot({ path: join(OUT, `settings-${kind}.png`) })
 await openSettings()
+await go('General')
 await page.locator('#settings-body').screenshot({ path: join(OUT, `settings-tab-${kind}.png`) })
 log('errors:', errors.length ? errors.join('\n  ') : 'none')
 await browser.close()

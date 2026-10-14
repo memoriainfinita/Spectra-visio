@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { setActionKey } from '../app/live'
 import { settingsStore } from '../app/settings'
 import { ACTIONS, DEFAULT_KEYS, keyCombo, type ActionId } from '../engine/live/live'
-import { Hint } from './Hint'
+import { Row } from './SettingRow'
 import { actionLabel } from './Live'
 import { useStore } from './useStore'
 import { useT } from './useT'
@@ -47,23 +47,21 @@ export function Shortcuts() {
 
   return (
     <>
-      <Hint text={t('live.keyHint')} />
-      <ul className="key-list">
-        {ACTIONS.map((id) => {
-          const label = actionLabel(id, t)
-          return (
-            <li key={id} className="key-row">
-              <span>{label}</span>
-              <button className={`btn key${capturing === id ? ' on' : ''}`} aria-label={t('live.keyFor', { name: label })} onClick={() => setCapturing(capturing === id ? null : id)}>
-                {capturing === id ? t('live.keyPress') : keyName(keys[id])}
-              </button>
-            </li>
-          )
-        })}
-      </ul>
-      <button className="btn" onClick={() => settingsStore.set((s) => ({ ...s, live: { ...s.live, keys: DEFAULT_KEYS } }))}>
-        <RotateCcw size={15} /> {t('live.keyReset')}
-      </button>
+      {ACTIONS.map((id) => {
+        const label = actionLabel(id, t)
+        return (
+          <Row key={id} title={label}>
+            <button className={`btn key${capturing === id ? ' on' : ''}`} aria-label={t('live.keyFor', { name: label })} onClick={() => setCapturing(capturing === id ? null : id)}>
+              {capturing === id ? t('live.keyPress') : keyName(keys[id])}
+            </button>
+          </Row>
+        )
+      })}
+      <Row title={t('live.keyReset')} desc={t('settings.keysResetDesc')}>
+        <button className="btn" onClick={() => settingsStore.set((s) => ({ ...s, live: { ...s.live, keys: DEFAULT_KEYS } }))}>
+          <RotateCcw size={15} /> {t('settings.resetYes')}
+        </button>
+      </Row>
     </>
   )
 }
