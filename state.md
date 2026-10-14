@@ -1,6 +1,6 @@
 ---
 created: 2026-09-29
-last_updated: 2026-10-14
+last_updated: 2026-10-15
 ---
 
 # Spectra-visio — state
@@ -15,7 +15,9 @@ Visualizador de audio en tiempo real para navegador, reconstruido desde cero en 
 
 - App completa: las 10 fases de `docs/arquitectura.md`. Desde el 2026-10-14, disposición con muelles (fase 1 del rediseño) en lugar de las pestañas laterales. Base: TypeScript 7, React 19, Vite 8, Vitest 5, store propio, español e inglés, ajustes en IndexedDB, CI con despliegue a Pages
 - Todas las funciones de `docs/funciones.md` están hechas. Las dos últimas, del 2026-10-12: «Igualar volumen» entre pistas (A) y el directorio de radios en la fuente Stream (B, diseño aprobado por mykl ese día)
-- Ajustes (general, accesibilidad, rendimiento, atajos, copia de seguridad, restablecer), textos de ayuda largos plegados y marca «sin análisis» en las emisoras encontradas: propuestos y aprobados por mykl el 2026-10-12
+- Marca «sin análisis» en las emisoras encontradas: aprobada por mykl el 2026-10-12
+- Ajustes en ventana al estilo de los de Claude (secciones a la izquierda, una fila por opción con nombre, línea que la explica y control a la derecha, interruptores en lugar de casillas): pedido y aprobado por mykl el 2026-10-14 («mucho mejor»). Las descripciones cortas las escribió Claude a partir de las ayudas; mykl no las ha revisado una a una
+- Ayudas largas en un globo tras «?» (ratón por encima donde hay ratón, Tab, clic o toque), en lugar de plegadas: pedido por mykl el 2026-10-14
 - Aprobado por mykl el 2026-10-12, en este orden: sonido de los canales de TV (hecho), música de Audius (hecho), buscador de vídeo e imagen de Wikimedia Commons y NASA en la entrada visual (hecho; NASA solo vídeo), letras de LRCLIB y carátulas de MusicBrainz y Cover Art Archive (hecho, opcional y desactivado por defecto)
 - Control del vídeo en la entrada visual (pausa, posición, recorte, bucle, velocidad): aprobado por mykl el 2026-10-12
 - TV en directo de iptv-org como entrada visual, con grupos de su PLAYLISTS.md, comprobación en segundo plano y favoritos: aprobado por mykl el 2026-10-12
@@ -36,10 +38,11 @@ Visualizador de audio en tiempo real para navegador, reconstruido desde cero en 
   - Logo: el prisma de Spectra, sacado de `3_archived/SPECTRA MASTER ARCHIVE/spectra/SPECTRA LOGO COLOR.svg` (grupo WHITE, sin el texto), junto al nombre en la barra. Pedido por mykl el 2026-10-13
   - Orden de implementación confirmado por mykl el 2026-10-13: 1 muelles y diseños guardados, 2 inspector por niveles, 3 panel de mandos con variaciones, 4 moduladores compartidos, 5 buscador y deshacer
   - Fase 1, hecha el 2026-10-14 con el diseño aprobado por mykl ese día: barra superior (logo, transporte, Fuente, BPM y marcar tempo, Diseño, Salida, Ajustes en ventana con MIDI); zonas izquierda, derecha y bajo el escenario con muelles provisionales (Capas, Bibliotecas, Clips, Efectos, Rótulos, Audio, Directo, Automático, Actuación) que llevan los paneles de antes; diseños Directo, Preparar, Dos pantallas y Portátil, guardar como, bloquear, restablecer y borrar; mover arrastrando en «Editar el diseño» o con el menú ⋯; ancho de zonas; un muelle en otra ventana. Ampliada el mismo día porque mykl pidió más flexibilidad al redimensionar (el asa derecha funcionaba pero no se veía): asas visibles, alto de la zona bajo el escenario y reparto del alto entre pilas, con doble clic para volver al tamaño de serie. Detalle en `docs/arquitectura.md`. El móvil (< 800 px) sigue como antes
+  - Ampliaciones de la fase 1 el 2026-10-14, pedidas por mykl: «Soltar aquí» solo en zonas vacías (en las demás equivale a «debajo» de la última pila)
   - Sin resolver en la fase 1: los atajos de teclado no funcionan con el foco en la ventana de un muelle; los menús abiertos dentro de esa ventana no se cierran al pulsar fuera
 - Probado por mykl en su Firefox: fases 2 a 8 (2026-10-10 y 2026-10-11) y la disposición de pestañas laterales, ya sustituida (2026-10-12)
 - Pendiente de la revisión de mykl: fase 9 (OBS real, grabación), fase 10 (móvil real, instalar la app, calidad adaptativa en su equipo) y la fase 1 del rediseño (muelles)
-- Comprobado por Claude, silenciado, en Chrome y Firefox con Playwright: todas las fases, con el detalle de cada una en `state-history.md` (2026-10-12). Las comprobaciones viven en `tests/e2e/` y se pasan con `pnpm e2e`; batería completa en verde el 2026-10-14 tras la fase 1, con `docks.mjs` en lugar de `tabs.mjs` y `fold.mjs`. 192 tests unitarios en verde
+- Comprobado por Claude, silenciado, en Chrome y Firefox con Playwright: todas las fases, con el detalle de cada una en `state-history.md` (2026-10-12). Las comprobaciones viven en `tests/e2e/` y se pasan con `pnpm e2e`; batería completa en verde el 2026-10-14 tras la fase 1, con `docks.mjs` en lugar de `tabs.mjs` y `fold.mjs`. Después (asas de tamaño, globos de ayuda, Ajustes nuevos) solo se pasaron las afectadas: docks, layout, settings, safety, safety-output, live, lookup, midi, touch y keyboard, en verde. 192 tests unitarios en verde
 - Sin probar: escuchar a oído emisoras reales del directorio (con emisoras reales, Claude solo comprobó buscar, la comprobación en segundo plano y el arranque); Safari (nada, tampoco `outputLatency`); captura de pestaña en Chrome o Edge; referencias de archivos de Chrome; pistas largas por `<audio>`; stream de otro dominio con CORS real; MIDI con un dispositivo real y con el permiso de Firefox; dos pantallas reales; OBS real y desde GitHub Pages; grabación: sincronía a ojo, Firefox con ventana, sesiones largas; móvil real; instalar la app; calidad adaptativa con una GPU lenta real
 - La versión anterior (canvas, 8 visualizaciones) está en `.archive/v0/`, fuera de git, y en el historial hasta `7a63da1`
 - Repo privado en GitHub, Pages sin activar. Se publicará al terminar la app (decisión de mykl, 2026-10-10)
@@ -68,7 +71,8 @@ Las revisiones y pruebas manuales pendientes se harán todas juntas en una sola 
 - [x] Pasar a `docs/funciones.md` las funciones nuevas del lienzo, con revisión de mykl
 - [ ] Fase 3 del rediseño: decidir si las variaciones pasan de una a otra en golpes o compases (lienzo, tablero Menús)
 - [x] Rediseño de la interfaz: fase 1 (muelles y diseños guardados)
-- [ ] Revisión de la fase 1 del rediseño por mykl en su Firefox
+- [ ] Revisión de la fase 1 del rediseño por mykl en su Firefox (probó muelles, tamaños y Ajustes el 2026-10-14; sin confirmar como revisada)
+- [ ] Batería e2e completa antes de la ronda de revisión o de publicar
 - [ ] Rediseño de la interfaz: fase 2 (inspector por niveles)
 - [ ] Al terminar la app: repo público, activar Pages con origen GitHub Actions (`gh api -X POST repos/memoriainfinita/Spectra-visio/pages -f build_type=workflow`) y push
 - [ ] Probar la captura de pestaña en Chrome o Edge
