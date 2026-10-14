@@ -753,13 +753,27 @@ input[type='range'] { accent-color: var(--accent); }
 /* Help folded behind a button */
 
 .hint { margin-top: 6px; }
-.hint > summary { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; list-style: none; }
-.hint > summary::-webkit-details-marker { display: none; }
+.hint-button { display: inline-flex; align-items: center; gap: 6px; padding: 2px 0; border: 0; background: none; cursor: help; }
+.hint-button:hover, .hint-button.on { color: var(--text); }
 .hint-mark { display: inline-grid; place-items: center; width: 16px; height: 16px; border: 1px solid currentColor; border-radius: 50%; font-size: 11px; font-weight: 700; line-height: 1; }
-.hint[open] > summary { color: var(--text); }
-.hint > p { margin: 4px 0 0; }
+/* Fixed to the window, above everything, so no scrolling dock or pop-up cuts it. */
+.hint-bubble {
+  position: fixed;
+  z-index: 70;
+  max-width: min(340px, calc(100vw - 16px));
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #131629;
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.45;
+  box-shadow: var(--shadow);
+  pointer-events: none;
+}
+.hint-bubble[hidden] { display: none; }
 @media (pointer: coarse) {
-  .hint > summary { min-height: 44px; }
+  .hint-button { min-height: 44px; }
 }
 
 /* Settings */

@@ -70,5 +70,16 @@ await page.waitForTimeout(600)
 log('double tap: fullscreen', await page.evaluate(() => !!document.fullscreenElement), '| bar', await page.locator('.touch-bar').count())
 await page.evaluate(() => document.exitFullscreen?.().catch(() => {}))
 
+// Long help: a tap shows its bubble, another one hides it.
+const hint = page.locator('.panel.clips .hint')
+// Taps at the button's place: the locator's own tap scrolls first, and a scroll closes it.
+await hint.locator('.hint-button').scrollIntoViewIfNeeded()
+const hb = await hint.locator('.hint-button').boundingBox()
+const tapHint = () => page.touchscreen.tap(hb.x + hb.width / 2, hb.y + hb.height / 2)
+await tapHint()
+const tipBox = await hint.locator('[role=tooltip]').boundingBox()
+log('help tap:', await hint.locator('[role=tooltip]').isVisible(), '| fits the screen:', !!tipBox && tipBox.x >= 0 && tipBox.x + tipBox.width <= 390)
+await tapHint()
+log('help tap again:', await hint.locator('[role=tooltip]').isVisible())
 log('errors:', errors.filter((e) => !e.includes('WebGL context was lost')).join('\n  ') || 'none')
 await browser.close()
