@@ -4,12 +4,15 @@ import {
   CUSTOM_MAX,
   DOCKS,
   LAYOUTS_VERSION,
+  SIZE_MAX,
+  STRIP_MIN,
   WIDTH_MAX,
   WIDTH_MIN,
   activeLayout,
   addDock,
   builtIn,
   defaultLayouts,
+  defaultWidths,
   deleteLayout,
   docksOf,
   locate,
@@ -19,6 +22,9 @@ import {
   resetLayout,
   saveAs,
   selectTab,
+  setStackSizes,
+  setZoneSizes,
+  setStripHeight,
   setWidth,
   type Layout,
 } from './layout'
@@ -112,6 +118,45 @@ describe('widths', () => {
   })
 })
 
+describe('heights', () => {
+  test('two neighbouring stacks share the height; null puts one back to the default', () => {
+    const p = builtIn('prepare')
+    let l = setStackSizes(p, 'right', 0, 1.5, 0.5)
+    expect(l.zones.right.map((s) => s.size)).toEqual([1.5, 0.5])
+    l = setStackSizes(l, 'right', 0, null, 99)
+    expect(l.zones.right[0]).toEqual({ tabs: ['effects', 'overlays'], active: 0 })
+    expect(l.zones.right[1].size).toBe(SIZE_MAX)
+    expect(setStackSizes(p, 'right', 1, 1, 1)).toBe(p)
+  })
+
+  test('every share of a zone at once, only with one per stack', () => {
+    const l = setZoneSizes(builtIn('live'), 'strip', [1.4, null])
+    expect(l.zones.strip).toEqual([
+      { tabs: ['clips'], active: 0, size: 1.4 },
+      { tabs: ['perform'], active: 0 },
+    ])
+    const live = builtIn('live')
+    expect(setZoneSizes(live, 'strip', [1])).toBe(live)
+  })
+
+  test('a stack keeps its share when a dock moves into it', () => {
+    const l = moveDock(setStackSizes(builtIn('prepare'), 'right', 0, 2, 0.5), 'clips', { zone: 'right', stack: 1, mode: 'tab' })
+    expect(l.zones.right[1].size).toBe(0.5)
+  })
+
+  test('the strip: a height in pixels, clamped, or fitting its content', () => {
+    expect(builtIn('live').strip).toBeNull()
+    expect(setStripHeight(builtIn('live'), 10).strip).toBe(STRIP_MIN)
+    expect(setStripHeight(builtIn('live'), 300.4).strip).toBe(300)
+    expect(setStripHeight(setStripHeight(builtIn('live'), 300), null).strip).toBeNull()
+  })
+
+  test('default widths come from the factory', () => {
+    expect(defaultWidths('prepare')).toEqual(builtIn('prepare').widths)
+    expect(defaultWidths('u1')).toEqual({ left: 320, right: 360 })
+  })
+})
+
 describe('saved layouts', () => {
   test('save as a copy that becomes the active one, then delete it', () => {
     const d = defaultLayouts()
@@ -147,7 +192,8 @@ describe('normalization', () => {
 
   test('round trip', () => {
     const d = defaultLayouts()
-    const s = { ...saveAs(d, moveDock(builtIn('live'), 'audio', { zone: 'strip', mode: 'end' }), 'Uno', 'u1', 'laptop')!, locked: true }
+    const edited = setStripHeight(setStackSizes(moveDock(builtIn('live'), 'audio', { zone: 'strip', mode: 'end' }), 'strip', 0, 0.75, 1.25), 240)
+    const s = { ...saveAs(d, edited, 'Uno', 'u1', 'laptop')!, locked: true }
     expect(normalizeLayouts(JSON.parse(JSON.stringify(s)))).toEqual(s)
   })
 

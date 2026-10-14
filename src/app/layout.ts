@@ -5,6 +5,7 @@ import {
   activeLayout,
   addDock as addTo,
   defaultLayouts,
+  defaultWidths,
   deleteLayout as deleteFrom,
   isBuiltIn,
   moveDock as moveIn,
@@ -14,6 +15,9 @@ import {
   resetLayout as resetIn,
   saveAs,
   selectTab as selectIn,
+  setStackSizes as setSizesIn,
+  setStripHeight as setStripIn,
+  setZoneSizes as setZoneIn,
   setWidth as setWidthIn,
   type DockId,
   type DropTarget,
@@ -72,6 +76,13 @@ export const moveDock = (dock: DockId, target: DropTarget): void => edit((l) => 
 export const removeDock = (dock: DockId): void => edit((l) => removeFrom(l, dock))
 export const addDock = (dock: DockId): void => edit((l) => addTo(l, dock))
 export const setZoneWidth = (side: Side, px: number): void => edit((l) => setWidthIn(l, side, px))
+export const resetZoneWidth = (side: Side): void => edit((l) => setWidthIn(l, side, defaultWidths(l.id)[side]))
+export const setStackSizes = (zone: ZoneId, index: number, above: number | null, below: number | null): void =>
+  edit((l) => setSizesIn(l, zone, index, above, below))
+export const setStripHeight = (px: number | null): void => edit((l) => setStripIn(l, px))
+// The shares of a zone's stacks; for the strip, also the height it is fixed at.
+export const setZoneSizes = (zone: ZoneId, sizes: number[], strip?: number): void =>
+  edit((l) => setZoneIn(strip === undefined ? l : setStripIn(l, strip), zone, sizes))
 
 // Shows `dock`'s tab, wherever it is in the layout.
 export function revealDock(dock: DockId): void {

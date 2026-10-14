@@ -109,6 +109,46 @@ await page.keyboard.press('ArrowRight')
 await page.keyboard.press('ArrowRight')
 log('left width', w0, '->', await sep.getAttribute('aria-valuenow'), '| zone', await page.locator('.zone-left').evaluate((e) => Math.round(e.getBoundingClientRect().width)))
 
+// Heights: the strip under the stage, and two stacks sharing the right zone.
+const height = (sel) => page.locator(sel).first().evaluate((e) => Math.round(e.getBoundingClientRect().height))
+const dragY = async (handle, dy) => {
+  const b = await handle.boundingBox()
+  await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2)
+  await page.mouse.down()
+  await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2 + dy, { steps: 6 })
+  await page.mouse.up()
+}
+const stripEdge = page.getByRole('separator', { name: 'Alto de la zona bajo el escenario' })
+// The strip fits its content until its stacks are resized: then it keeps the height it had.
+const st = () => page.locator('.zone-strip .dock-stack').evaluateAll((els) => els.map((e) => Math.round(e.getBoundingClientRect().height)).join(' / '))
+const st0 = `${await st()} in ${await height('.zone-strip')}`
+await dragY(page.locator('.zone-strip').getByRole('separator', { name: 'Reparto del alto entre las dos pilas' }), -40)
+log('strip stacks', st0, '->', await st(), 'in', await height('.zone-strip'), '| sized', await page.locator('.zone-strip.sized').count())
+await stripEdge.dblclick()
+const s0 = await height('.zone-strip')
+await dragY(stripEdge, -120)
+log('strip', s0, '->', await height('.zone-strip'), '| stage', await height('.stage'))
+// To the top of the window: the stage keeps its minimum.
+await dragY(stripEdge, -((await stripEdge.boundingBox()).y - 2))
+log('strip pulled to the top: stage', await height('.stage'), '| stored', await stripEdge.getAttribute('aria-valuenow'), '| still dragging', await page.locator('.splitter-strip.on').count())
+await page.reload()
+await page.waitForSelector('.stage canvas')
+log('after reload: strip', await height('.zone-strip'))
+await stripEdge.dblclick()
+log('double click: strip', await height('.zone-strip'), '| sized', await page.locator('.zone-strip.sized').count())
+const stacksEdge = page.locator('.zone-right').getByRole('separator', { name: 'Reparto del alto entre las dos pilas' })
+const r = () => page.locator('.zone-right .dock-stack').evaluateAll((els) => els.map((e) => Math.round(e.getBoundingClientRect().height)).join(' / '))
+const r0 = await r()
+await dragY(stacksEdge, 150)
+log('right stacks', r0, '->', await r(), '| share', await stacksEdge.getAttribute('aria-valuenow'))
+await stacksEdge.focus()
+await page.keyboard.press('ArrowUp')
+log('arrow up:', await r())
+await stacksEdge.dblclick()
+log('double click:', await r())
+await sep.dblclick()
+log('left width after double click:', await sep.getAttribute('aria-valuenow'))
+
 // Saved layouts, and the lock.
 await layoutMenu().click()
 await page.getByLabel('Nombre del diseño').fill('Prueba')
