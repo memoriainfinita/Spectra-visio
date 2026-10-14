@@ -3,10 +3,11 @@ import { open, loadTrack } from './lib.mjs'
 
 const kind = process.argv[2] ?? 'firefox'
 const { browser, page, errors } = await open(kind, { reveal: false })
-const audioTab = page.getByRole('tab', { name: 'Audio' })
-if (await audioTab.count()) await audioTab.click()
 const log = (...a) => console.log(`[${kind}]`, ...a)
+await page.getByRole('tab', { name: 'Bibliotecas' }).click()
+await page.getByRole('tab', { name: 'Lista' }).click()
 await loadTrack(page)
+await page.getByRole('tab', { name: 'Audio' }).click()
 const seek = page.locator('input.seek')
 await seek.scrollIntoViewIfNeeded()
 const box = await seek.boundingBox()

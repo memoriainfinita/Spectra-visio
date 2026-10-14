@@ -1,4 +1,4 @@
-// The Settings tab: language, folded help, backup out and back in, reset and erase with
+// The settings window: language, folded help, backup out and back in, reset and erase with
 // their confirmation, and the photosensitivity notice shown again.
 import { readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -7,14 +7,20 @@ import { open, OUT } from './lib.mjs'
 const kind = process.argv[2] ?? 'firefox'
 const log = (...a) => console.log(`[${kind}]`, ...a)
 const { browser, page, errors } = await open(kind, { reveal: false, contextOptions: { acceptDownloads: true } })
-const tab = (name) => page.getByRole('tab', { name })
+const dialog = page.getByRole('dialog', { name: 'Ajustes' })
+// The settings window from the top bar, and the source pop-up with the window closed.
+const openSettings = async () => { if (!(await dialog.isVisible())) await page.getByRole('button', { name: 'Ajustes', exact: true }).click() }
+const openSource = async () => {
+  if (await dialog.isVisible()) await page.keyboard.press('Escape')
+  if (!(await page.locator('.panel.sources').isVisible())) await page.getByRole('button', { name: /^Fuente:/ }).click()
+}
 const keys = page.locator('.panel.settings-keys')
 const blackoutKey = () => keys.getByRole('button', { name: /^(Tecla de Apagón|Key for Blackout)$/ }).textContent()
 const fpsCap = () => page.locator('.panel.settings-perf select').inputValue()
 
-await tab('Ajustes').click()
-log('panels:', (await page.locator('#tabpanel-settings .panel h2').allTextContents()).join(' | '))
-log('language in the top bar:', await page.locator('.topbar select').count(), '| keys left in Directo:', await page.locator('.panel.live .key-list').count())
+await openSettings()
+log('panels:', (await page.locator('#settings-body .panel h2').allTextContents()).join(' | '))
+log('language in the top bar:', await page.locator('.topbar').getByLabel('Idioma').count(), '| keys left in Directo:', await page.locator('.panel.live .key-list').count())
 
 // Help folded: closed by default, opens on click.
 const help = page.locator('.panel.settings-backup details.hint')
@@ -63,17 +69,18 @@ writeFileSync(bad, '{"format":"something else"}')
 await input.setInputFiles(bad)
 await page.waitForTimeout(300)
 log('not a backup:', await page.locator('.panel.settings-backup [role=status]').textContent())
-await tab('Audio').click()
+await openSource()
 await page.locator('.panel.sources').getByRole('button', { name: 'Stream' }).click()
 log('favourites:', await page.locator('.panel.sources').getByRole('button', { name: /^Favoritas/ }).textContent())
 
 // The notice again.
-await tab('Ajustes').click()
+await openSettings()
 await page.getByRole('button', { name: 'Volver a mostrar el aviso de fotosensibilidad' }).click()
 log('notice shown:', await page.locator('dialog.notice-dialog').isVisible())
 await page.keyboard.press('Escape')
 await page.waitForTimeout(200)
 log('after Escape:', await page.locator('dialog.notice-dialog').count())
+await openSettings()
 
 // Erase everything: the page reloads with nothing kept.
 await page.getByRole('button', { name: 'Borrar todos los datos' }).click()
@@ -82,13 +89,13 @@ await Promise.all([page.waitForEvent('load'), page.getByRole('button', { name: '
 await page.waitForSelector('.stage canvas')
 log('after erase: notice shown', await page.locator('dialog.notice-dialog').isVisible(), '| tab', await page.evaluate(() => document.querySelector('[role=tabpanel]:not([hidden])')?.id), '| wipe flag', await page.evaluate(() => localStorage.getItem('spectra.wipe')))
 await page.keyboard.press('Escape')
-await tab('Ajustes').click()
+await openSettings()
 log('after erase: blackout', await blackoutKey(), '| fps cap', await fpsCap())
-await tab('Audio').click()
+await openSource()
 await page.locator('.panel.sources').getByRole('button', { name: 'Stream' }).click()
 log('after erase:', await page.locator('.panel.sources').getByRole('button', { name: /^Favoritas/ }).textContent())
 await page.screenshot({ path: join(OUT, `settings-${kind}.png`) })
-await tab('Ajustes').click()
-await page.locator('#tabpanel-settings').screenshot({ path: join(OUT, `settings-tab-${kind}.png`) })
+await openSettings()
+await page.locator('#settings-body').screenshot({ path: join(OUT, `settings-tab-${kind}.png`) })
 log('errors:', errors.length ? errors.join('\n  ') : 'none')
 await browser.close()

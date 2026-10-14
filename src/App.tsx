@@ -1,242 +1,110 @@
-import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { dockUi, layoutsStore, resetLayout, setWidthClass } from './app/layout'
 import { settingsStore } from './app/settings'
-import type { MessageKey } from './i18n'
-import { AnalysisPanel } from './ui/Analysis'
-import { Auto } from './ui/Auto'
-import { Browser } from './ui/Browser'
-import { Clips } from './ui/Clips'
-import { Live } from './ui/Live'
-import { Midi } from './ui/Midi'
-import { Output } from './ui/Output'
-import { useFileDrop, usePlayerShortcuts } from './ui/hooks'
-import { Queue } from './ui/Queue'
-import { Sources } from './ui/Sources'
-import { Stage } from './ui/Stage'
-import { Visuals } from './ui/Visuals'
-import { Effects } from './ui/Effects'
+import { activeLayout, isBuiltIn, type WidthClass } from './engine/layout/layout'
+import { DockWindows } from './ui/dock/DockWindows'
+import { EditBar, Splitter, Zone, zoneGrid } from './ui/dock/Docks'
+import { PanelPortals, PanelSlot, type PanelId } from './ui/dock/panels'
+import { SettingsWindow } from './ui/dock/SettingsWindow'
 import { FlashNotice } from './ui/FlashNotice'
-import { PerformBar } from './ui/PerformBar'
-import { Presets } from './ui/Presets'
-import { Overlays } from './ui/Overlays'
-import { Settings } from './ui/Settings'
-import { Shaders } from './ui/Shaders'
-import { VisualInput } from './ui/VisualInput'
-import { MiniTransport, NowPlaying, Transport } from './ui/Transport'
+import { useFileDrop, usePlayerShortcuts } from './ui/hooks'
+import { Stage } from './ui/Stage'
+import { layoutName, TopBar } from './ui/TopBar'
 import { UpdateBanner } from './ui/UpdateBanner'
 import { useStore } from './ui/useStore'
 import { useT } from './ui/useT'
 
-// Wide screens get the stage with the side tabs; narrow ones one column of panels.
-const WIDE = '(min-width: 801px)'
-const TABS = ['audio', 'visual', 'effects', 'live', 'output', 'settings'] as const
-type Tab = (typeof TABS)[number]
-const TAB_KEY = 'spectra.tab'
+// Under 800 px one column of panels; from 800 the docks, with a layout of their own for
+// laptops (up to 1279 px) and for desktops.
+const WIDE = '(min-width: 800px)'
+const DESKTOP = '(min-width: 1280px)'
+type Width = 'narrow' | WidthClass
 
-function useWide(): boolean {
-  const [wide, setWide] = useState(() => typeof matchMedia === 'function' && matchMedia(WIDE).matches)
+function measure(): Width {
+  if (typeof matchMedia !== 'function' || !matchMedia(WIDE).matches) return 'narrow'
+  return matchMedia(DESKTOP).matches ? 'desktop' : 'laptop'
+}
+
+function useWidth(): Width {
+  const [width, setWidth] = useState(measure)
   useEffect(() => {
-    const mq = matchMedia(WIDE)
-    const on = () => setWide(mq.matches)
-    mq.addEventListener('change', on)
-    return () => mq.removeEventListener('change', on)
+    const queries = [matchMedia(WIDE), matchMedia(DESKTOP)]
+    const on = () => setWidth(measure())
+    for (const q of queries) q.addEventListener('change', on)
+    return () => {
+      for (const q of queries) q.removeEventListener('change', on)
+    }
   }, [])
-  return wide
+  return width
 }
 
-function savedTab(): Tab {
-  try {
-    const v = localStorage.getItem(TAB_KEY)
-    return TABS.find((t) => t === v) ?? 'visual'
-  } catch {
-    return 'visual'
-  }
-}
-
-const player = (
-  <section className="panel player">
-    <NowPlaying />
-    <Transport />
-  </section>
-)
-
-// A panel used now and then, folded under its title; each one remembers whether it is open.
-function Fold({ id, title, children }: { id: string; title: MessageKey; children: ReactNode }) {
-  const t = useT()
-  const key = `spectra.fold.${id}`
-  const [open, setOpen] = useState(() => {
-    try {
-      return localStorage.getItem(key) === '1'
-    } catch {
-      return false
-    }
-  })
-  return (
-    <details
-      className="fold"
-      open={open}
-      onToggle={(e) => {
-        const next = e.currentTarget.open
-        setOpen(next)
-        try {
-          localStorage.setItem(key, next ? '1' : '0')
-        } catch {
-          // Only a convenience: it opens folded next time.
-        }
-      }}
-    >
-      <summary>{t(title)}</summary>
-      {children}
-    </details>
-  )
-}
-
-// The panels of each tab. Hidden tabs stay mounted, so nothing half-typed is lost.
-const GROUPS: Record<Tab, ReactNode> = {
-  audio: (
-    <>
-      <Sources />
-      {player}
-      <Queue />
-      <AnalysisPanel />
-    </>
-  ),
-  visual: (
-    <>
-      <Visuals />
-      <Browser />
-      <Fold id="presets" title="presets.title">
-        <Presets />
-      </Fold>
-      <Fold id="shaders" title="shaders.title">
-        <Shaders />
-      </Fold>
-      <Fold id="vinput" title="vinput.title">
-        <VisualInput />
-      </Fold>
-      <Fold id="overlays" title="overlay.title">
-        <Overlays />
-      </Fold>
-    </>
-  ),
-  effects: <Effects />,
-  live: (
-    <>
-      <Live />
-      <Clips />
-      <Auto />
-      <Midi />
-    </>
-  ),
-  output: <Output />,
-  settings: <Settings />,
-}
-
-function SideTabs() {
-  const t = useT()
-  const [tab, setTab] = useState<Tab>(savedTab)
-  const refs = useRef<Partial<Record<Tab, HTMLButtonElement | null>>>({})
-  const pick = (next: Tab, focus = false) => {
-    setTab(next)
-    try {
-      localStorage.setItem(TAB_KEY, next)
-    } catch {
-      // Only a convenience: the first tab opens next time.
-    }
-    if (focus) refs.current[next]?.focus()
-  }
-  // Arrow keys move between tabs, as in any tab list.
-  const onKey = (e: KeyboardEvent) => {
-    const i = TABS.indexOf(tab)
-    const to = e.key === 'ArrowRight' ? i + 1 : e.key === 'ArrowLeft' ? i - 1 : e.key === 'Home' ? 0 : e.key === 'End' ? TABS.length - 1 : null
-    if (to === null) return
-    e.preventDefault()
-    pick(TABS[(to + TABS.length) % TABS.length], true)
-  }
-  return (
-    <aside className="side">
-      <div className="side-tabs" role="tablist" aria-label={t('tabs.label')} onKeyDown={onKey}>
-        {TABS.map((id) => (
-          <button
-            key={id}
-            ref={(el) => {
-              refs.current[id] = el
-            }}
-            id={`tab-${id}`}
-            role="tab"
-            className={`side-tab${tab === id ? ' on' : ''}`}
-            aria-selected={tab === id}
-            aria-controls={`tabpanel-${id}`}
-            tabIndex={tab === id ? 0 : -1}
-            onClick={() => pick(id)}
-          >
-            {t(`tabs.${id}`)}
-          </button>
-        ))}
-      </div>
-      {TABS.map((id) => (
-        <div key={id} id={`tabpanel-${id}`} role="tabpanel" aria-labelledby={`tab-${id}`} className="side-body" hidden={tab !== id}>
-          {GROUPS[id]}
-        </div>
-      ))}
-    </aside>
-  )
-}
+// The narrow column, in the order the panels were always shown.
+const COLUMN: PanelId[] = ['player', 'queue', 'browser', 'clips', 'live', 'midi', 'output', 'visuals', 'auto', 'effects', 'presets', 'shaders', 'vinput', 'overlays', 'sources', 'analysis', 'settings']
 
 export function App() {
   const t = useT()
   const lang = useStore(settingsStore, (s) => s.lang)
   const dropping = useFileDrop()
-  const wide = useWide()
+  const width = useWidth()
+  const wide = width !== 'narrow'
+  const layouts = useStore(layoutsStore)
+  const editing = useStore(dockUi, (u) => u.editing)
+  const layout = activeLayout(layouts, wide ? width : 'desktop')
+  const [settings, setSettings] = useState(false)
+  // A side zone's width while its edge is dragged; stored when released.
+  const [live, setLive] = useState<{ left: number | null; right: number | null }>({ left: null, right: null })
+  const closeSettings = useCallback(() => setSettings(false), [])
   usePlayerShortcuts()
+  if (wide) setWidthClass(width)
 
   useEffect(() => {
     document.documentElement.lang = lang
   }, [lang])
 
+  const widths = { left: live.left ?? layout.widths.left, right: live.right ?? layout.widths.right }
+  const sides = (['left', 'right'] as const).filter((s) => layout.zones[s].length > 0 && !layouts.locked)
+
   return (
     <div className={`app${wide ? ' wide' : ''}`}>
-      <header className="topbar">
-        <div>
-          <h1>{t('app.title')}</h1>
-          <p className="muted small">{t('app.tagline')}</p>
-        </div>
-        {wide && <MiniTransport />}
-      </header>
+      <PanelPortals />
+      {wide ? (
+        <>
+          <TopBar width={width} onSettings={() => setSettings(true)} />
+          {editing && <EditBar layout={layout} name={layoutName(t, layout)} canReset={isBuiltIn(layout.id)} onReset={resetLayout} />}
+        </>
+      ) : (
+        <header className="topbar">
+          <div>
+            <h1>{t('app.title')}</h1>
+            <p className="muted small">{t('app.tagline')}</p>
+          </div>
+        </header>
+      )}
 
       <UpdateBanner />
 
-      {/* The stage keeps its place in the tree in both layouts: going fullscreen resizes
+      {/* The stage keeps its place in the tree in every layout: going fullscreen resizes
           the window across the breakpoint, and a remounted stage would leave fullscreen. */}
-      <main className={wide ? 'layout-wide' : 'layout'}>
+      <main className={wide ? 'layout-docks' : 'layout'} style={wide ? zoneGrid(layout, editing, widths) : undefined}>
         <div className="main-col">
           <Stage />
-          {wide && <PerformBar />}
+          {wide && <Zone zone="strip" layout={layout} locked={layouts.locked} />}
         </div>
         {wide ? (
-          <SideTabs />
-        ) : (
           <>
-            {player}
-            <Queue />
-            <Browser />
-            <Clips />
-            <Live />
-            <Midi />
-            <Output />
-            <Visuals />
-            <Auto />
-            <Effects />
-            <Presets />
-            <Shaders />
-            <VisualInput />
-            <Overlays />
-            <Sources />
-            <AnalysisPanel />
-            <Settings />
+            <Zone zone="left" layout={layout} locked={layouts.locked} />
+            <Zone zone="right" layout={layout} locked={layouts.locked} />
+            {sides.map((s) => (
+              <Splitter key={s} side={s} width={widths[s]} onLive={(px) => setLive((w) => ({ ...w, [s]: px }))} />
+            ))}
           </>
+        ) : (
+          COLUMN.map((id) => <PanelSlot key={id} id={id} />)
         )}
       </main>
 
+      {wide && <SettingsWindow open={settings} onClose={closeSettings} />}
+      {wide && <DockWindows />}
       <FlashNotice />
 
       {dropping && (

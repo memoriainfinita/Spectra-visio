@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client'
 import { App } from './App'
 import { wipeIfAsked } from './app/backup'
 import { initEngine } from './app/engine'
+import { initLayouts } from './app/layout'
 import { initLibrary } from './app/library'
 import { initLive } from './app/live'
 import { initLookup } from './app/lookup'
@@ -29,6 +30,7 @@ import './styles/app.css'
 // A requested wipe of all the app's data runs before anything reads it.
 await wipeIfAsked()
 await initSettings()
+await initLayouts()
 // Imported shaders first: the scene and the presets may point at them.
 await initShaders()
 await initScene()
