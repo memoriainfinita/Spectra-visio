@@ -1,7 +1,7 @@
 import { MoreHorizontal } from 'lucide-react'
-import { useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
-import { addDock, dockUi, moveDock, removeDock, selectTab, setDragging, setEditing, setZoneWidth } from '../../app/layout'
-import { DOCKS, WIDTH_MAX, WIDTH_MIN, clampWidth, docksOf, type DockId, type DropTarget, type Layout, type Side, type ZoneId } from '../../engine/layout/layout'
+import { Fragment, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
+import { addDock, dockUi, moveDock, removeDock, resetZoneWidth, selectTab, setDragging, setEditing, setStackSizes, setStripHeight, setZoneSizes, setZoneWidth } from '../../app/layout'
+import { DOCKS, STRIP_MAX, STRIP_MIN, WIDTH_MAX, WIDTH_MIN, clampWidth, docksOf, type DockId, type DropTarget, type Layout, type Side, type ZoneId } from '../../engine/layout/layout'
 import { useStore } from '../useStore'
 import { useT } from '../useT'
 import { DockBody } from './DockBody'
@@ -124,10 +124,17 @@ export function Zone({ zone, layout, locked }: { zone: ZoneId; layout: Layout; l
   const stacks = layout.zones[zone]
   if (!stacks.length && !ui.editing) return null
   const label = zone === 'left' ? t('dock.zoneLeft') : zone === 'right' ? t('dock.zoneRight') : t('dock.zoneStrip')
+  // The strip fits its content until it is given a height; then, like the side zones, its
+  // stacks share that height.
+  const sized = zone !== 'strip' || layout.strip !== null
+  const style: CSSProperties = zone === 'strip' ? (layout.strip !== null ? { height: layout.strip } : {}) : { gridArea: zone }
   return (
-    <div className={`dock-zone zone-${zone}${ui.editing ? ' editing' : ''}`} style={{ gridArea: zone === 'strip' ? undefined : zone }} aria-label={label} role="region">
+    <div className={`dock-zone zone-${zone}${sized ? ' sized' : ''}${ui.editing ? ' editing' : ''}`} style={style} aria-label={label} role="region">
       {stacks.map((s, i) => (
-        <DockStack key={i} zone={zone} index={i} tabs={s.tabs} active={s.active} layout={layout} locked={locked} />
+        <Fragment key={i}>
+          {i > 0 && !locked && <StackSplitter zone={zone} index={i - 1} sizes={[stacks[i - 1].size ?? 1, s.size ?? 1]} fit={!sized} />}
+          <DockStack zone={zone} index={i} tabs={s.tabs} active={s.active} size={sized ? (s.size ?? 1) : null} layout={layout} locked={locked} />
+        </Fragment>
       ))}
       {ui.editing && (
         <DropArea target={{ zone, mode: 'end' }} className={stacks.length ? 'end' : 'empty'}>
@@ -138,7 +145,24 @@ export function Zone({ zone, layout, locked }: { zone: ZoneId; layout: Layout; l
   )
 }
 
-function DockStack({ zone, index, tabs, active, layout, locked }: { zone: ZoneId; index: number; tabs: DockId[]; active: number; layout: Layout; locked: boolean }) {
+function DockStack({
+  zone,
+  index,
+  tabs,
+  active,
+  size,
+  layout,
+  locked,
+}: {
+  zone: ZoneId
+  index: number
+  tabs: DockId[]
+  active: number
+  // Share of the zone's height; null where stacks take the height of their content.
+  size: number | null
+  layout: Layout
+  locked: boolean
+}) {
   const t = useT()
   const ui = useStore(dockUi)
   const toWindow = usePopOut()
@@ -157,7 +181,7 @@ function DockStack({ zone, index, tabs, active, layout, locked }: { zone: ZoneId
   }
 
   return (
-    <section className={`dock-stack${ui.dragging ? ' dragging' : ''}`} aria-label={dockName(t, shown)}>
+    <section className={`dock-stack${ui.dragging ? ' dragging' : ''}`} style={size === null ? undefined : { flexGrow: size }} aria-label={dockName(t, shown)}>
       <div className="dock-head">
         <div className="dock-tabs" role="tablist" aria-label={tabs.map((d) => dockName(t, d)).join(', ')} onKeyDown={onKey}>
           {tabs.map((d, i) => (
@@ -321,47 +345,194 @@ export function EditBar({ layout, name, canReset, onReset }: { layout: Layout; n
   )
 }
 
-// The edge of a side zone, dragged to resize it. Arrow keys move it by 16 px.
-export function Splitter({ side, width, onLive }: { side: Side; width: number; onLive: (px: number | null) => void }) {
+// The stage never gets shorter than this when the strip under it grows.
+const STAGE_MIN = 160
+// No stack gets shorter than this when its neighbour grows.
+const STACK_MIN = 80
+const STEP = 16
+
+interface Resize {
+  move: (delta: number) => void
+  end: (delta: number) => void
+}
+
+// An edge between two parts, dragged to resize them; the arrow keys move it by 16 px and a
+// double click puts the default size back. `begin` measures what it needs when a drag or
+// a key press starts, and says how to follow the pointer and what to store at the end.
+function Handle({
+  axis,
+  label,
+  now,
+  min,
+  max,
+  className,
+  begin,
+  onReset,
+}: {
+  axis: 'x' | 'y'
+  label: string
+  now: number
+  min: number
+  max: number
+  className: string
+  begin: (el: HTMLElement) => Resize
+  onReset: () => void
+}) {
   const t = useT()
-  const [drag, setDrag] = useState(false)
-  const start = useRef({ x: 0, w: 0 })
-  const sign = side === 'left' ? 1 : -1
+  const [on, setOn] = useState(false)
+  const drag = useRef<{ from: number; last: number; resize: Resize } | null>(null)
+  const at = (e: ReactPointerEvent) => (axis === 'x' ? e.clientX : e.clientY)
+  const stop = (delta: number) => {
+    const d = drag.current
+    drag.current = null
+    setOn(false)
+    d?.resize.end(delta)
+  }
   return (
     <div
-      className={`splitter splitter-${side}${drag ? ' on' : ''}`}
+      className={`splitter ${className}${on ? ' on' : ''}`}
       role="separator"
-      aria-orientation="vertical"
-      aria-label={side === 'left' ? t('dock.resizeLeft') : t('dock.resizeRight')}
-      aria-valuemin={WIDTH_MIN}
-      aria-valuemax={WIDTH_MAX}
-      aria-valuenow={width}
+      aria-orientation={axis === 'x' ? 'vertical' : 'horizontal'}
+      aria-label={label}
+      aria-valuenow={now}
+      aria-valuemin={min}
+      aria-valuemax={max}
+      title={t('dock.resizeHint')}
       tabIndex={0}
       onPointerDown={(e) => {
         if (e.button !== 0) return
+        e.preventDefault()
         e.currentTarget.setPointerCapture(e.pointerId)
-        start.current = { x: e.clientX, w: width }
-        setDrag(true)
+        drag.current = { from: at(e), last: 0, resize: begin(e.currentTarget) }
+        setOn(true)
       }}
       onPointerMove={(e) => {
-        if (drag) onLive(clampWidth(start.current.w + sign * (e.clientX - start.current.x)))
+        const d = drag.current
+        if (!d) return
+        // A release that never arrived (outside the window): the last position counts.
+        if (e.buttons === 0) return stop(d.last)
+        d.last = at(e) - d.from
+        d.resize.move(d.last)
       }}
-      onPointerUp={(e) => {
-        if (!drag) return
-        setDrag(false)
-        setZoneWidth(side, start.current.w + sign * (e.clientX - start.current.x))
-        onLive(null)
-      }}
-      onPointerCancel={() => {
-        setDrag(false)
-        onLive(null)
-      }}
+      onPointerUp={(e) => stop(drag.current ? at(e) - drag.current.from : 0)}
+      onPointerCancel={() => stop(0)}
+      onLostPointerCapture={() => stop(drag.current?.last ?? 0)}
+      onDoubleClick={onReset}
       onKeyDown={(e) => {
-        const step = e.key === 'ArrowRight' ? 16 : e.key === 'ArrowLeft' ? -16 : 0
+        const back = axis === 'x' ? 'ArrowLeft' : 'ArrowUp'
+        const ahead = axis === 'x' ? 'ArrowRight' : 'ArrowDown'
+        const step = e.key === ahead ? STEP : e.key === back ? -STEP : 0
         if (!step) return
         e.preventDefault()
-        setZoneWidth(side, width + sign * step)
+        begin(e.currentTarget).end(step)
       }}
+    />
+  )
+}
+
+// The inner edge of a side zone: its width.
+export function Splitter({ side, width, onLive }: { side: Side; width: number; onLive: (px: number | null) => void }) {
+  const t = useT()
+  const sign = side === 'left' ? 1 : -1
+  return (
+    <Handle
+      axis="x"
+      className={`splitter-${side}`}
+      label={side === 'left' ? t('dock.resizeLeft') : t('dock.resizeRight')}
+      now={width}
+      min={WIDTH_MIN}
+      max={WIDTH_MAX}
+      begin={() => ({
+        move: (d) => onLive(clampWidth(width + sign * d)),
+        end: (d) => {
+          onLive(null)
+          if (d) setZoneWidth(side, width + sign * d)
+        },
+      })}
+      onReset={() => resetZoneWidth(side)}
+    />
+  )
+}
+
+// Between two stacks of a zone: how they share its height. In a strip that still fits its
+// content, the first drag fixes the strip at the height it has, every stack keeping its own.
+function StackSplitter({ zone, index, sizes, fit }: { zone: ZoneId; index: number; sizes: [number, number]; fit: boolean }) {
+  const t = useT()
+  return (
+    <Handle
+      axis="y"
+      className="splitter-row"
+      label={t('dock.resizeStacks')}
+      now={Math.round((sizes[0] / (sizes[0] + sizes[1])) * 100)}
+      min={0}
+      max={100}
+      begin={(el) => {
+        const zoneEl = el.parentElement as HTMLElement
+        const stacks = [...zoneEl.children].filter((c): c is HTMLElement => c.classList.contains('dock-stack'))
+        const heights = stacks.map((s) => s.getBoundingClientRect().height)
+        const total = heights.reduce((a, b) => a + b, 0)
+        // Shares from the heights shown, averaging 1.
+        const base = heights.map((h) => (h * stacks.length) / total)
+        const before = { grow: stacks.map((s) => s.style.flexGrow), height: zoneEl.style.height, sized: zoneEl.classList.contains('sized') }
+        const zoneHeight = Math.round(zoneEl.getBoundingClientRect().height)
+        if (fit) {
+          zoneEl.style.height = `${zoneHeight}px`
+          zoneEl.classList.add('sized')
+        }
+        const pair = heights[index] + heights[index + 1]
+        const shares = (d: number): number[] => {
+          const h = Math.max(STACK_MIN, Math.min(pair - STACK_MIN, heights[index] + d))
+          const next = [...base]
+          next[index] = (h * stacks.length) / total
+          next[index + 1] = ((pair - h) * stacks.length) / total
+          return next
+        }
+        const show = (list: number[]) => stacks.forEach((s, i) => (s.style.flexGrow = String(list[i])))
+        return {
+          move: (d) => show(shares(d)),
+          end: (d) => {
+            if (d) return setZoneSizes(zone, shares(d), fit ? zoneHeight : undefined)
+            stacks.forEach((s, i) => (s.style.flexGrow = before.grow[i]))
+            zoneEl.style.height = before.height
+            if (!before.sized) zoneEl.classList.remove('sized')
+          },
+        }
+      }}
+      onReset={() => setStackSizes(zone, index, null, null)}
+    />
+  )
+}
+
+// Between the stage and the strip under it: the strip's height.
+export function StripSplitter({ height }: { height: number | null }) {
+  const t = useT()
+  return (
+    <Handle
+      axis="y"
+      className="splitter-row splitter-strip"
+      label={t('dock.resizeStrip')}
+      now={height ?? 0}
+      min={STRIP_MIN}
+      max={STRIP_MAX}
+      begin={(el) => {
+        const strip = el.nextElementSibling as HTMLElement
+        const column = el.parentElement as HTMLElement
+        const h0 = strip.getBoundingClientRect().height
+        const room = column.clientHeight - STAGE_MIN - 16
+        const h = (d: number) => Math.round(Math.max(STRIP_MIN, Math.min(room, h0 - d)))
+        return {
+          move: (d) => {
+            strip.classList.add('sized')
+            strip.style.height = `${h(d)}px`
+          },
+          end: (d) => {
+            if (d) return setStripHeight(h(d))
+            strip.style.height = height === null ? '' : `${height}px`
+            if (height === null) strip.classList.remove('sized')
+          },
+        }
+      }}
+      onReset={() => setStripHeight(null)}
     />
   )
 }

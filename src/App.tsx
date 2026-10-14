@@ -3,7 +3,7 @@ import { dockUi, layoutsStore, resetLayout, setWidthClass } from './app/layout'
 import { settingsStore } from './app/settings'
 import { activeLayout, isBuiltIn, type WidthClass } from './engine/layout/layout'
 import { DockWindows } from './ui/dock/DockWindows'
-import { EditBar, Splitter, Zone, zoneGrid } from './ui/dock/Docks'
+import { EditBar, Splitter, StripSplitter, Zone, zoneGrid } from './ui/dock/Docks'
 import { PanelPortals, PanelSlot, type PanelId } from './ui/dock/panels'
 import { SettingsWindow } from './ui/dock/SettingsWindow'
 import { FlashNotice } from './ui/FlashNotice'
@@ -88,6 +88,7 @@ export function App() {
       <main className={wide ? 'layout-docks' : 'layout'} style={wide ? zoneGrid(layout, editing, widths) : undefined}>
         <div className="main-col">
           <Stage />
+          {wide && layout.zones.strip.length > 0 && !layouts.locked && <StripSplitter height={layout.strip} />}
           {wide && <Zone zone="strip" layout={layout} locked={layouts.locked} />}
         </div>
         {wide ? (

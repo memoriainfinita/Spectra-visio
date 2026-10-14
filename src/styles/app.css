@@ -615,9 +615,11 @@ input[type='range'] { accent-color: var(--accent); }
 .layout-docks > .main-col { grid-area: center; }
 .dock-zone { min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 8px; }
 .dock-zone.zone-strip { flex: none; max-height: 45%; }
+/* Given a height, the strip keeps the stage at least 160 px tall. */
+.dock-zone.zone-strip.sized { max-height: calc(100% - 168px); }
 .dock-stack { position: relative; min-height: 0; display: flex; flex-direction: column; background: rgba(19, 22, 41, 0.5); border: 1px solid var(--border); border-radius: var(--radius); }
-.zone-left .dock-stack, .zone-right .dock-stack { flex: 1 1 0; min-height: 120px; }
-.zone-strip .dock-stack { flex: 0 1 auto; min-height: 0; }
+.zone-left .dock-stack, .zone-right .dock-stack, .zone-strip.sized .dock-stack { flex: 1 1 0; min-height: 80px; }
+.zone-strip:not(.sized) .dock-stack { flex: 0 1 auto; min-height: 0; }
 .dock-head { flex: none; display: flex; align-items: center; gap: 4px; padding: 0 4px 0 8px; border-bottom: 1px solid var(--border); }
 .dock-tabs { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; gap: 2px; }
 .dock-tab { font: inherit; font-size: 13px; font-weight: 600; color: var(--muted); background: none; border: 0; border-bottom: 2px solid transparent; padding: 9px 7px; cursor: pointer; white-space: nowrap; }
@@ -647,10 +649,18 @@ input[type='range'] { accent-color: var(--accent); }
 .library .panel > .panel-head > h2 { display: none; }
 .library .visual-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
 
-.splitter { grid-row: 1; width: 10px; z-index: 5; cursor: col-resize; touch-action: none; border-radius: 4px; }
+/* Edges that resize: a short line always in view, in the gap between two parts. */
+.splitter { position: relative; z-index: 5; touch-action: none; border-radius: 4px; }
+.splitter::after { content: ''; position: absolute; border-radius: 2px; background: rgba(255, 255, 255, 0.18); }
+.splitter:hover, .splitter.on { background: rgba(110, 247, 255, 0.15); }
+.splitter:hover::after, .splitter.on::after, .splitter:focus-visible::after { background: var(--accent); }
+.splitter-left, .splitter-right { grid-row: 1; width: 10px; cursor: col-resize; }
+.splitter-left::after, .splitter-right::after { left: 4px; width: 2px; top: calc(50% - 24px); height: 48px; }
 .splitter-left { grid-area: left; justify-self: end; margin-right: -9px; }
 .splitter-right { grid-area: right; justify-self: start; margin-left: -9px; }
-.splitter:hover, .splitter.on, .splitter:focus-visible { background: rgba(110, 247, 255, 0.35); }
+/* Between parts one above the other, in the 8 px gap of their column. */
+.splitter-row { flex: none; height: 8px; margin: -8px 0; cursor: row-resize; }
+.splitter-row::after { top: 3px; height: 2px; left: calc(50% - 24px); width: 48px; }
 
 /* Editing a layout */
 

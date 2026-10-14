@@ -20,12 +20,20 @@ export const LAYOUTS_VERSION = 1
 export const WIDTH_MIN = 220
 export const WIDTH_MAX = 640
 export const NAME_MAX = 40
+// Share of a zone's height a stack takes, relative to the others in the zone.
+export const SIZE_MIN = 0.1
+export const SIZE_MAX = 10
+// Height of the strip under the stage, in CSS pixels; the interface keeps the stage visible.
+export const STRIP_MIN = 60
+export const STRIP_MAX = 2000
 export const CUSTOM_MAX = 20
 
 export interface Stack {
   tabs: DockId[]
   // Index of the tab shown.
   active: number
+  // Share of the zone's height; 1 when missing.
+  size?: number
 }
 
 export interface Layout {
@@ -35,6 +43,8 @@ export interface Layout {
   zones: Record<ZoneId, Stack[]>
   // Width of the side zones, in CSS pixels.
   widths: Record<Side, number>
+  // Height of the strip under the stage; null fits its content.
+  strip: number | null
 }
 
 export interface Layouts {
@@ -52,7 +62,7 @@ export type DropTarget = { zone: ZoneId; stack: number; mode: 'tab' | 'below' } 
 
 const stack = (...tabs: DockId[]): Stack => ({ tabs, active: 0 })
 
-const FACTORY: Record<BuiltInId, Omit<Layout, 'id' | 'name'>> = {
+const FACTORY: Record<BuiltInId, Omit<Layout, 'id' | 'name' | 'strip'>> = {
   // Everything for a show at hand: layers on the left, the rest on the right, clips and
   // the perform controls under the stage.
   live: {
@@ -88,6 +98,7 @@ export function builtIn(id: BuiltInId): Layout {
     name: '',
     zones: { left: f.zones.left.map(copyStack), right: f.zones.right.map(copyStack), strip: f.zones.strip.map(copyStack) },
     widths: { ...f.widths },
+    strip: null,
   }
 }
 
@@ -95,7 +106,7 @@ export function defaultLayouts(): Layouts {
   return { version: LAYOUTS_VERSION, list: BUILT_IN.map(builtIn), active: { ...DEFAULT_ACTIVE }, locked: false }
 }
 
-const copyStack = (s: Stack): Stack => ({ tabs: [...s.tabs], active: s.active })
+const copyStack = (s: Stack): Stack => (s.size === undefined ? { tabs: [...s.tabs], active: s.active } : { tabs: [...s.tabs], active: s.active, size: s.size })
 const copyZones = (l: Layout): Record<ZoneId, Stack[]> => ({ left: l.zones.left.map(copyStack), right: l.zones.right.map(copyStack), strip: l.zones.strip.map(copyStack) })
 
 export function docksOf(layout: Layout): DockId[] {
@@ -179,6 +190,48 @@ export function setWidth(layout: Layout, side: Side, px: number): Layout {
   return layout.widths[side] === w ? layout : { ...layout, widths: { ...layout.widths, [side]: w } }
 }
 
+const CUSTOM_WIDTHS: Record<Side, number> = { left: 320, right: 360 }
+
+// The widths a layout starts with: the factory ones of a built-in layout.
+export function defaultWidths(id: string): Record<Side, number> {
+  return isBuiltIn(id) ? { ...FACTORY[id].widths } : { ...CUSTOM_WIDTHS }
+}
+
+const round = (n: number) => Math.round(n * 1000) / 1000
+export const clampSize = (n: number): number => round(Math.max(SIZE_MIN, Math.min(SIZE_MAX, n)))
+
+// The shares of two neighbouring stacks, `index` and the one below, after their shared
+// edge moved. Null puts a stack back to the default share.
+export function setStackSizes(layout: Layout, zone: ZoneId, index: number, above: number | null, below: number | null): Layout {
+  const list = layout.zones[zone]
+  if (!list[index] || !list[index + 1]) return layout
+  const sized = (s: Stack, n: number | null): Stack => {
+    const { size: _, ...rest } = s
+    return n === null ? rest : { ...rest, size: clampSize(n) }
+  }
+  const next = list.map((s, i) => (i === index ? sized(s, above) : i === index + 1 ? sized(s, below) : s))
+  return { ...layout, zones: { ...layout.zones, [zone]: next } }
+}
+
+// The shares of every stack in a zone at once, in order; null is the default share.
+export function setZoneSizes(layout: Layout, zone: ZoneId, sizes: (number | null)[]): Layout {
+  const list = layout.zones[zone]
+  if (sizes.length !== list.length) return layout
+  const next = list.map((s, i) => {
+    const { size: _, ...rest } = s
+    const n = sizes[i]
+    return n === null ? rest : { ...rest, size: clampSize(n) }
+  })
+  return { ...layout, zones: { ...layout.zones, [zone]: next } }
+}
+
+export const clampStrip = (px: number): number => Math.round(Math.max(STRIP_MIN, Math.min(STRIP_MAX, px)))
+
+export function setStripHeight(layout: Layout, px: number | null): Layout {
+  const h = px === null ? null : clampStrip(px)
+  return layout.strip === h ? layout : { ...layout, strip: h }
+}
+
 export const cleanName = (name: string): string => name.replace(/\s+/g, ' ').trim().slice(0, NAME_MAX)
 
 export function activeLayout(state: Layouts, width: WidthClass): Layout {
@@ -194,7 +247,7 @@ export function replaceLayout(state: Layouts, layout: Layout): Layouts {
 export function saveAs(state: Layouts, from: Layout, name: string, id: string, width: WidthClass): Layouts | null {
   const clean = cleanName(name)
   if (!clean || state.list.filter((l) => !isBuiltIn(l.id)).length >= CUSTOM_MAX) return null
-  const copy: Layout = { id, name: clean, zones: copyZones(from), widths: { ...from.widths } }
+  const copy: Layout = { id, name: clean, zones: copyZones(from), widths: { ...from.widths }, strip: from.strip }
   return { ...state, list: [...state.list, copy], active: { ...state.active, [width]: id } }
 }
 
@@ -227,7 +280,8 @@ export function normalizeLayout(raw: unknown, fallback: Layout): Layout {
       const tabs = s.tabs.filter((d): d is DockId => isDock(d) && !seen.has(d) && (seen.add(d), true))
       if (!tabs.length) continue
       const active = typeof s.active === 'number' && Number.isInteger(s.active) ? Math.max(0, Math.min(tabs.length - 1, s.active)) : 0
-      zones[z].push({ tabs, active })
+      const size = typeof s.size === 'number' && Number.isFinite(s.size) ? clampSize(s.size) : null
+      zones[z].push(size === null ? { tabs, active } : { tabs, active, size })
     }
   }
   const w = isObj(raw.widths) ? raw.widths : {}
@@ -237,6 +291,7 @@ export function normalizeLayout(raw: unknown, fallback: Layout): Layout {
     name: isBuiltIn(fallback.id) ? '' : typeof raw.name === 'string' && cleanName(raw.name) ? cleanName(raw.name) : fallback.name,
     zones,
     widths: { left: width('left'), right: width('right') },
+    strip: typeof raw.strip === 'number' && Number.isFinite(raw.strip) ? clampStrip(raw.strip) : null,
   }
 }
 
@@ -252,7 +307,7 @@ export function normalizeLayouts(raw: unknown): Layouts {
     if (typeof l.id !== 'string' || !l.id || ids.has(l.id) || typeof l.name !== 'string' || !cleanName(l.name)) continue
     if (list.length - BUILT_IN.length >= CUSTOM_MAX) break
     ids.add(l.id)
-    list.push(normalizeLayout(l, { id: l.id, name: cleanName(l.name), zones: { left: [], right: [], strip: [] }, widths: { left: 320, right: 360 } }))
+    list.push(normalizeLayout(l, { id: l.id, name: cleanName(l.name), zones: { left: [], right: [], strip: [] }, widths: { ...CUSTOM_WIDTHS }, strip: null }))
   }
   const act = isObj(raw.active) ? raw.active : {}
   const active = { ...d.active }
