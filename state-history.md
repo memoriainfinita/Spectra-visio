@@ -112,3 +112,10 @@ El CDN de images-assets.nasa.gov guarda copias sin la cabecera CORS y las sirve 
 - Los plegados de Presets, Shaders, Entrada visual y Rótulos (`Fold`, claves `spectra.fold.*`) desaparecen: esos paneles van en muelles propios o en las fichas de Bibliotecas. La clave `spectra.tab` deja de usarse
 - `tabs.mjs` y `fold.mjs` salen de la batería; `docks.mjs` cubre pestañas, menús, mover, guardar, bloquear, otra ventana y anchuras
 - La ventana de Ajustes crecía más que la pantalla y lo de abajo no se alcanzaba: se encontró con `settings.mjs` y se limitó su altura a la de la ventana
+
+### 2026-10-14 — Ayudas en globo y Ajustes con filas
+
+- Los textos de ayuda largos plegados tras «Más información» (aprobados por mykl el 2026-10-12) pasan a un globo flotante: mykl prefería un tooltip. Al abrirse, el plegado desplazaba los controles
+- En Chrome con móvil emulado, el ratón virtual de la emulación dejaba el globo abierto tras el segundo toque: abrir al pasar por encima solo cuenta donde `(hover: hover)`
+- Ajustes deja la columna de paneles por secciones a la izquierda y filas de opción a la derecha, como los ajustes de Claude, a petición de mykl
+- Asas de tamaño: mykl creía que solo se redimensionaba la zona izquierda; la derecha funcionaba pero el asa no se veía. Se hicieron visibles y se añadieron el alto bajo el escenario y el reparto entre pilas
