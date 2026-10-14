@@ -13,13 +13,13 @@ Visualizador de audio en tiempo real para navegador, reconstruido desde cero en 
 
 ## Status
 
-- App completa: las 10 fases de `docs/arquitectura.md` y la disposición de escritorio con pestañas laterales (diseño B, aprobado por mykl el 2026-10-12; lienzo en https://claude.ai/artifact/YQZeJBzbvudQkcqn84u8ow). Base: TypeScript 7, React 19, Vite 8, Vitest 5, store propio, español e inglés, ajustes en IndexedDB, CI con despliegue a Pages
+- App completa: las 10 fases de `docs/arquitectura.md`. Desde el 2026-10-14, disposición con muelles (fase 1 del rediseño) en lugar de las pestañas laterales. Base: TypeScript 7, React 19, Vite 8, Vitest 5, store propio, español e inglés, ajustes en IndexedDB, CI con despliegue a Pages
 - Todas las funciones de `docs/funciones.md` están hechas. Las dos últimas, del 2026-10-12: «Igualar volumen» entre pistas (A) y el directorio de radios en la fuente Stream (B, diseño aprobado por mykl ese día)
-- Pestaña Ajustes (general, accesibilidad, rendimiento, atajos, copia de seguridad, restablecer), textos de ayuda largos plegados y marca «sin análisis» en las emisoras encontradas: propuestos y aprobados por mykl el 2026-10-12
+- Ajustes (general, accesibilidad, rendimiento, atajos, copia de seguridad, restablecer), textos de ayuda largos plegados y marca «sin análisis» en las emisoras encontradas: propuestos y aprobados por mykl el 2026-10-12
 - Aprobado por mykl el 2026-10-12, en este orden: sonido de los canales de TV (hecho), música de Audius (hecho), buscador de vídeo e imagen de Wikimedia Commons y NASA en la entrada visual (hecho; NASA solo vídeo), letras de LRCLIB y carátulas de MusicBrainz y Cover Art Archive (hecho, opcional y desactivado por defecto)
 - Control del vídeo en la entrada visual (pausa, posición, recorte, bucle, velocidad): aprobado por mykl el 2026-10-12
 - TV en directo de iptv-org como entrada visual, con grupos de su PLAYLISTS.md, comprobación en segundo plano y favoritos: aprobado por mykl el 2026-10-12
-- Rediseño de la interfaz: diseño aprobado por mykl el 2026-10-13 («me gusta»), sin implementar. Lienzo: https://claude.ai/artifact/FBhdK7Ax88cCEdWscXNa1X, tableros «A2 con muelles» (en uso y moviendo un panel). Decisiones:
+- Rediseño de la interfaz: diseño aprobado por mykl el 2026-10-13 («me gusta»); fase 1 hecha el 2026-10-14, fases 2 a 5 sin empezar. Lienzo: https://claude.ai/artifact/FBhdK7Ax88cCEdWscXNa1X, tableros «A2 con muelles» (en uso y moviendo un panel). Decisiones:
   - Una sola interfaz, sin modos Preparar y Directo: en directo se puede editar todo. Lo de directo siempre a la vista, lo seleccionado a un clic, lo de preparar tras un menú o una biblioteca
   - Base A2: barra superior (transporte, fuente de audio desplegable, BPM y tap, diseños guardados, buscador, estado de grabación y OBS, Ajustes); zona izquierda Capas y Bibliotecas; centro escenario, rejilla de clips (capas × columnas 1–9) y Mi panel; zona derecha Inspector, Audio y Moduladores
   - Inspector por niveles Composición, Capa y Clip, como Resolume, con 4 mandos propios por nivel y secciones plegables (visualización, parámetros, efectos, modulación, entrada visual y vídeo, preset)
@@ -35,9 +35,11 @@ Visualizador de audio en tiempo real para navegador, reconstruido desde cero en 
   - Lienzo reordenado el 2026-10-13: página «Diseño aprobado» por temas y página «Descartadas» con las rondas 1 y 2 y el mapa
   - Logo: el prisma de Spectra, sacado de `3_archived/SPECTRA MASTER ARCHIVE/spectra/SPECTRA LOGO COLOR.svg` (grupo WHITE, sin el texto), junto al nombre en la barra. Pedido por mykl el 2026-10-13
   - Orden de implementación confirmado por mykl el 2026-10-13: 1 muelles y diseños guardados, 2 inspector por niveles, 3 panel de mandos con variaciones, 4 moduladores compartidos, 5 buscador y deshacer
-- Probado por mykl en su Firefox: fases 2 a 8 (2026-10-10 y 2026-10-11) y la disposición de escritorio (2026-10-12)
-- Pendiente de la revisión de mykl: fase 9 (OBS real, grabación) y fase 10 (móvil real, instalar la app, calidad adaptativa en su equipo)
-- Comprobado por Claude, silenciado, en Chrome y Firefox con Playwright: todas las fases, con el detalle de cada una en `state-history.md` (2026-10-12). Las comprobaciones viven en `tests/e2e/` y se pasan con `pnpm e2e`. 170 tests unitarios en verde
+  - Fase 1, hecha el 2026-10-14 con el diseño aprobado por mykl ese día: barra superior (logo, transporte, Fuente, BPM y marcar tempo, Diseño, Salida, Ajustes en ventana con MIDI); zonas izquierda, derecha y bajo el escenario con muelles provisionales (Capas, Bibliotecas, Clips, Efectos, Rótulos, Audio, Directo, Automático, Actuación) que llevan los paneles de antes; diseños Directo, Preparar, Dos pantallas y Portátil, guardar como, bloquear, restablecer y borrar; mover arrastrando en «Editar el diseño» o con el menú ⋯; ancho de zonas; un muelle en otra ventana. Detalle en `docs/arquitectura.md`. El móvil (< 800 px) sigue como antes
+  - Sin resolver en la fase 1: los atajos de teclado no funcionan con el foco en la ventana de un muelle; los menús abiertos dentro de esa ventana no se cierran al pulsar fuera
+- Probado por mykl en su Firefox: fases 2 a 8 (2026-10-10 y 2026-10-11) y la disposición de pestañas laterales, ya sustituida (2026-10-12)
+- Pendiente de la revisión de mykl: fase 9 (OBS real, grabación), fase 10 (móvil real, instalar la app, calidad adaptativa en su equipo) y la fase 1 del rediseño (muelles)
+- Comprobado por Claude, silenciado, en Chrome y Firefox con Playwright: todas las fases, con el detalle de cada una en `state-history.md` (2026-10-12). Las comprobaciones viven en `tests/e2e/` y se pasan con `pnpm e2e`; batería completa en verde el 2026-10-14 tras la fase 1, con `docks.mjs` en lugar de `tabs.mjs` y `fold.mjs`. 187 tests unitarios en verde
 - Sin probar: escuchar a oído emisoras reales del directorio (con emisoras reales, Claude solo comprobó buscar, la comprobación en segundo plano y el arranque); Safari (nada, tampoco `outputLatency`); captura de pestaña en Chrome o Edge; referencias de archivos de Chrome; pistas largas por `<audio>`; stream de otro dominio con CORS real; MIDI con un dispositivo real y con el permiso de Firefox; dos pantallas reales; OBS real y desde GitHub Pages; grabación: sincronía a ojo, Firefox con ventana, sesiones largas; móvil real; instalar la app; calidad adaptativa con una GPU lenta real
 - La versión anterior (canvas, 8 visualizaciones) está en `.archive/v0/`, fuera de git, y en el historial hasta `7a63da1`
 - Repo privado en GitHub, Pages sin activar. Se publicará al terminar la app (decisión de mykl, 2026-10-10)
@@ -52,8 +54,9 @@ Visualizador de audio en tiempo real para navegador, reconstruido desde cero en 
 - [audio] Toda acción del reproductor incrementa un contador de operación; el trabajo asíncrono iniciado con un valor anterior se descarta. Confirmed 2026-10.
 - [ui] Deslizadores que disparan trabajo caro: valor local mientras se arrastra y acción en el `change` nativo. Confirmed 2026-10.
 - [ui] El escenario no se vuelve a montar al cambiar de disposición: la pantalla completa cruza el límite de 800 px y un escenario nuevo la cerraría. Confirmed 2026-10.
+- [ui] Cada panel se monta una vez en su nodo (`src/ui/dock/panels.tsx`) y las disposiciones solo lo mueven con `PanelSlot`; un panel en un solo sitio a la vez. Confirmed 2026-10.
 - [test] En cada iteración, solo las comprobaciones de lo tocado (`pnpm e2e radio settings`, unos minutos); la batería completa (`pnpm e2e`, unos 40 min) solo antes de la ronda de revisión de mykl o de publicar. Pedido por mykl el 2026-10-12, no por primera vez. Confirmed 2026-10.
-- [test] Tras cambiar la interfaz, `pnpm build` y las comprobaciones afectadas: los guiones de `tests/e2e/` llevan el registro de lo que funcionaba. Cada uno sigue la interfaz actual (pestañas, capas numeradas); los paneles de todas las pestañas se muestran a la vez con `reveal`. Confirmed 2026-10.
+- [test] Tras cambiar la interfaz, `pnpm build` y las comprobaciones afectadas: los guiones de `tests/e2e/` llevan el registro de lo que funcionaba. Cada uno sigue la interfaz actual (pestañas, capas numeradas); los paneles de todas las pestañas, los menús de la barra y la ventana de Ajustes se muestran a la vez con `reveal` (`[role=tabpanel]` y `[data-reveal]`). Confirmed 2026-10.
 - [test] Pruebas en navegador siempre silenciadas: Chrome `--mute-audio`, Firefox `media.volume_scale` a 0. Confirmed 2026-10.
 - [test] Música real para calibrar: pistas CC BY de incompetech, decodificadas con ffmpeg a f32 para probar el análisis en Node. Confirmed 2026-10.
 - [test] Capturas del canvas WebGL leídas con `toDataURL` dentro de `requestAnimationFrame`: la captura de elemento de Playwright en Firefox headless puede devolver un fotograma viejo. Confirmed 2026-10.
@@ -64,7 +67,9 @@ Las revisiones y pruebas manuales pendientes se harán todas juntas en una sola 
 
 - [x] Pasar a `docs/funciones.md` las funciones nuevas del lienzo, con revisión de mykl
 - [ ] Fase 3 del rediseño: decidir si las variaciones pasan de una a otra en golpes o compases (lienzo, tablero Menús)
-- [ ] Rediseño de la interfaz: fase 1 (muelles y diseños guardados)
+- [x] Rediseño de la interfaz: fase 1 (muelles y diseños guardados)
+- [ ] Revisión de la fase 1 del rediseño por mykl en su Firefox
+- [ ] Rediseño de la interfaz: fase 2 (inspector por niveles)
 - [ ] Al terminar la app: repo público, activar Pages con origen GitHub Actions (`gh api -X POST repos/memoriainfinita/Spectra-visio/pages -f build_type=workflow`) y push
 - [ ] Probar la captura de pestaña en Chrome o Edge
 - [ ] Probar stream con CORS real de otro dominio

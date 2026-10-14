@@ -58,7 +58,7 @@ export async function open(kind, { camera = false, notice = false, reveal = true
   await page.waitForSelector('.stage canvas')
   if (!notice) await dismissNotice(page)
   // Wide layout: older tests expect every panel on the page, so all tabs show at once.
-  if (reveal) await page.evaluate(() => (document.querySelectorAll('[role=tabpanel]').forEach((p) => { p.hidden = false }), document.querySelectorAll('details.fold').forEach((d) => { d.open = true })))
+  if (reveal) await revealAll(page)
   return { browser, page, errors }
 }
 
@@ -117,7 +117,23 @@ export async function dismissNotice(page) {
 }
 
 // Shows every tab's panels at once (wide layout), for tests written before the tabs.
-export const reveal = (page) => page.evaluate(() => (document.querySelectorAll('[role=tabpanel]').forEach((p) => { p.hidden = false }), document.querySelectorAll('details.fold').forEach((d) => { d.open = true })))
+// Every tab of the docks and the libraries, the pop-ups of the top bar and the settings
+// window, shown at once in the page flow. The page scrolls instead of the docks.
+function revealAll(page) {
+  return page.evaluate(() => {
+    if (!document.getElementById('reveal-all')) {
+      const style = document.createElement('style')
+      style.id = 'reveal-all'
+      style.textContent = `[data-reveal]{position:static!important;inset:auto!important;width:auto!important;max-height:none!important;overflow:visible!important;box-shadow:none!important;background:none!important;padding:0!important;display:block!important}
+        .modal-box{max-height:none!important} .app.wide{height:auto!important} .layout-docks,.dock-zone,.dock-stack,.dock-body{min-height:auto!important;max-height:none!important;overflow:visible!important}
+        .topbar.bar{flex-wrap:wrap!important;align-items:flex-start!important} .pop{flex:1 1 100%!important}
+        .app.wide .stage:not(.full){flex:none!important;height:60vh!important}`
+      document.head.appendChild(style)
+    }
+    document.querySelectorAll('[role=tabpanel], [data-reveal]').forEach((p) => { p.hidden = false })
+  })
+}
+export const reveal = revealAll
 
 // Selects a layer for editing (1 is the bottom one).
 export const pickLayer = (page, n) => page.locator(`.panel.visuals .layer-pick[title="Editar la capa ${n}"]`).click()

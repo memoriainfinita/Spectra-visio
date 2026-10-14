@@ -105,3 +105,10 @@ Se propusieron dos modos separados, como el show mode de QLab o el Perform Mode 
 
 ### 2026-10-13 — Imágenes de la NASA fuera del buscador de vídeo e imagen libres
 El CDN de images-assets.nasa.gov guarda copias sin la cabecera CORS y las sirve también a peticiones CORS, también con Range y con parámetros en la URL; las imágenes fallaban casi siempre. Los vídeos, pedidos por rangos que llegan al servidor de origen, funcionaron. La NASA quedó solo para vídeo.
+
+### 2026-10-14 — Pestañas laterales sustituidas por muelles
+
+- La disposición de escritorio con pestañas laterales (diseño B, aprobado por mykl el 2026-10-12; lienzo https://claude.ai/artifact/YQZeJBzbvudQkcqn84u8ow) queda sustituida por la fase 1 del rediseño aprobado el 2026-10-13: muelles en zonas y diseños guardados
+- Los plegados de Presets, Shaders, Entrada visual y Rótulos (`Fold`, claves `spectra.fold.*`) desaparecen: esos paneles van en muelles propios o en las fichas de Bibliotecas. La clave `spectra.tab` deja de usarse
+- `tabs.mjs` y `fold.mjs` salen de la batería; `docks.mjs` cubre pestañas, menús, mover, guardar, bloquear, otra ventana y anchuras
+- La ventana de Ajustes crecía más que la pantalla y lo de abajo no se alcanzaba: se encontró con `settings.mjs` y se limitó su altura a la de la ventana

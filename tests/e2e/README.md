@@ -7,7 +7,7 @@ Playwright scripts that drive the built app in Firefox and Chrome, muted, and pr
 ```bash
 pnpm build
 pnpm e2e                       # every check, Firefox then Chrome
-pnpm e2e -- tabs fold          # some checks
+pnpm e2e -- docks settings     # some checks
 pnpm e2e -- --firefox          # one browser
 node tests/e2e/touch.mjs chrome  # one check by hand
 ```

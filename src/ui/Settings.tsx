@@ -182,7 +182,7 @@ function Backup() {
             e.target.value = ''
             if (!file) return
             const r = await restoreBackup(file)
-            setMessage(r.invalid ? t('settings.importInvalid') : t('settings.imported', { presets: r.presets, shaders: r.shaders, favorites: r.favorites, channels: r.channels }))
+            setMessage(r.invalid ? t('settings.importInvalid') : t('settings.imported', { presets: r.presets, shaders: r.shaders, favorites: r.favorites, channels: r.channels, layouts: r.layouts }))
           }}
         />
       </div>

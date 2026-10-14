@@ -15,7 +15,8 @@ Real-time audio visualizer for the browser: a music player with visuals, a VJ to
 - **Live:** up to 8 layers with blend modes and an A/B crossfader, a clip grid, blackout, freeze and strobe, configurable shortcuts, MIDI learn and MIDI clock, auto mode, and an output window for a projector
 - **Overlays:** track title, synced lyrics (LRC, or looked up on LRCLIB if turned on), text and logo
 - **Output:** fixed resolutions up to 4K, recording to video with sound, and a transparent source for OBS through obs-websocket
-- **Everywhere:** installable and offline, touch gestures, keyboard access, photosensitivity notice with a flash limiter, adaptive quality, frame cap and low power mode, Spanish and English, and a backup file to move settings, presets, shaders and favourite stations and channels to another browser
+- **Layout:** docks around the stage that move by dragging or from their menu, built-in layouts for a show, for preparing, for two screens and for laptops, saved layouts, a lock, and any dock in a window of its own
+- **Everywhere:** installable and offline, touch gestures, keyboard access, photosensitivity notice with a flash limiter, adaptive quality, frame cap and low power mode, Spanish and English, and a backup file to move settings, presets, shaders, favourite stations and channels and saved layouts to another browser
 
 Built and tested on Firefox and Chrome. Safari is untested.
 
