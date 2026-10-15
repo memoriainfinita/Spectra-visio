@@ -61,7 +61,7 @@ log('favorites', await names())
 // Pick on layer B.
 await pickLayer(page, 2)
 await br.getByRole('button', { name: 'Poner Osciloscopio en la capa 2' }).click()
-log('layer B now', await page.locator('.panel.visuals .field select').inputValue(), '| highlighted', await br.locator('.visual-card.current .visual-card-name').textContent())
+log('layer B now', await page.locator('#insp-layer select[aria-label^="Visualización de la capa"]').inputValue(), '| highlighted', await br.locator('.visual-card.current .visual-card-name').textContent())
 
 await page.reload()
 await page.waitForSelector('.stage canvas')

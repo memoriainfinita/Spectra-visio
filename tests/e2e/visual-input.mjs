@@ -8,7 +8,7 @@ const { browser, page, errors } = await open(kind, { camera: true })
 const log = (...a) => console.log(`[${kind}]`, ...a)
 const panel = page.locator('.panel.visual-input')
 const br = page.locator('.panel.browser')
-const fx = page.locator('.panel.effects')
+const fx = page.locator('#insp-layer .effects')
 const sh = page.locator('.panel.shaders')
 const status = () => panel.getByRole('status').textContent()
 const motion = async () => {

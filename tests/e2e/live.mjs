@@ -6,7 +6,7 @@ const { browser, page, errors } = await open(kind)
 const log = (...a) => console.log(`[${kind}]`, ...a)
 const live = page.locator('.panel.live')
 const keys = page.locator('.panel.settings-keys')
-const vis = page.locator('.panel.visuals')
+const vis = page.locator('.panel.visuals, .panel.inspector')
 const mean = async () => stats(await grab(page)).mean
 const body = () => page.locator('body').click({ position: { x: 5, y: 5 } })
 const cross = () => vis.getByLabel('Crossfader', { exact: true }).inputValue()

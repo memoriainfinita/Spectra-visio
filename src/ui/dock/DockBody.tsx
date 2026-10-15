@@ -7,12 +7,10 @@ import { PanelSlot, type PanelId } from './panels'
 // What each dock holds, until the redesign gives them panels of their own.
 const CONTENT: Record<Exclude<DockId, 'library'>, PanelId[]> = {
   layers: ['visuals'],
+  inspector: ['inspector'],
   clips: ['clips'],
-  effects: ['effects'],
-  overlays: ['overlays'],
   audio: ['player', 'analysis'],
   live: ['live'],
-  auto: ['auto'],
   perform: ['perform'],
 }
 

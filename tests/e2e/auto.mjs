@@ -11,7 +11,7 @@ if (!tracks.every((t) => existsSync(t))) {
 }
 const { browser, page, errors } = await open(kind)
 const auto = page.locator('.panel.auto')
-const vis = page.locator('.panel.visuals')
+const vis = page.locator('.panel.visuals, .panel.inspector')
 const field = (label, i = 0) => auto.locator('.field').filter({ hasText: label }).nth(i).locator('select').first()
 const layers = async () => (await vis.locator('.layer-pick').allTextContents()).join(' | ')
 const status = () => auto.locator('p.muted.small').first().textContent()

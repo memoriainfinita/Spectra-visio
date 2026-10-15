@@ -2,7 +2,7 @@
 // Each zone holds stacks one above the other; a stack shows one of its docks at a time,
 // with tabs. The stage itself is never part of a layout, so nothing can cover it.
 
-export const DOCKS = ['layers', 'library', 'clips', 'effects', 'overlays', 'audio', 'live', 'auto', 'perform'] as const
+export const DOCKS = ['layers', 'inspector', 'library', 'clips', 'audio', 'live', 'perform'] as const
 export type DockId = (typeof DOCKS)[number]
 
 export const ZONES = ['left', 'right', 'strip'] as const
@@ -16,7 +16,8 @@ export type WidthClass = (typeof WIDTHS)[number]
 export const BUILT_IN = ['live', 'prepare', 'two', 'laptop'] as const
 export type BuiltInId = (typeof BUILT_IN)[number]
 
-export const LAYOUTS_VERSION = 1
+// 2 put the Inspector in place of the docks Effects, Overlays and Auto.
+export const LAYOUTS_VERSION = 2
 export const WIDTH_MIN = 220
 export const WIDTH_MAX = 640
 export const NAME_MAX = 40
@@ -66,22 +67,22 @@ const FACTORY: Record<BuiltInId, Omit<Layout, 'id' | 'name' | 'strip'>> = {
   // Everything for a show at hand: layers on the left, the rest on the right, clips and
   // the perform controls under the stage.
   live: {
-    zones: { left: [stack('layers', 'library')], right: [stack('effects', 'audio', 'overlays', 'live', 'auto')], strip: [stack('clips'), stack('perform')] },
+    zones: { left: [stack('layers', 'library')], right: [stack('inspector', 'audio', 'live')], strip: [stack('clips'), stack('perform')] },
     widths: { left: 320, right: 360 },
   },
   // Building a set: the libraries first, two stacks on the right.
   prepare: {
-    zones: { left: [stack('library', 'layers')], right: [stack('effects', 'overlays'), stack('audio', 'auto', 'live')], strip: [stack('clips', 'perform')] },
+    zones: { left: [stack('library', 'layers')], right: [stack('inspector'), stack('audio', 'live')], strip: [stack('clips', 'perform')] },
     widths: { left: 380, right: 360 },
   },
   // The image on the projector: the clips get the room.
   two: {
-    zones: { left: [stack('layers', 'audio', 'library')], right: [stack('effects', 'overlays', 'live', 'auto')], strip: [stack('clips'), stack('perform')] },
+    zones: { left: [stack('layers', 'audio', 'library')], right: [stack('inspector', 'live')], strip: [stack('clips'), stack('perform')] },
     widths: { left: 300, right: 340 },
   },
   // One zone with every dock, for narrower screens.
   laptop: {
-    zones: { left: [stack('layers', 'effects', 'audio', 'library', 'overlays', 'live', 'auto')], right: [], strip: [stack('clips'), stack('perform')] },
+    zones: { left: [stack('layers', 'inspector', 'audio', 'library', 'live')], right: [], strip: [stack('clips'), stack('perform')] },
     widths: { left: 340, right: 340 },
   },
 }
@@ -295,8 +296,29 @@ export function normalizeLayout(raw: unknown, fallback: Layout): Layout {
   }
 }
 
+// Version 1 had docks of their own for the effects, the overlays and the auto mode, all now
+// in the Inspector: it takes the place of the effects and the other two go.
+const V1_DOCKS: Record<string, string | null> = { effects: 'inspector', overlays: null, auto: null }
+
+function migrateV1(raw: Record<string, unknown>): Record<string, unknown> {
+  const rename = (d: unknown) => (typeof d === 'string' && d in V1_DOCKS ? V1_DOCKS[d] : d)
+  const stackOf = (s: unknown): unknown => {
+    if (!isObj(s) || !Array.isArray(s.tabs)) return s
+    const shown = typeof s.active === 'number' ? rename(s.tabs[s.active]) : null
+    const tabs: unknown[] = s.tabs.map(rename).filter((d) => d !== null)
+    // The same tab stays shown; the first one when it went.
+    return { ...s, tabs, active: Math.max(0, tabs.indexOf(shown)) }
+  }
+  const layoutOf = (l: unknown): unknown => {
+    if (!isObj(l) || !isObj(l.zones)) return l
+    return { ...l, zones: Object.fromEntries(Object.entries(l.zones).map(([z, list]) => [z, Array.isArray(list) ? list.map(stackOf) : list])) }
+  }
+  return { ...raw, version: LAYOUTS_VERSION, list: Array.isArray(raw.list) ? raw.list.map(layoutOf) : raw.list }
+}
+
 export function normalizeLayouts(raw: unknown): Layouts {
   const d = defaultLayouts()
+  if (isObj(raw) && raw.version === 1) raw = migrateV1(raw)
   if (!isObj(raw) || raw.version !== LAYOUTS_VERSION || !Array.isArray(raw.list)) return d
   const stored = raw.list.filter(isObj)
   const byId = (id: string) => stored.find((l) => l.id === id)

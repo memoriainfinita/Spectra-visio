@@ -7,7 +7,7 @@ const kind = process.argv[2] ?? 'firefox'
 const { browser, page, errors } = await open(kind)
 const log = (...a) => console.log(`[${kind}]`, ...a)
 const live = page.locator('.panel.output')
-const vis = page.locator('.panel.visuals')
+const vis = page.locator('.panel.visuals, .panel.inspector')
 const grabOf = (p) => p.evaluate(() => new Promise((resolve) => {
   requestAnimationFrame(() => {
     const src = document.querySelector('canvas')

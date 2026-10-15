@@ -6,10 +6,10 @@ import { open, OUT, reveal, pickLayer } from './lib.mjs'
 const kind = process.argv[2] ?? 'firefox'
 const { browser, page, errors } = await open(kind)
 const log = (...a) => console.log(`[${kind}]`, ...a)
-const vis = page.locator('.panel.visuals')
-const fx = page.locator('.panel.effects')
+const vis = page.locator('.panel.visuals, .panel.inspector')
+const fx = page.locator('#insp-layer .effects')
 const pr = page.locator('.panel.presets')
-const visual = vis.locator('.field select')
+const visual = page.locator('#insp-layer select[aria-label^="Visualización de la capa"]')
 const fxNames = () => fx.locator('.effect-name span').allTextContents()
 const presetNames = () => pr.locator('.preset-name').allTextContents()
 const clearFx = async () => { while (await fx.getByRole('button', { name: 'Quitar efecto' }).count()) await fx.getByRole('button', { name: 'Quitar efecto' }).first().click() }

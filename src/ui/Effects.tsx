@@ -13,53 +13,41 @@ import {
   setEffectEnabled,
   setEffectParam,
   updateEffectModulation,
+  type EffectTarget,
 } from '../app/scene'
 import { EFFECTS, MAX_EFFECTS, getEffect } from '../engine/effects/registry'
 import { ParamList } from './ParamList'
 import { useStore } from './useStore'
 import { useT } from './useT'
 
-// The effect chain of the selected layer, applied before it blends onto the layers below,
-// or the composition's, applied in list order after all layers are blended.
-export function Effects() {
+// An effect chain: a layer's, applied before it blends onto the layers below, or the
+// composition's, applied in list order after all layers are blended.
+export function EffectChain({ target }: { target: EffectTarget }) {
   const t = useT()
-  const [comp, setComp] = useState(false)
-  const selected = useStore(sceneStore, (s) => s.selected)
-  const target = comp ? 'comp' : selected
   const effects = useStore(sceneStore, (s) => chainOf(s, target))
   const [open, setOpen] = useState<string | null>(null)
   const full = effects.length >= MAX_EFFECTS
-  const n = selected + 1
+  const comp = target === 'comp'
+  const n = comp ? 0 : target + 1
 
   return (
-    <section className="panel effects">
-      <header className="panel-head">
-        <h2>{t('effects.title')}</h2>
-        <select
-          aria-label={t('effects.add')}
-          value=""
-          disabled={full}
-          onChange={(e) => {
-            if (e.target.value) addEffect(e.target.value, target)
-          }}
-        >
-          <option value="">{full ? t('effects.full', { n: MAX_EFFECTS }) : t('effects.add')}</option>
-          {EFFECTS.map((d) => (
-            <option key={d.id} value={d.id}>
-              {t(d.label)}
-            </option>
-          ))}
-        </select>
-      </header>
-
-      <div className="segmented" role="group" aria-label={t('effects.target')}>
-        <button className={`seg${comp ? '' : ' on'}`} aria-pressed={!comp} onClick={() => setComp(false)}>
-          {t('visuals.layer', { n })}
-        </button>
-        <button className={`seg${comp ? ' on' : ''}`} aria-pressed={comp} onClick={() => setComp(true)}>
-          {t('effects.comp')}
-        </button>
-      </div>
+    <div className="effects">
+      <select
+        className="effect-add"
+        aria-label={comp ? t('effects.addComp') : t('effects.addLayer', { n })}
+        value=""
+        disabled={full}
+        onChange={(e) => {
+          if (e.target.value) addEffect(e.target.value, target)
+        }}
+      >
+        <option value="">{full ? t('effects.full', { n: MAX_EFFECTS }) : t('effects.add')}</option>
+        {EFFECTS.map((d) => (
+          <option key={d.id} value={d.id}>
+            {t(d.label)}
+          </option>
+        ))}
+      </select>
 
       {effects.length === 0 && <p className="empty">{comp ? t('effects.empty') : t('effects.emptyLayer', { n })}</p>}
 
@@ -109,6 +97,6 @@ export function Effects() {
           )
         })}
       </ul>
-    </section>
+    </div>
   )
 }

@@ -55,7 +55,12 @@ export interface Clip {
   visual: string
   settings: VisualSettings
   effects: EffectState[]
+  // 'beat' waits for the next beat; missing launches at once. Presets leave it out.
+  launch?: LaunchMode
 }
+
+export const LAUNCH_MODES = ['press', 'beat'] as const
+export type LaunchMode = (typeof LAUNCH_MODES)[number]
 
 export interface LayerState {
   // Stable while layers are added, removed and moved.
@@ -236,7 +241,10 @@ export function defaultEffectParams(type: string): Params {
 function normalizeClip(raw: unknown): Clip | null {
   if (!isObj(raw) || typeof raw.visual !== 'string') return null
   const settings = normalizeVisualSettings(raw.visual, isObj(raw.settings) ? raw.settings : {})
-  return settings ? { visual: raw.visual, settings, effects: normalizeEffects(raw.effects) } : null
+  if (!settings) return null
+  const clip: Clip = { visual: raw.visual, settings, effects: normalizeEffects(raw.effects) }
+  if (raw.launch === 'beat') clip.launch = 'beat'
+  return clip
 }
 
 function normalizeLayer(raw: unknown, fallback: LayerState): LayerState {

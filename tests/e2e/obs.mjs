@@ -64,7 +64,7 @@ await page.locator('.panel.live').getByRole('button', { name: 'Apagón', exact: 
 await page.waitForTimeout(600)
 log('blackout in source:', JSON.stringify(await read(src)))
 await page.locator('.panel.live').getByRole('button', { name: 'Apagón', exact: true }).click()
-const vis = page.locator('.panel.visuals')
+const vis = page.locator('.panel.visuals, .panel.inspector')
 await vis.getByRole('button', { name: 'Añadir capa' }).click()
 await page.locator('.panel.browser').getByRole('button', { name: 'Poner Plasma en la capa 3' }).click()
 await vis.getByRole('button', { name: 'Solo la capa 3' }).click()

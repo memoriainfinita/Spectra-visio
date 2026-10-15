@@ -7,12 +7,13 @@ import { useT } from './useT'
 import { Hint } from './Hint'
 import { MediaBrowser } from './Media'
 import { TvBrowser } from './Tv'
-import { VideoControls } from './VideoControls'
+import { videoControlStore } from '../app/videoControl'
 
 export function VisualInput() {
   const t = useT()
   const state = useStore(visualInputStore)
   const preview = useStore(previewStore)
+  const video = useStore(videoControlStore, (s) => s.active)
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([])
   // The online browser open below: live TV or free videos and images.
   const [browser, setBrowser] = useState<'tv' | 'media' | null>(null)
@@ -88,7 +89,7 @@ export function VisualInput() {
         </p>
       )}
       <div className="input-preview" ref={box} hidden={!preview} />
-      <VideoControls />
+      {video && <p className="small muted">{t('vinput.videoInInspector')}</p>}
       {browser === 'tv' && <TvBrowser />}
       {browser === 'media' && <MediaBrowser />}
     </section>

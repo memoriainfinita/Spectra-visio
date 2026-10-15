@@ -93,6 +93,17 @@ describe('scene normalization', () => {
     expect(applyClip(s, 1, { ...clip, visual: 'gone' })).toBe(s)
   })
 
+  test('a clip keeps launching on the beat; any other mode is the default, at once', () => {
+    const s = normalizeScene({
+      version: SCENE_VERSION,
+      layers: [{ id: 'a', visual: 'tunnel', clips: [{ visual: 'tunnel', launch: 'beat' }, { visual: 'tunnel', launch: 'later' }, { visual: 'tunnel' }] }],
+    })
+    const [beat, odd, plain] = s.layers[0].clips
+    expect(beat?.launch).toBe('beat')
+    expect(odd && 'launch' in odd).toBe(false)
+    expect(plain && 'launch' in plain).toBe(false)
+  })
+
   test('stored parameters and modulations are checked against the visualization', () => {
     const s = normalizeScene({
       layers: [

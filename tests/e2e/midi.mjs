@@ -13,7 +13,7 @@ const { browser, page, errors } = await open(kind, {
 const log = (...a) => console.log(`[${kind}]`, ...a)
 const midi = page.locator('.panel.midi')
 const live = page.locator('.panel.live')
-const vis = page.locator('.panel.visuals')
+const vis = page.locator('.panel.visuals, .panel.inspector')
 const send = (bytes) => page.evaluate((b) => window.__midi(b), bytes)
 
 log('playing:', await loadTrack(page))

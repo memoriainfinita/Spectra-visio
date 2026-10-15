@@ -4,9 +4,9 @@ import { open, loadTrack, grab, stats, reveal } from './lib.mjs'
 const kind = process.argv[2] ?? 'firefox'
 const { browser, page, errors } = await open(kind)
 const log = (...a) => console.log(`[${kind}]`, ...a)
-const vis = page.locator('.panel.visuals')
+const vis = page.locator('.panel.visuals, .panel.inspector')
 const clips = page.locator('.panel.clips')
-const fx = page.locator('.panel.effects')
+const fx = page.locator('#insp-layer .effects')
 const s = async () => stats(await grab(page))
 const layerNames = async () => (await vis.locator('.layer-pick').allTextContents()).join(' | ')
 
@@ -38,8 +38,8 @@ log('solo 3 + layer mirror (asymX ~0):', JSON.stringify(await s()))
 await vis.getByRole('button', { name: 'Solo la capa 3' }).click()
 await vis.locator('.layer-pick').filter({ hasText: /^1 / }).click()
 log('effects panel on layer 1:', await fx.locator('.empty').textContent())
-await fx.getByRole('button', { name: 'Composición' }).click()
-log('composition effects:', await fx.locator('.empty').textContent())
+const compFx = page.locator('#insp-comp .effects')
+log('composition effects:', await compFx.locator('.empty').textContent())
 
 // Bypass and crossfader.
 await vis.getByRole('button', { name: 'Anular la capa 3' }).click()
