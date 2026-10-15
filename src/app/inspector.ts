@@ -1,4 +1,5 @@
 import { createStore } from '../core/store'
+import { revealDock } from './layout'
 import { sceneStore, selectLayer } from './scene'
 
 // What the Inspector shows: the composition, the selected layer or one of its clips. The
@@ -47,17 +48,23 @@ export function setLevel(level: Level): void {
   inspectorStore.set((s) => (s.level === level ? s : { ...s, level }))
 }
 
+// Picking the composition or a layer from outside the Inspector brings its tab to the
+// front, as in the laptop layout, where it shares a stack with Layers.
 export function inspectComposition(): void {
   setLevel('comp')
+  revealDock('inspector')
 }
 
-// Another layer shows the clip it plays.
+// Another layer shows the clip it plays. 'keep' is the Inspector's own picker.
 export function inspectLayer(layer: number, level: 'layer' | 'keep' = 'layer'): void {
   const changed = sceneStore.get().selected !== layer
   selectLayer(layer)
   inspectorStore.set((s) => ({ ...s, level: level === 'keep' ? s.level : level, column: changed ? null : s.column }))
+  if (level !== 'keep') revealDock('inspector')
 }
 
+// A clip is mostly clicked to launch it, often during a show: its tab is not brought forward,
+// so the stack keeps showing what was there.
 export function inspectClip(layer: number, column: number): void {
   selectLayer(layer)
   inspectorStore.set((s) => ({ ...s, level: 'clip', column }))

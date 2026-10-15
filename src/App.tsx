@@ -55,7 +55,7 @@ export function App() {
   const [live, setLive] = useState<{ left: number | null; right: number | null }>({ left: null, right: null })
   const closeSettings = useCallback(() => setSettings(false), [])
   usePlayerShortcuts()
-  if (wide) setWidthClass(width)
+  setWidthClass(wide ? width : null)
 
   useEffect(() => {
     document.documentElement.lang = lang

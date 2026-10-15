@@ -131,9 +131,10 @@ function Fold({ id, title, meta, folded: byDefault = false, children }: { id: st
   )
 }
 
-function effectNames(t: T, list: EffectState[]): string {
+// Names of the effects switched on, or `none` when there are none.
+export function effectNames(t: T, list: EffectState[], none = t('inspector.none')): string {
   const on = list.filter((e) => e.enabled).map((e) => (getEffect(e.type) ? t(getEffect(e.type)!.label) : e.type))
-  return on.length ? on.join(', ') : t('inspector.none')
+  return on.length ? on.join(', ') : none
 }
 
 function CompLevel() {

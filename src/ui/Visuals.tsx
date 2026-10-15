@@ -1,4 +1,5 @@
 import { ChevronDown, ChevronUp, Plus, X } from 'lucide-react'
+import { autoStore } from '../app/auto'
 import { inspectComposition, inspectLayer, inspectorStore } from '../app/inspector'
 import { addLayer, moveLayer, removeLayer, sceneStore, setCrossfade, setLayerBlend, setLayerBypass, setLayerOpacity, setLayerSide, setLayerSolo } from '../app/scene'
 import { getVisual } from '../engine/render/registry'
@@ -8,13 +9,17 @@ import type { MessageKey } from '../i18n'
 import { useStore } from './useStore'
 import { useT } from './useT'
 import { Hint } from './Hint'
+import { effectNames } from './Inspector'
 
 // The layer stack, top first as it is seen, and the crossfader. Picking a layer, or the
-// composition under them, shows it in the Inspector.
+// composition above them, shows it in the Inspector.
 export function Visuals() {
   const t = useT()
   const scene = useStore(sceneStore)
   const comp = useStore(inspectorStore, (s) => s.level === 'comp')
+  const compEffects = useStore(sceneStore, (s) => s.effects)
+  const auto = useStore(autoStore, (s) => s.enabled)
+  const compMeta = [effectNames(t, compEffects, ''), auto ? t('visuals.compAuto') : ''].filter(Boolean).join(' · ') || t('visuals.compEmpty')
   const sel = scene.selected
   const full = scene.layers.length >= MAX_LAYERS
   const order = scene.layers.map((_, i) => i).reverse()
@@ -27,6 +32,11 @@ export function Visuals() {
           <Plus size={15} /> {t('visuals.add')}
         </button>
       </header>
+
+      <button className={`layer-comp${comp ? ' on' : ''}`} aria-pressed={comp} title={t('visuals.compTitle')} onClick={inspectComposition}>
+        <strong>{t('inspector.comp')}</strong>
+        <span>{compMeta}</span>
+      </button>
 
       <ul className="layer-list">
         {order.map((i) => {
@@ -84,11 +94,6 @@ export function Visuals() {
         <span className="mono">B</span>
       </div>
       <Hint text={t('visuals.hint')} />
-
-      <button className={`layer-comp${comp ? ' on' : ''}`} aria-pressed={comp} onClick={inspectComposition}>
-        <strong>{t('inspector.comp')}</strong>
-        <span>{t('visuals.compHint')}</span>
-      </button>
     </section>
   )
 }
