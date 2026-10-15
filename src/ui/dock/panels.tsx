@@ -5,6 +5,7 @@ import { Auto } from '../Auto'
 import { Browser } from '../Browser'
 import { Clips } from '../Clips'
 import { Inspector } from '../Inspector'
+import { Knobs } from '../Knobs'
 import { Live } from '../Live'
 import { Midi } from '../Midi'
 import { Output } from '../Output'
@@ -47,6 +48,7 @@ const PANELS = {
   output: <Output />,
   settings: <Settings />,
   perform: <PerformBar />,
+  knobs: <Knobs />,
 } satisfies Record<string, ReactNode>
 
 export type PanelId = keyof typeof PANELS

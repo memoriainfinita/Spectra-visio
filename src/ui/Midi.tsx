@@ -20,6 +20,9 @@ export function controlName(id: ControlId, t: T): string {
 function targetLabel(target: MidiTarget, t: T): string {
   if (isAction(target)) return actionLabel(target, t)
   if (target === 'crossfader') return t('visuals.crossfade')
+  if (target.startsWith('knob')) return t('knobs.midiPanel', { n: target.slice(4) })
+  if (target.startsWith('compKnob')) return t('knobs.midiComp', { n: target.slice(8) })
+  if (target.startsWith('layerKnob')) return t('knobs.midiLayer', { n: target.slice(9) })
   return t('visuals.opacity', { n: target.slice(7) })
 }
 

@@ -30,7 +30,10 @@ import { NAME_MAX } from '../engine/scene/preset'
 import { LAUNCH_MODES, TRANSITION_MAX, visualSettings, type EffectState, type VisualSettings } from '../engine/scene/scene'
 import type { MessageKey } from '../i18n'
 import { PanelSlot } from './dock/panels'
+import type { MidiTarget } from '../engine/midi/midi'
+import { LEVEL_KNOBS, type KnobRef } from '../engine/scene/knobs'
 import { EffectChain } from './Effects'
+import { KnobDial } from './Knob'
 import { Hint } from './Hint'
 import { ParamList } from './ParamList'
 import { useStore } from './useStore'
@@ -145,6 +148,7 @@ function CompLevel() {
   const time = transition > 0 ? `${transition.toFixed(1)} s` : t('visuals.cut')
   return (
     <>
+      <KnobRow refs={LEVEL.map((i) => ({ bank: 'comp', i }))} midi="compKnob" label={t('inspector.knobsOf', { name: t('inspector.comp') })} />
       <Fold id="comp.effects" title={t('inspector.compEffects')} meta={effectNames(t, effects)}>
         <EffectChain target="comp" />
       </Fold>
@@ -182,6 +186,7 @@ function LayerLevel() {
   const n = sel + 1
   return (
     <>
+      <KnobRow refs={LEVEL.map((i) => ({ bank: 'layer', layer: layer.id, i }))} midi="layerKnob" label={t('inspector.knobsOf', { name: t('visuals.layer', { n }) })} />
       <Fold id="layer.visual" title={t('inspector.visual')} meta={def ? nameOf(def, t) : layer.visual}>
         <div className="field">
           <select aria-label={t('inspector.visualOf', { n })} value={layer.visual} onChange={(e) => setVisual(sel, e.target.value)}>
@@ -208,6 +213,7 @@ function LayerLevel() {
             onAddMod={(id) => addModulation(sel, id)}
             onUpdateMod={(id, m) => updateModulation(sel, id, m)}
             onRemoveMod={(id, mid) => removeModulation(sel, id, mid)}
+            knobTarget={(param) => ({ kind: 'param', layer: layer.id, visual: layer.visual, param })}
           />
         )}
       </Fold>
@@ -330,5 +336,18 @@ function ClipLevel({ column }: { column: number | null }) {
         )}
       </Fold>
     </>
+  )
+}
+
+const LEVEL = Array.from({ length: LEVEL_KNOBS }, (_, i) => i)
+
+// The level's own knobs, above its sections.
+function KnobRow({ refs, midi, label }: { refs: KnobRef[]; midi: 'compKnob' | 'layerKnob'; label: string }) {
+  return (
+    <div className="insp-knobs" role="group" aria-label={label}>
+      {refs.map((ref, i) => (
+        <KnobDial key={i} knobRef={ref} n={i + 1} midi={`${midi}${i + 1}` as MidiTarget} />
+      ))}
+    </div>
   )
 }

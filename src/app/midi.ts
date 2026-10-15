@@ -4,7 +4,8 @@ import { isAction } from '../engine/live/live'
 import { stopCrossfader } from './crossfader'
 import { analysis, renderer } from './engine'
 import { runAction } from './live'
-import { setCrossfade, setLayerOpacity } from './scene'
+import { turnKnobTo } from './knobs'
+import { sceneStore, setCrossfade, setLayerOpacity } from './scene'
 import { settingsStore } from './settings'
 
 // Web MIDI: controls feed modulations and mapped targets, the clock feeds the tempo.
@@ -108,12 +109,22 @@ function onMessage(inputId: string, e: MIDIMessageEvent): void {
   const target = (Object.entries(s.map) as [MidiTarget, ControlId][]).find(([, id]) => id === c.id)?.[0]
   const pressed = presses.press(c.id, c.value)
   if (!target) return
-  if (isContinuous(target)) {
-    if (target === 'crossfader') {
-      stopCrossfader()
-      setCrossfade(c.value)
-    } else setLayerOpacity(Number(target.slice(7)) - 1, c.value)
-  } else if (pressed && isAction(target)) runAction(target)
+  if (isContinuous(target)) continuous(target, c.value)
+  else if (pressed && isAction(target)) runAction(target)
+}
+
+function continuous(target: MidiTarget, value: number): void {
+  const n = (prefix: string) => Number(target.slice(prefix.length)) - 1
+  if (target === 'crossfader') {
+    stopCrossfader()
+    setCrossfade(value)
+  } else if (target.startsWith('opacity')) setLayerOpacity(n('opacity'), value)
+  else if (target.startsWith('knob')) turnKnobTo({ bank: 'panel', i: n('knob') }, value)
+  else if (target.startsWith('compKnob')) turnKnobTo({ bank: 'comp', i: n('compKnob') }, value)
+  else if (target.startsWith('layerKnob')) {
+    const s = sceneStore.get()
+    turnKnobTo({ bank: 'layer', layer: s.layers[s.selected].id, i: n('layerKnob') }, value)
+  }
 }
 
 // The panel shows the last control moved; a fader sends many messages a frame.

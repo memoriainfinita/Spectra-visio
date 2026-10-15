@@ -1,4 +1,5 @@
 import { ACTIONS, isAction, type ActionId } from '../live/live'
+import { LEVEL_KNOBS, PANEL_KNOBS } from '../scene/knobs'
 import { MAX_LAYERS } from '../scene/limits'
 
 // MIDI input: messages, controls, the clock and what controls are mapped to.
@@ -95,8 +96,17 @@ export class MidiClock {
 
 // What a control can drive: an action (on a button press or a CC crossing the middle),
 // or a continuous value.
-export const MIDI_TARGETS = [...ACTIONS, 'crossfader', ...Array.from({ length: MAX_LAYERS }, (_, i) => `opacity${i + 1}` as const)] as const
-export type MidiTarget = ActionId | 'crossfader' | `opacity${number}`
+// Knobs: the panel's, the composition's and those of the layer selected at the time.
+const numbered = <P extends string>(prefix: P, n: number) => Array.from({ length: n }, (_, i) => `${prefix}${i + 1}` as `${P}${number}`)
+export const MIDI_TARGETS = [
+  ...ACTIONS,
+  'crossfader',
+  ...numbered('opacity', MAX_LAYERS),
+  ...numbered('knob', PANEL_KNOBS),
+  ...numbered('compKnob', LEVEL_KNOBS),
+  ...numbered('layerKnob', LEVEL_KNOBS),
+] as const
+export type MidiTarget = ActionId | 'crossfader' | `opacity${number}` | `knob${number}` | `compKnob${number}` | `layerKnob${number}`
 
 export const isMidiTarget = (v: unknown): v is MidiTarget => (MIDI_TARGETS as readonly unknown[]).includes(v)
 export const isContinuous = (t: MidiTarget) => !isAction(t)

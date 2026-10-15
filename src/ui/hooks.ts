@@ -31,6 +31,8 @@ const ARROWS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown']
 function ownsKey(target: EventTarget | null, key: string): boolean {
   if (!(target instanceof HTMLElement)) return false
   if (target.isContentEditable || target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement) return true
+  // Drawn sliders, such as the knobs.
+  if (target.getAttribute('role') === 'slider') return ARROWS.includes(key)
   if (!(target instanceof HTMLInputElement)) return false
   if (target.type === 'checkbox' || target.type === 'radio') return key === ' '
   if (target.type === 'range') return ARROWS.includes(key)

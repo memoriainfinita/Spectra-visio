@@ -6,6 +6,7 @@ import { moveCrossfader } from './crossfader'
 import { analysis, player, renderer } from './engine'
 import { toggleRecording } from './record'
 import { transport } from './transport'
+import { launchVariationAt } from './knobs'
 import { launchColumn, sceneStore, tickLaunches } from './scene'
 import { settingsStore } from './settings'
 
@@ -49,6 +50,10 @@ function crossTo(x: number): void {
 export function runAction(id: ActionId): void {
   if (id.startsWith('column')) {
     launchColumn(Number(id.slice(6)) - 1)
+    return
+  }
+  if (id.startsWith('variation')) {
+    launchVariationAt(Number(id.slice(9)) - 1)
     return
   }
   switch (id) {

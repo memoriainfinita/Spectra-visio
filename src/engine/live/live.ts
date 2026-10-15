@@ -1,9 +1,11 @@
+import { MAX_VARIATIONS } from '../scene/knobs'
 import { CLIP_COLUMNS } from '../scene/limits'
 
 // Live control: the actions a key or a MIDI control can trigger, and the output stage
 // (blackout, freeze, strobe).
 
 const COLUMN_ACTIONS = Array.from({ length: CLIP_COLUMNS }, (_, c) => `column${c + 1}` as const)
+const VARIATION_ACTIONS = Array.from({ length: MAX_VARIATIONS }, (_, v) => `variation${v + 1}` as const)
 
 export const ACTIONS = [
   'play',
@@ -21,6 +23,7 @@ export const ACTIONS = [
   'freeze',
   'strobe',
   'record',
+  ...VARIATION_ACTIONS,
 ] as const
 export type ActionId = (typeof ACTIONS)[number]
 

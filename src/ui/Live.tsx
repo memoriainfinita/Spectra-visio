@@ -7,7 +7,9 @@ import { useStore } from './useStore'
 import { useT } from './useT'
 
 export function actionLabel(id: ActionId, t: ReturnType<typeof useT>): string {
-  return id.startsWith('column') ? t('clips.column', { n: id.slice(6) }) : t(`action.${id}` as MessageKey)
+  if (id.startsWith('column')) return t('clips.column', { n: id.slice(6) })
+  if (id.startsWith('variation')) return t('knobs.variationAction', { n: id.slice(9) })
+  return t(`action.${id}` as MessageKey)
 }
 
 // Blackout, freeze and strobe, and crossfader moves. The shortcuts are in Settings.

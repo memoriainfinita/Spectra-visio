@@ -7,6 +7,7 @@ import { EditBar, Splitter, StripSplitter, Zone, zoneGrid } from './ui/dock/Dock
 import { PanelPortals, PanelSlot, type PanelId } from './ui/dock/panels'
 import { SettingsWindow } from './ui/dock/SettingsWindow'
 import { FlashNotice } from './ui/FlashNotice'
+import { KnobMenu } from './ui/KnobMenu'
 import { useFileDrop, usePlayerShortcuts } from './ui/hooks'
 import { Stage } from './ui/Stage'
 import { layoutName, TopBar } from './ui/TopBar'
@@ -39,7 +40,7 @@ function useWidth(): Width {
 }
 
 // The narrow column, in the order the panels were always shown.
-const COLUMN: PanelId[] = ['player', 'queue', 'browser', 'clips', 'live', 'midi', 'output', 'visuals', 'inspector', 'presets', 'shaders', 'vinput', 'sources', 'analysis', 'settings']
+const COLUMN: PanelId[] = ['player', 'queue', 'browser', 'clips', 'knobs', 'live', 'midi', 'output', 'visuals', 'inspector', 'presets', 'shaders', 'vinput', 'sources', 'analysis', 'settings']
 
 export function App() {
   const t = useT()
@@ -107,6 +108,7 @@ export function App() {
       {wide && <SettingsWindow open={settings} onClose={closeSettings} />}
       {wide && <DockWindows />}
       <FlashNotice />
+      <KnobMenu />
 
       {dropping && (
         <div className="drop-overlay" aria-hidden="true">

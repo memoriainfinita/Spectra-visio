@@ -16,6 +16,7 @@ import {
   type EffectTarget,
 } from '../app/scene'
 import { EFFECTS, MAX_EFFECTS, getEffect } from '../engine/effects/registry'
+import { COMP } from '../engine/scene/knobs'
 import { ParamList } from './ParamList'
 import { useStore } from './useStore'
 import { useT } from './useT'
@@ -25,6 +26,8 @@ import { useT } from './useT'
 export function EffectChain({ target }: { target: EffectTarget }) {
   const t = useT()
   const effects = useStore(sceneStore, (s) => chainOf(s, target))
+  // Effect knob targets name the chain by layer id, which outlives moves in the stack.
+  const owner = useStore(sceneStore, (s) => (target === 'comp' ? COMP : (s.layers[target]?.id ?? COMP)))
   const [open, setOpen] = useState<string | null>(null)
   const full = effects.length >= MAX_EFFECTS
   const comp = target === 'comp'
@@ -91,6 +94,7 @@ export function EffectChain({ target }: { target: EffectTarget }) {
                   onAddMod={(id) => addEffectModulation(e.id, id)}
                   onUpdateMod={(id, m) => updateEffectModulation(e.id, id, m)}
                   onRemoveMod={(id, mid) => removeEffectModulation(e.id, id, mid)}
+                  knobTarget={(param) => ({ kind: 'effect', owner, type: e.type, nth: effects.slice(0, i).filter((x) => x.type === e.type).length, param })}
                 />
               )}
             </li>
