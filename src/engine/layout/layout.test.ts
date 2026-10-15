@@ -65,9 +65,9 @@ describe('moving docks', () => {
   })
 
   test('the last tab of a stack takes the stack with it', () => {
-    const l = moveDock(live(), 'perform', { zone: 'right', stack: 0, mode: 'tab' })
-    expect(l.zones.strip).toEqual([{ tabs: ['clips'], active: 0 }])
-    expect(locate(l, 'perform')).toEqual({ zone: 'right', stack: 0, tab: 3 })
+    const l = moveDock(live(), 'clips', { zone: 'right', stack: 0, mode: 'tab' })
+    expect(l.zones.strip).toEqual([{ tabs: ['perform', 'knobs'], active: 0 }])
+    expect(locate(l, 'clips')).toEqual({ zone: 'right', stack: 0, tab: 3 })
   })
 
   test('into an empty zone, and to the end of one', () => {
@@ -75,7 +75,7 @@ describe('moving docks', () => {
     const l = moveDock(lap, 'inspector', { zone: 'right', mode: 'end' })
     expect(l.zones.right).toEqual([{ tabs: ['inspector'], active: 0 }])
     const m = moveDock(live(), 'layers', { zone: 'strip', mode: 'end' })
-    expect(m.zones.strip.map((s) => s.tabs)).toEqual([['clips'], ['perform'], ['layers']])
+    expect(m.zones.strip.map((s) => s.tabs)).toEqual([['clips'], ['perform', 'knobs'], ['layers']])
   })
 
   test('onto its own stack it only shows; below itself only with tabs left behind', () => {
@@ -133,7 +133,7 @@ describe('heights', () => {
     const l = setZoneSizes(builtIn('live'), 'strip', [1.4, null])
     expect(l.zones.strip).toEqual([
       { tabs: ['clips'], active: 0, size: 1.4 },
-      { tabs: ['perform'], active: 0 },
+      { tabs: ['perform', 'knobs'], active: 0 },
     ])
     const live = builtIn('live')
     expect(setZoneSizes(live, 'strip', [1])).toBe(live)
@@ -218,6 +218,23 @@ describe('normalization', () => {
     expect(s.locked).toBe(false)
   })
 
+  test('version 2: Knobs join Performance as a tab, the tab shown kept', () => {
+    const raw = {
+      version: 2,
+      list: [
+        { id: 'live', zones: { left: [{ tabs: ['layers'], active: 0 }], right: [{ tabs: ['inspector', 'audio'], active: 1 }], strip: [{ tabs: ['clips', 'perform'], active: 1 }] } },
+        { id: 'u1', name: 'Sin actuación', zones: { left: [{ tabs: ['layers', 'audio'], active: 1 }], right: [], strip: [] } },
+      ],
+      active: { desktop: 'live', laptop: 'laptop' },
+    }
+    const s = normalizeLayouts(raw)
+    expect(s.version).toBe(LAYOUTS_VERSION)
+    expect(s.list[0].zones.strip).toEqual([{ tabs: ['clips', 'perform', 'knobs'], active: 1 }])
+    expect(s.list.find((l) => l.id === 'u1')!.zones.left).toEqual([{ tabs: ['layers', 'audio', 'knobs'], active: 1 }])
+    // Built-ins never edited come as they ship, Knobs included.
+    expect(locate(s.list.find((l) => l.id === 'laptop')!, 'knobs')).not.toBeNull()
+  })
+
   test('version 1: the Inspector takes the place of Effects, Overlays and Auto go', () => {
     const raw = {
       version: 1,
@@ -230,11 +247,11 @@ describe('normalization', () => {
     }
     const s = normalizeLayouts(raw)
     expect(s.version).toBe(LAYOUTS_VERSION)
-    expect(s.list[0].zones.right).toEqual([{ tabs: ['inspector', 'audio', 'live'], active: 2 }])
+    expect(s.list[0].zones.right).toEqual([{ tabs: ['inspector', 'audio', 'live', 'knobs'], active: 2 }])
     expect(s.list[0].zones.left).toEqual([{ tabs: ['layers', 'library'], active: 1 }])
     expect(s.list[0].widths).toEqual({ left: 300, right: 400 })
     const mine = s.list.find((l) => l.id === 'u1')!
-    expect(mine.zones.left).toEqual([{ tabs: ['audio', 'inspector'], active: 1 }])
+    expect(mine.zones.left).toEqual([{ tabs: ['audio', 'inspector', 'knobs'], active: 1 }])
     expect(s.active.desktop).toBe('u1')
     expect(s.locked).toBe(true)
   })

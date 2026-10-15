@@ -10,6 +10,7 @@ import { useStore } from './useStore'
 import { useT } from './useT'
 import { Hint } from './Hint'
 import { effectNames } from './Inspector'
+import { knobMenu } from './KnobMenu'
 
 // The layer stack, top first as it is seen, and the crossfader. Picking a layer, or the
 // composition above them, shows it in the Inspector.
@@ -66,7 +67,7 @@ export function Visuals() {
                 </button>
               </div>
               <div className="layer-row">
-                <input type="range" className="layer-opacity" aria-label={t('visuals.opacity', { n })} title={t('visuals.opacity', { n })} min={0} max={1} step={0.01} value={l.opacity} onChange={(e) => setLayerOpacity(i, Number(e.target.value))} />
+                <input type="range" className="layer-opacity" {...knobMenu({ kind: 'opacity', layer: l.id })} aria-label={t('visuals.opacity', { n })} title={t('visuals.opacity', { n })} min={0} max={1} step={0.01} value={l.opacity} onChange={(e) => setLayerOpacity(i, Number(e.target.value))} />
                 <select aria-label={t('visuals.blendOf', { n })} title={t('visuals.blendOf', { n })} value={l.blend} onChange={(e) => setLayerBlend(i, e.target.value as BlendMode)}>
                   {BLEND_MODES.map((m) => (
                     <option key={m} value={m}>
@@ -90,7 +91,7 @@ export function Visuals() {
 
       <div className="crossfade-row">
         <span className="mono">A</span>
-        <input type="range" aria-label={t('visuals.crossfade')} min={0} max={1} step={0.01} value={scene.crossfade} onChange={(e) => setCrossfade(Number(e.target.value))} />
+        <input type="range" aria-label={t('visuals.crossfade')} {...knobMenu({ kind: 'crossfade' })} min={0} max={1} step={0.01} value={scene.crossfade} onChange={(e) => setCrossfade(Number(e.target.value))} />
         <span className="mono">B</span>
       </div>
       <Hint text={t('visuals.hint')} />

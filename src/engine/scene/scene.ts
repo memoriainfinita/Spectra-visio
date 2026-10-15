@@ -15,6 +15,7 @@ import {
 import { MAX_EFFECTS, getEffect } from '../effects/registry'
 import { isControl } from '../midi/midi'
 import { CLIP_COLUMNS, MAX_LAYERS } from './limits'
+import { LEVEL_KNOBS, PANEL_KNOBS, emptyKnobs, normalizeKnobs, normalizeVariations, type Knob, type Variation } from './knobs'
 import { defaultOverlays, normalizeOverlays, type OverlaySettings } from '../overlay/settings'
 import { clampParam, defaultParams, getVisual, paramsOf } from '../render/registry'
 import type { ParamDef, Params } from '../render/visual'
@@ -26,9 +27,9 @@ import type { ParamDef, Params } from '../render/visual'
 export const BLEND_MODES = ['normal', 'add', 'screen', 'multiply', 'difference', 'lighten'] as const
 export type BlendMode = (typeof BLEND_MODES)[number]
 
-// 2 added the effect chain, 3 the overlays, 4 the layer stack and the clips. Older scenes
-// load as two layers, A and B, with the old blend on B.
-export const SCENE_VERSION = 4
+// 2 added the effect chain, 3 the overlays, 4 the layer stack and the clips, 5 the knobs
+// and the variations. Older scenes load as two layers, A and B, with the old blend on B.
+export const SCENE_VERSION = 5
 
 export { CLIP_COLUMNS, MAX_LAYERS } from './limits'
 export const SIDES = ['a', 'b'] as const
@@ -82,6 +83,8 @@ export interface LayerState {
   clips: (Clip | null)[]
   // Column of the clip last launched on this layer; null after a change by hand.
   active: number | null
+  // LEVEL_KNOBS knobs of its own, shown in the Inspector.
+  knobs: Knob[]
 }
 
 export interface SceneState {
@@ -97,6 +100,10 @@ export interface SceneState {
   // Seconds a layer takes to fade from one visualization to the next; 0 cuts.
   transition: number
   overlays: OverlaySettings
+  // PANEL_KNOBS on the knob panel, LEVEL_KNOBS of the composition.
+  knobs: Knob[]
+  compKnobs: Knob[]
+  variations: Variation[]
 }
 
 export const TRANSITION_MAX = 10
@@ -106,7 +113,7 @@ let seq = 0
 export const newId = (prefix: string) => `${prefix}${Date.now().toString(36)}${++seq}`
 
 export function newLayer(id: string, visual = DEFAULT_VISUAL, side: Side | null = null): LayerState {
-  return { id, visual, perVisual: {}, opacity: 1, blend: 'normal', bypass: false, solo: false, side, effects: [], clips: new Array(CLIP_COLUMNS).fill(null), active: null }
+  return { id, visual, perVisual: {}, opacity: 1, blend: 'normal', bypass: false, solo: false, side, effects: [], clips: new Array(CLIP_COLUMNS).fill(null), active: null, knobs: emptyKnobs(LEVEL_KNOBS) }
 }
 
 export function defaultScene(): SceneState {
@@ -118,6 +125,9 @@ export function defaultScene(): SceneState {
     effects: [],
     transition: 1.5,
     overlays: defaultOverlays(),
+    knobs: emptyKnobs(PANEL_KNOBS),
+    compKnobs: emptyKnobs(LEVEL_KNOBS),
+    variations: [],
   }
 }
 
@@ -272,6 +282,7 @@ function normalizeLayer(raw: unknown, fallback: LayerState): LayerState {
     effects: normalizeEffects(raw.effects),
     clips,
     active,
+    knobs: fallback.knobs,
   }
 }
 
@@ -288,8 +299,10 @@ export function normalizeScene(raw: unknown): SceneState {
   const d = defaultScene()
   if (!isObj(raw)) return d
   let layers: LayerState[]
-  if (raw.version === SCENE_VERSION) {
-    const list = Array.isArray(raw.layers) ? raw.layers.slice(0, MAX_LAYERS) : []
+  let list: unknown[] = []
+  // Version 4 is version 5 without knobs.
+  if (raw.version === SCENE_VERSION || raw.version === 4) {
+    list = Array.isArray(raw.layers) ? raw.layers.slice(0, MAX_LAYERS) : []
     const ids = new Set<string>()
     layers = []
     list.forEach((r, i) => {
@@ -303,6 +316,12 @@ export function normalizeScene(raw: unknown): SceneState {
   } else {
     layers = legacyLayers(raw)
   }
+  // Knobs once every layer is known: destinations on missing layers go.
+  const ids = new Set(layers.map((l) => l.id))
+  layers = layers.map((l, i) => {
+    const r = list[i]
+    return { ...l, knobs: normalizeKnobs(isObj(r) ? r.knobs : null, LEVEL_KNOBS, ids) }
+  })
   const selected = typeof raw.selected === 'number' && Number.isInteger(raw.selected) ? Math.max(0, Math.min(layers.length - 1, raw.selected)) : 0
   return {
     version: SCENE_VERSION,
@@ -312,5 +331,8 @@ export function normalizeScene(raw: unknown): SceneState {
     effects: normalizeEffects(raw.effects),
     transition: num(raw.transition, 0, TRANSITION_MAX, d.transition),
     overlays: normalizeOverlays(raw.overlays),
+    knobs: normalizeKnobs(raw.knobs, PANEL_KNOBS, ids),
+    compKnobs: normalizeKnobs(raw.compKnobs, LEVEL_KNOBS, ids),
+    variations: normalizeVariations(raw.variations),
   }
 }

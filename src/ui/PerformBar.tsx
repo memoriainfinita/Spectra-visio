@@ -3,6 +3,7 @@ import { liveStore, toggleLive } from '../app/live'
 import { launchColumn, sceneStore, setCrossfade } from '../app/scene'
 import { settingsStore } from '../app/settings'
 import { CLIP_COLUMNS } from '../engine/scene/scene'
+import { knobMenu } from './KnobMenu'
 import { useStore } from './useStore'
 import { useT } from './useT'
 
@@ -31,7 +32,7 @@ export function PerformBar() {
       </div>
       <div className="crossfade-row perform-cross">
         <span className="mono">A</span>
-        <input type="range" aria-label={t('visuals.crossfade')} min={0} max={1} step={0.01} value={crossfade} onChange={(e) => setCrossfade(Number(e.target.value))} />
+        <input type="range" aria-label={t('visuals.crossfade')} {...knobMenu({ kind: 'crossfade' })} min={0} max={1} step={0.01} value={crossfade} onChange={(e) => setCrossfade(Number(e.target.value))} />
         <span className="mono">B</span>
       </div>
       <div className="perform-group">

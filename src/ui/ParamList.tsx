@@ -17,6 +17,8 @@ import {
 } from '../engine/modulation/modulation'
 import { nameOf, type ParamDef, type Params } from '../engine/render/visual'
 import type { MessageKey } from '../i18n'
+import type { KnobTarget } from '../engine/scene/knobs'
+import { knobMenu } from './KnobMenu'
 import { MidiLearn } from './Midi'
 import { useT } from './useT'
 
@@ -39,10 +41,12 @@ export interface ParamListProps {
   onAddMod(id: string): void
   onUpdateMod(id: string, mod: Modulation): void
   onRemoveMod(id: string, modId: string): void
+  // What a knob sets for each parameter; without it, no knob menu (a clip's parameters).
+  knobTarget?: (id: string) => KnobTarget
 }
 
 // Sliders (or lists for named values) with a live mark and their modulation editors.
-export function ParamList({ defs, values, mods, scope, live, onParam, onAddMod, onUpdateMod, onRemoveMod }: ParamListProps) {
+export function ParamList({ defs, values, mods, scope, live, onParam, onAddMod, onUpdateMod, onRemoveMod, knobTarget }: ParamListProps) {
   const t = useT()
   const [open, setOpen] = useState<string | null>(null)
   const markers = useRef(new Map<string, HTMLElement>())
@@ -75,7 +79,7 @@ export function ParamList({ defs, values, mods, scope, live, onParam, onAddMod, 
         const choices = p.options ? p.options.map((o) => t(o)) : p.labels
         return (
           <li key={key} className="param">
-            <div className="param-row">
+            <div className="param-row" {...(knobTarget ? knobMenu(knobTarget(p.id)) : {})}>
               <span className="param-name">{name}</span>
               <div className="param-slider">
                 {choices ? (
