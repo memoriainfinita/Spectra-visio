@@ -1,7 +1,8 @@
 import { Plus } from 'lucide-react'
 import { useEffect } from 'react'
 import { loadThumbnails, thumbsStore } from '../app/library'
-import { clearClip, launchClip, launchColumn, saveClip, sceneStore, selectLayer } from '../app/scene'
+import { inspectClip, inspectLayer } from '../app/inspector'
+import { clearClip, launchClip, launchColumn, queuedStore, saveClip, sceneStore } from '../app/scene'
 import { getVisual } from '../engine/render/registry'
 import { nameOf } from '../engine/render/visual'
 import { CLIP_COLUMNS } from '../engine/scene/scene'
@@ -17,6 +18,7 @@ export function Clips() {
   const layers = useStore(sceneStore, (s) => s.layers)
   const selected = useStore(sceneStore, (s) => s.selected)
   const thumbs = useStore(thumbsStore)
+  const queued = useStore(queuedStore)
   const order = layers.map((_, i) => i).reverse()
 
   useEffect(() => {
@@ -49,21 +51,26 @@ export function Clips() {
               return (
                 <tr key={l.id} className={l.bypass ? 'off' : undefined}>
                   <th scope="row">
-                    <button className={`clip-layer${i === selected ? ' on' : ''}`} aria-pressed={i === selected} title={t('visuals.select', { n })} onClick={() => selectLayer(i)}>
+                    <button className={`clip-layer${i === selected ? ' on' : ''}`} aria-pressed={i === selected} title={t('visuals.select', { n })} onClick={() => inspectLayer(i)}>
                       {n}
                     </button>
                   </th>
                   {COLUMNS.map((c) => {
                     const clip = l.clips[c]
                     const v = clip ? getVisual(clip.visual) : undefined
-                    const label = clip ? t('clips.launch', { name: v ? nameOf(v, t) : clip.visual, n }) : t('clips.save', { n, c: c + 1 })
+                    const name = clip ? (v ? nameOf(v, t) : clip.visual) : ''
+                    const label = !clip ? t('clips.save', { n, c: c + 1 }) : queued.get(l.id) === c ? t('clips.waiting', { name, n }) : clip.launch === 'beat' ? t('clips.launchBeat', { name, n }) : t('clips.launch', { name, n })
                     return (
                       <td key={c}>
                         <button
-                          className={`clip${clip ? '' : ' empty'}${clip && l.active === c ? ' active' : ''}`}
+                          className={`clip${clip ? '' : ' empty'}${clip && l.active === c ? ' active' : ''}${queued.get(l.id) === c ? ' queued' : ''}${clip?.launch === 'beat' ? ' on-beat' : ''}`}
                           title={label}
                           aria-label={label}
-                          onClick={(e) => (clip && !e.shiftKey ? launchClip(i, c) : saveClip(i, c))}
+                          onClick={(e) => {
+                            if (clip && !e.shiftKey) launchClip(i, c)
+                            else saveClip(i, c)
+                            inspectClip(i, c)
+                          }}
                           onContextMenu={(e) => {
                             if (!clip) return
                             e.preventDefault()

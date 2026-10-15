@@ -6,7 +6,7 @@ const kind = process.argv[2] ?? 'firefox'
 const { browser, page, errors } = await open(kind)
 const log = (...a) => console.log(`[${kind}]`, ...a)
 const ov = page.locator('.panel.overlays')
-const vis = page.locator('.panel.visuals')
+const vis = page.locator('.panel.visuals, .panel.inspector')
 
 // Mean brightness of the stage in a 3 × 3 grid, read inside a frame.
 const regions = () => page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => {

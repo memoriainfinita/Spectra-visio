@@ -26,7 +26,7 @@ for (const [i, name] of names.entries()) {
 
 // Option parameter: mirrored bars must be symmetric top to bottom.
 await br.getByRole('button', { name: 'Poner Barras de espectro en la capa 1' }).click()
-await page.locator('.panel.visuals').getByLabel('Disposición', { exact: true }).selectOption({ label: 'En espejo' })
+await page.locator('#insp-layer').getByLabel('Disposición', { exact: true }).selectOption({ label: 'En espejo' })
 await page.waitForTimeout(600)
 log('bars mirrored', JSON.stringify(stats(await grab(page))))
 await shot(page, `${kind}-v6-bars-mirror`)

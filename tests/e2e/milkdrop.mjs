@@ -5,7 +5,7 @@ const kind = process.argv[2] ?? 'firefox'
 const { browser, page, errors } = await open(kind)
 const log = (...a) => console.log(`[${kind}]`, ...a)
 const br = page.locator('.panel.browser')
-const vis = page.locator('.panel.visuals')
+const vis = page.locator('.panel.visuals, .panel.inspector')
 const motion = async () => {
   const a = await grab(page)
   await page.waitForTimeout(300)

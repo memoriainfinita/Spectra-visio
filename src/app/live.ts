@@ -6,7 +6,7 @@ import { moveCrossfader } from './crossfader'
 import { analysis, player, renderer } from './engine'
 import { toggleRecording } from './record'
 import { transport } from './transport'
-import { launchColumn, sceneStore } from './scene'
+import { launchColumn, sceneStore, tickLaunches } from './scene'
 import { settingsStore } from './settings'
 
 // Live switches and the actions keys and MIDI controls trigger. The switches are not kept
@@ -27,11 +27,14 @@ export function initLive(): void {
   renderer.output = liveOutput
 }
 
-// Called by this window's renderer and by the output window's.
+// Called by this window's renderer and by the output window's. Clips waiting for the beat
+// are released here too, so they go on time whichever window draws.
 export function liveOutput(now: number, frame: AnalysisFrame | null): OutputState {
   const { blackout, freeze, strobe } = liveStore.get()
   const { live, reduceFlashes } = settingsStore.get()
-  return stage.tick({ now, blackout, freeze, strobe, rate: live.strobe, reduceFlashes, phase: frame && frame.bpm > 0 ? frame.phase : null })
+  const phase = frame && frame.bpm > 0 ? frame.phase : null
+  tickLaunches(phase)
+  return stage.tick({ now, blackout, freeze, strobe, rate: live.strobe, reduceFlashes, phase })
 }
 
 export function toggleLive(key: keyof LiveState): void {

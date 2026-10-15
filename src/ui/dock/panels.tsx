@@ -4,7 +4,7 @@ import { AnalysisPanel } from '../Analysis'
 import { Auto } from '../Auto'
 import { Browser } from '../Browser'
 import { Clips } from '../Clips'
-import { Effects } from '../Effects'
+import { Inspector } from '../Inspector'
 import { Live } from '../Live'
 import { Midi } from '../Midi'
 import { Output } from '../Output'
@@ -34,12 +34,12 @@ const PANELS = {
   sources: <Sources />,
   analysis: <AnalysisPanel />,
   visuals: <Visuals />,
+  inspector: <Inspector />,
   browser: <Browser />,
   presets: <Presets />,
   shaders: <Shaders />,
   vinput: <VisualInput />,
   overlays: <Overlays />,
-  effects: <Effects />,
   live: <Live />,
   clips: <Clips />,
   auto: <Auto />,

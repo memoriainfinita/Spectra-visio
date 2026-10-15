@@ -4,7 +4,7 @@ import { open, loadTrack, grab, stats, shot, stageError, reveal } from './lib.mj
 const kind = process.argv[2] ?? 'firefox'
 const { browser, page, errors } = await open(kind)
 const log = (...a) => console.log(`[${kind}]`, ...a)
-const fx = page.locator('.panel.effects')
+const fx = page.locator('#insp-layer .effects')
 const add = (label) => fx.getByLabel('Añadir efecto').selectOption({ label })
 const entries = () => fx.locator('.effect-name span').allTextContents()
 const clear = async () => { while (await fx.getByRole('button', { name: 'Quitar efecto' }).count()) await fx.getByRole('button', { name: 'Quitar efecto' }).first().click() }
@@ -72,7 +72,7 @@ await page.waitForTimeout(800)
 await page.reload()
 await page.waitForSelector('.stage canvas')
 await reveal(page)
-await page.waitForSelector('.panel.effects')
+await page.waitForSelector('.panel.inspector')
 await page.waitForTimeout(800)
 log('after reload', await entries(), 'palette enabled:', await fx.getByLabel('Activar Paleta').isChecked())
 log('errors:', errors.length ? '\n  ' + errors.join('\n  ') : 'none')

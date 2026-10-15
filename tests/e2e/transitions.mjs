@@ -1,11 +1,11 @@
 // Phase 5, part 2: fades between visualizations.
-import { open, loadTrack, grab, stats, shot, pickLayer } from './lib.mjs'
+import { open, loadTrack, grab, stats, shot, pickLayer, reveal } from './lib.mjs'
 
 const kind = process.argv[2] ?? 'firefox'
 const { browser, page, errors } = await open(kind)
 const log = (...a) => console.log(`[${kind}]`, ...a)
-const panel = page.locator('.panel.visuals')
-const visual = panel.locator('.field select')
+const panel = page.locator('.panel.visuals, .panel.inspector')
+const visual = page.locator('#insp-layer select[aria-label^="Visualización de la capa"]')
 const transition = panel.getByRole('slider', { name: 'Transición' })
 
 log('playing:', await loadTrack(page))
@@ -52,7 +52,8 @@ await panel.getByRole('slider', { name: 'Crossfader' }).fill('1')
 log('B revealed (plasma, no fade):', await series(600))
 
 await page.reload()
-await page.waitForSelector('.panel.visuals')
-log('transition after reload:', await page.locator('.panel.visuals').getByRole('slider', { name: 'Transición' }).inputValue())
+await page.waitForSelector('.panel.inspector')
+await reveal(page)
+log('transition after reload:', await page.locator('.panel.visuals, .panel.inspector').getByRole('slider', { name: 'Transición' }).inputValue())
 log('errors:', errors.length ? '\n  ' + errors.join('\n  ') : 'none')
 await browser.close()

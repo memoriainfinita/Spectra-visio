@@ -1,44 +1,21 @@
-import { ChevronDown, ChevronUp, Plus, RotateCcw, X } from 'lucide-react'
-import { renderer } from '../app/engine'
-import {
-  addLayer,
-  addModulation,
-  moveLayer,
-  removeLayer,
-  removeModulation,
-  resetParams,
-  sceneStore,
-  selectLayer,
-  setCrossfade,
-  setLayerBlend,
-  setLayerBypass,
-  setLayerOpacity,
-  setLayerSide,
-  setLayerSolo,
-  setParam,
-  setTransition,
-  setVisual,
-  updateModulation,
-} from '../app/scene'
-import { getVisual, paramsOf, visualsStore } from '../engine/render/registry'
+import { ChevronDown, ChevronUp, Plus, X } from 'lucide-react'
+import { inspectComposition, inspectLayer, inspectorStore } from '../app/inspector'
+import { addLayer, moveLayer, removeLayer, sceneStore, setCrossfade, setLayerBlend, setLayerBypass, setLayerOpacity, setLayerSide, setLayerSolo } from '../app/scene'
+import { getVisual } from '../engine/render/registry'
 import { nameOf } from '../engine/render/visual'
-import { BLEND_MODES, MAX_LAYERS, SIDES, TRANSITION_MAX, visualSettings, type BlendMode, type Side } from '../engine/scene/scene'
+import { BLEND_MODES, MAX_LAYERS, SIDES, type BlendMode, type Side } from '../engine/scene/scene'
 import type { MessageKey } from '../i18n'
-import { ParamList } from './ParamList'
 import { useStore } from './useStore'
 import { useT } from './useT'
 import { Hint } from './Hint'
 
-// The layer stack, top first as it is seen, the crossfader and the selected layer's
-// visualization with its parameters.
+// The layer stack, top first as it is seen, and the crossfader. Picking a layer, or the
+// composition under them, shows it in the Inspector.
 export function Visuals() {
   const t = useT()
   const scene = useStore(sceneStore)
-  const visuals = useStore(visualsStore)
+  const comp = useStore(inspectorStore, (s) => s.level === 'comp')
   const sel = scene.selected
-  const layer = scene.layers[sel]
-  const def = getVisual(layer.visual)
-  const settings = visualSettings(layer)
   const full = scene.layers.length >= MAX_LAYERS
   const order = scene.layers.map((_, i) => i).reverse()
 
@@ -59,7 +36,7 @@ export function Visuals() {
           return (
             <li key={l.id} className={`layer${i === sel ? ' selected' : ''}${l.bypass ? ' off' : ''}`}>
               <div className="layer-row">
-                <button className="layer-pick" aria-pressed={i === sel} title={t('visuals.select', { n })} onClick={() => selectLayer(i)}>
+                <button className="layer-pick" aria-pressed={i === sel} title={t('visuals.select', { n })} onClick={() => inspectLayer(i)}>
                   <strong>{n}</strong> <span>{v ? nameOf(v, t) : ''}</span>
                 </button>
                 <button className={`toggle${l.bypass ? ' on' : ''}`} aria-pressed={l.bypass} title={t('visuals.bypass', { n })} aria-label={t('visuals.bypass', { n })} onClick={() => setLayerBypass(i, !l.bypass)}>
@@ -108,39 +85,10 @@ export function Visuals() {
       </div>
       <Hint text={t('visuals.hint')} />
 
-      <label className="field">
-        <span>{t('visuals.transition')}</span>
-        <input type="range" min={0} max={TRANSITION_MAX} step={0.1} value={scene.transition} onChange={(e) => setTransition(Number(e.target.value))} />
-        <span className="mono">{scene.transition > 0 ? `${scene.transition.toFixed(1)} s` : t('visuals.cut')}</span>
-      </label>
-
-      <div className="field">
-        <span>{t('visuals.layer', { n: sel + 1 })}</span>
-        <select value={layer.visual} onChange={(e) => setVisual(sel, e.target.value)}>
-          {visuals.map((v) => (
-            <option key={v.id} value={v.id}>
-              {nameOf(v, t)}
-            </option>
-          ))}
-        </select>
-        <button className="icon-btn small" title={t('visuals.reset')} aria-label={t('visuals.reset')} onClick={() => resetParams(sel)}>
-          <RotateCcw size={15} />
-        </button>
-      </div>
-
-      {def && (
-        <ParamList
-          defs={paramsOf(def)}
-          values={settings.params}
-          mods={settings.mods}
-          scope={`${layer.id}:${layer.visual}`}
-          live={() => renderer.live.get(layer.id)}
-          onParam={(id, v) => setParam(sel, id, v)}
-          onAddMod={(id) => addModulation(sel, id)}
-          onUpdateMod={(id, m) => updateModulation(sel, id, m)}
-          onRemoveMod={(id, mid) => removeModulation(sel, id, mid)}
-        />
-      )}
+      <button className={`layer-comp${comp ? ' on' : ''}`} aria-pressed={comp} onClick={inspectComposition}>
+        <strong>{t('inspector.comp')}</strong>
+        <span>{t('visuals.compHint')}</span>
+      </button>
     </section>
   )
 }

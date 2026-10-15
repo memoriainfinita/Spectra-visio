@@ -16,12 +16,15 @@ import {
   visualSettings,
   TRANSITION_MAX,
   type BlendMode,
+  type Clip,
   type EffectState,
+  type LaunchMode,
   type LayerState,
   type SceneState,
   type Side,
   type VisualSettings,
 } from '../engine/scene/scene'
+import { LaunchQueue } from '../engine/scene/launch'
 
 const KEY = 'scene'
 // Sliders change the scene many times a second; one write per pause is enough.
@@ -116,6 +119,8 @@ export function addLayer(): void {
 
 // The last layer stays.
 export function removeLayer(i: number): void {
+  const gone = sceneStore.get().layers[i]
+  if (gone && sceneStore.get().layers.length > 1) unqueue(gone.id)
   sceneStore.set((s) => {
     if (s.layers.length <= 1 || !s.layers[i]) return s
     const layers = s.layers.filter((_, j) => j !== i)
@@ -158,17 +163,26 @@ export function setLayerSide(i: number, side: Side | null): void {
 
 // --- Clips ---
 
-// Stores what the layer shows in one of its cells.
+// Clips set to launch on the beat, waiting for it.
+const queue = new LaunchQueue()
+// Layer id → column waiting, for the grid to show.
+export const queuedStore = createStore<ReadonlyMap<string, number>>(new Map())
+const publishQueue = () => queuedStore.set(new Map(queue.pending()))
+
+// Stores what the layer shows in one of its cells. A clip saved over keeps its launch mode.
 export function saveClip(layer: number, column: number): void {
   if (column < 0 || column >= CLIP_COLUMNS) return
   editLayer(layer, (l) => {
     const clips = [...l.clips]
-    clips[column] = clipOf(l)
+    const launch = l.clips[column]?.launch
+    clips[column] = launch ? { ...clipOf(l), launch } : clipOf(l)
     return { ...l, clips, active: column }
   })
 }
 
 export function clearClip(layer: number, column: number): void {
+  const l = sceneStore.get().layers[layer]
+  if (l) unqueue(l.id, column)
   editLayer(layer, (l) => {
     const clips = [...l.clips]
     clips[column] = null
@@ -176,16 +190,108 @@ export function clearClip(layer: number, column: number): void {
   })
 }
 
+function unqueue(layerId: string, column?: number): void {
+  const before = queue.size
+  queue.cancel(layerId, column)
+  if (queue.size !== before) publishQueue()
+}
+
+// The clips of `launches` (layer index, column) that wait for the beat go to the queue,
+// unless there is no tempo; the rest, and those already waiting, launch now.
+function launch(launches: [number, number][]): void {
+  const s = sceneStore.get()
+  const now: [number, number][] = []
+  let queued = false
+  for (const [i, c] of launches) {
+    const l = s.layers[i]
+    const clip = l?.clips[c]
+    if (!clip) continue
+    if (clip.launch === 'beat' && queue.tempo && queue.pending().get(l.id) !== c) {
+      queue.add(l.id, c)
+      queued = true
+    } else {
+      queue.cancel(l.id)
+      now.push([i, c])
+    }
+  }
+  if (now.length) sceneStore.set((st) => now.reduce((acc, [i, c]) => (acc.layers[i]?.clips[c] ? applyClip(acc, i, acc.layers[i].clips[c]!, c) : acc), st))
+  if (queued || now.length) publishQueue()
+}
+
+// Clicking a clip that already waits launches it at once.
 export function launchClip(layer: number, column: number): void {
-  sceneStore.set((s) => {
-    const clip = s.layers[layer]?.clips[column]
-    return clip ? applyClip(s, layer, clip, column) : s
-  })
+  launch([[layer, column]])
 }
 
 // One clip per layer from the column; layers with an empty cell keep what they show.
 export function launchColumn(column: number): void {
-  sceneStore.set((s) => s.layers.reduce((acc, l, i) => (l.clips[column] ? applyClip(acc, i, l.clips[column], column) : acc), s))
+  launch(sceneStore.get().layers.map((_, i) => [i, column]))
+}
+
+// Once a frame, with the beat phase or null without a tempo: launches what is due.
+export function tickLaunches(phase: number | null): void {
+  const due = queue.tick(phase)
+  if (!due.length) return
+  sceneStore.set((s) =>
+    due.reduce((acc, [id, c]) => {
+      const i = acc.layers.findIndex((l) => l.id === id)
+      const clip = acc.layers[i]?.clips[c]
+      return clip ? applyClip(acc, i, clip, c) : acc
+    }, s),
+  )
+  publishQueue()
+}
+
+function editClip(layer: number, column: number, change: (c: Clip) => Clip): void {
+  editLayer(layer, (l) => {
+    const clip = l.clips[column]
+    if (!clip) return l
+    const clips = [...l.clips]
+    clips[column] = change(clip)
+    return { ...l, clips }
+  })
+}
+
+export function setClipLaunch(layer: number, column: number, mode: LaunchMode): void {
+  editClip(layer, column, ({ launch: _, ...c }) => (mode === 'beat' ? { ...c, launch: 'beat' } : c))
+  if (mode === 'press') {
+    const l = sceneStore.get().layers[layer]
+    if (l) unqueue(l.id, column)
+  }
+}
+
+// Changes the settings a clip keeps. While the layer plays that clip, the layer changes too.
+function editClipSettings(layer: number, column: number, change: (v: VisualSettings) => VisualSettings): void {
+  editLayer(layer, (l) => {
+    const clip = l.clips[column]
+    if (!clip) return l
+    const clips = [...l.clips]
+    clips[column] = { ...clip, settings: change(clip.settings) }
+    if (l.active !== column || l.visual !== clip.visual) return { ...l, clips }
+    return { ...l, clips, perVisual: { ...l.perVisual, [l.visual]: change(visualSettings(l)) } }
+  })
+}
+
+export function setClipParam(layer: number, column: number, id: string, value: number): void {
+  const clip = sceneStore.get().layers[layer]?.clips[column]
+  const def = clip && getVisual(clip.visual)
+  const p = def && paramsOf(def).find((x) => x.id === id)
+  if (!p) return
+  editClipSettings(layer, column, (v) => ({ ...v, params: { ...v.params, [id]: clampParam(p, value) } }))
+}
+
+export function addClipModulation(layer: number, column: number, param: string): void {
+  // The same one in the clip and in the layer, so later edits find it in both.
+  const mod = newModulation('band')
+  editClipSettings(layer, column, (v) => ({ ...v, mods: { ...v.mods, [param]: [...(v.mods[param] ?? []), mod] } }))
+}
+
+export function updateClipModulation(layer: number, column: number, param: string, mod: Modulation): void {
+  editClipSettings(layer, column, (v) => ({ ...v, mods: { ...v.mods, [param]: (v.mods[param] ?? []).map((m) => (m.id === mod.id ? mod : m)) } }))
+}
+
+export function removeClipModulation(layer: number, column: number, param: string, id: string): void {
+  editClipSettings(layer, column, (v) => ({ ...v, mods: withoutMod(v.mods, param, id) }))
 }
 
 // --- Effect chains: the composition's and one per layer ---

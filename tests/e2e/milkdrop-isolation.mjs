@@ -5,8 +5,8 @@ const kind = process.argv[2] ?? 'firefox'
 const { browser, page, errors } = await open(kind)
 const log = (...a) => console.log(`[${kind}]`, ...a)
 const br = page.locator('.panel.browser')
-const vis = page.locator('.panel.visuals')
-const fx = page.locator('.panel.effects')
+const vis = page.locator('.panel.visuals, .panel.inspector')
+const fx = page.locator('#insp-layer .effects')
 const layer = (n) => pickLayer(page, n === 'A' ? 1 : 2)
 const mean = async () => { let s = 0; for (let i = 0; i < 6; i++) { s += stats(await grab(page)).mean; await page.waitForTimeout(150) } return +(s / 6).toFixed(1) }
 

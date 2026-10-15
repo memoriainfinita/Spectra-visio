@@ -18,7 +18,7 @@ if (!existsSync(file)) {
 
 const { browser, page, errors } = await open(kind)
 const panel = page.locator('.panel.visual-input')
-const ctl = panel.locator('.video-controls')
+const ctl = page.locator('#insp-layer .video-controls')
 const v = () => page.evaluate(() => { const e = document.querySelector('.input-preview video'); return e ? { t: +e.currentTime.toFixed(2), paused: e.paused, rate: e.playbackRate, loop: e.loop } : null })
 // Samples of the clock over `ms`.
 const sample = (ms) => page.evaluate((ms) => new Promise((resolve) => {
