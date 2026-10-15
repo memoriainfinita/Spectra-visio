@@ -105,9 +105,39 @@ await page.waitForFunction(() => !document.querySelector('.panel.clips .clip.que
 log('key 2 waited:', keyWaited, '| active', await clips.locator('.clip.active').getAttribute('aria-label'))
 await page.screenshot({ path: `${OUT}/inspector-clip-${kind}.png` })
 
-// Narrow: the Inspector in the column of panels.
+// The composition row: above the layers, with what it has on.
+await page.getByRole('tab', { name: 'Capas' }).click()
+log('composition row first:', await page.locator('.panel.visuals').evaluate((p) => p.querySelector('.layer-comp')?.compareDocumentPosition(p.querySelector('.layer-list')) === Node.DOCUMENT_POSITION_FOLLOWING), '| says', await page.locator('.layer-comp span').textContent())
+
+// Desktop: a clip does not take the right stack away from what it shows.
+const shownTab = (zone) => page.locator(`.zone-${zone} [role=tab][aria-selected=true]`).first().textContent()
+await page.getByRole('tab', { name: 'Directo', exact: true }).click()
+await clips.getByRole('button', { name: /^Lanzar .* en la capa 1$/ }).first().click()
+log('desktop, clip clicked: right shows', await shownTab('right'), '| level', await shown())
+await page.locator('.panel.visuals .layer-pick').filter({ hasText: /^1 / }).click()
+log('desktop, layer clicked: right shows', await shownTab('right'), '| level', await shown())
+
+// Laptop: Layers and the Inspector share a stack.
+await page.setViewportSize({ width: 1024, height: 768 })
+await page.waitForTimeout(400)
+await page.getByRole('tab', { name: 'Capas' }).click()
+await page.locator('.panel.visuals').getByRole('button', { name: /^Composición/ }).click()
+log('laptop, composition row: left shows', await shownTab('left'), '| level', await shown())
+await page.getByRole('tab', { name: 'Capas' }).click()
+await page.locator('.panel.visuals .layer-pick').filter({ hasText: /^2 / }).click()
+log('laptop, layer 2: left shows', await shownTab('left'), '| level', await shown())
+await page.getByRole('tab', { name: 'Capas' }).click()
+await clips.getByRole('button', { name: /^Lanzar .* en la capa 1$/ }).first().click()
+log('laptop, clip clicked: left shows', await shownTab('left'), '| level', await shown())
+await page.screenshot({ path: `${OUT}/inspector-laptop-${kind}.png` })
+
+// Narrow: the Inspector in the column of panels; picking a layer leaves the layouts alone.
 await page.setViewportSize({ width: 700, height: 900 })
 await page.waitForTimeout(400)
 log('700: inspector', await insp.count(), '| visible', await insp.isVisible())
+await page.locator('.panel.visuals .layer-pick').filter({ hasText: /^1 / }).click()
+await page.setViewportSize({ width: 1024, height: 768 })
+await page.waitForTimeout(400)
+log('back to laptop after a pick at 700: left shows', await shownTab('left'))
 log('errors:', errors.length ? '\n  ' + errors.join('\n  ') : 'none')
 await browser.close()

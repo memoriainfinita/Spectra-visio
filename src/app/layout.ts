@@ -53,10 +53,12 @@ export async function initLayouts(): Promise<void> {
   })
 }
 
-// The layout of the screen width the app is shown at.
+// The layout of the screen width the app is shown at; null below 800 px, with no docks.
 let width: WidthClass = 'desktop'
-export function setWidthClass(w: WidthClass): void {
-  width = w
+let docked = true
+export function setWidthClass(w: WidthClass | null): void {
+  docked = w !== null
+  if (w) width = w
 }
 
 export const currentLayout = (s: Layouts = layoutsStore.get()): Layout => activeLayout(s, width)
@@ -84,8 +86,10 @@ export const setStripHeight = (px: number | null): void => edit((l) => setStripI
 export const setZoneSizes = (zone: ZoneId, sizes: number[], strip?: number): void =>
   edit((l) => setZoneIn(strip === undefined ? l : setStripIn(l, strip), zone, sizes))
 
-// Shows `dock`'s tab, wherever it is in the layout.
+// Shows `dock`'s tab, wherever it is in the layout. Not below 800 px, where every panel is
+// in one column, nor while the dock is in a window of its own.
 export function revealDock(dock: DockId): void {
+  if (!docked || dockUi.get().windows.includes(dock)) return
   edit((l) => {
     for (const zone of ['left', 'right', 'strip'] as const) {
       const i = l.zones[zone].findIndex((s) => s.tabs.includes(dock))

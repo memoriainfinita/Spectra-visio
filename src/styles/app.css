@@ -671,8 +671,11 @@ input[type='range'] { accent-color: var(--accent); }
 .insp-actions { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
 .insp-clip-empty { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
 .insp-clip-empty .empty { align-self: stretch; padding: 16px 8px; }
-.layer-comp { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; width: 100%; margin-top: 10px; padding: 8px 10px; border: 1px dashed var(--border); border-radius: 10px; background: none; cursor: pointer; text-align: left; }
-.layer-comp span { color: var(--muted); font-size: 12px; }
+.layer-comp { display: flex; align-items: center; gap: 8px; width: 100%; margin-top: 12px; padding: 6px 10px; border: 1px dashed var(--border); border-radius: 10px; background: none; cursor: pointer; text-align: left; }
+.layer-comp strong { flex: none; font-size: 13px; }
+.layer-comp span { flex: 1; min-width: 0; text-align: right; color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.layer-comp:hover { background: rgba(255, 255, 255, 0.04); }
+.layer-comp + .layer-list { margin-top: 6px; }
 .layer-comp.on { border-style: solid; border-color: rgba(110, 247, 255, 0.5); background: rgba(110, 247, 255, 0.05); }
 .clip.on-beat { border-bottom: 2px solid var(--accent-2); }
 .clip.queued { border-color: var(--accent-2); animation: clip-wait 0.5s ease-in-out infinite alternate; }
