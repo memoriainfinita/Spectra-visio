@@ -31,21 +31,75 @@ import { LaunchQueue } from '../engine/scene/launch'
 const KEY = 'scene'
 // Sliders change the scene many times a second; one write per pause is enough.
 const SAVE_DELAY_MS = 400
+const SAVE_MAX_WAIT_MS = 2000
 
 export const sceneStore = createStore<SceneState>(defaultScene())
 
-export async function initScene(): Promise<void> {
+// A write to IndexedDB started as the page goes does not finish (Chrome and Firefox,
+// 2026-10-21), so a change still waiting then is kept here, synchronously, until IndexedDB
+// has it. A `spectra.` key, so "Delete all data" clears it.
+const PENDING_KEY = 'spectra.scenePending'
+
+function readPending(): unknown {
   try {
-    sceneStore.set(normalizeScene(await get(KEY)))
+    const raw = localStorage.getItem(PENDING_KEY)
+    return raw ? JSON.parse(raw) : null
+  } catch {
+    return null
+  }
+}
+
+export async function initScene(): Promise<void> {
+  // Only written while a change waited, so newer than what IndexedDB holds.
+  const pending = readPending()
+  try {
+    sceneStore.set(normalizeScene(pending ?? (await get(KEY))))
   } catch {
     // IndexedDB unavailable: start from the default scene.
   }
   let timer = 0
-  sceneStore.subscribe(() => {
+  // Bumped on each copy kept in localStorage: a write started before it does not clear it.
+  let kept = 0
+  const save = () => {
     clearTimeout(timer)
-    timer = window.setTimeout(() => {
-      set(KEY, sceneStore.get()).catch(() => {})
-    }, SAVE_DELAY_MS)
+    timer = 0
+    const at = kept
+    set(KEY, sceneStore.get()).then(
+      () => {
+        if (at !== kept) return
+        try {
+          localStorage.removeItem(PENDING_KEY)
+        } catch {
+          // Storage blocked: nothing was kept there either.
+        }
+      },
+      () => {},
+    )
+  }
+  if (pending) save()
+  // When the first change still waiting came: changes that never pause (a crossfader or a
+  // variation on its way) still get stored every SAVE_MAX_WAIT_MS.
+  let since = 0
+  sceneStore.subscribe(() => {
+    const now = performance.now()
+    if (!timer) since = now
+    clearTimeout(timer)
+    timer = window.setTimeout(save, now - since >= SAVE_MAX_WAIT_MS ? 0 : SAVE_DELAY_MS)
+  })
+  // A change still waiting when the page is hidden, closed or reloaded.
+  const flush = () => {
+    if (!timer) return
+    try {
+      localStorage.setItem(PENDING_KEY, JSON.stringify(sceneStore.get()))
+      kept++
+    } catch {
+      // Too big or storage blocked: IndexedDB may still make it.
+    }
+    save()
+  }
+  addEventListener('pagehide', flush)
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') flush()
   })
 }
 

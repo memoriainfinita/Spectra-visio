@@ -77,11 +77,33 @@ await send([0x80, 40, 0])
 await page.waitForTimeout(100)
 log('note 40 launches column 2:', await cell(1, 2).evaluate((el) => el.classList.contains('active')))
 
-// Names survive a reload.
+// Changes that never pause for 400 ms are still stored: column 1 launched by key every
+// 150 ms for 3 s, after column 2 was stored, with the stored scene read at the end.
+const storedActive = () => page.evaluate(() => new Promise((res) => {
+  const r = indexedDB.open('keyval-store')
+  r.onsuccess = () => { const g = r.result.transaction('keyval').objectStore('keyval').get('scene'); g.onsuccess = () => { res(g.result?.layers[0].active ?? null); r.result.close() } }
+}))
+await page.locator('body').click({ position: { x: 5, y: 5 } })
+await page.keyboard.press('2')
 await page.waitForTimeout(600)
+const before = await storedActive()
+for (let k = 0; k < 20; k++) {
+  await page.keyboard.press('1')
+  await page.waitForTimeout(150)
+}
+log('stored column while launching nonstop: before', before, '| after 3 s', await storedActive())
+
+// Names survive a reload, also a change made right before it (the scene is stored 400 ms
+// after the last change, and at once when the page goes).
+const col3 = clips.locator('thead .clip-col').nth(2)
+await col3.click({ button: 'right' })
+await item('Poner nombre').click()
+await menu.getByRole('textbox').fill('Final')
+await page.keyboard.press('Enter')
 await page.reload()
 await page.waitForSelector('.stage canvas')
-log('after reload: column 2', await clips.locator('thead .clip-col').nth(1).getAttribute('aria-label'), '| cells', await filled())
+await page.waitForTimeout(1500)
+log('after reload: column 2', await clips.locator('thead .clip-col').nth(1).getAttribute('aria-label'), '| column 3, named just before', await col3.getAttribute('aria-label'), '| cells', await filled())
 
 log('errors:', errors.length ? errors : 'none')
 await browser.close()

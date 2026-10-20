@@ -48,6 +48,7 @@ Diseño técnico confirmado por mykl el 2026-10-10. Implementa la lista de `docs
 - Ajustes y presets en IndexedDB con `idb-keyval` 6.3.0, Apache-2.0
 - Archivos copiados, solo si el usuario lo elige, en OPFS. En Chrome, además, referencias a los archivos originales (A)
 - OPFS con `createWritable`: Chrome, Firefox 111 y Safari 26. La copia va por stream porque Firefox carga en memoria un Blob escrito de una vez. Probado en Firefox el 2026-10-10
+- La escena se guarda en IndexedDB 400 ms después del último cambio, y como mucho cada 2 s mientras los cambios no paran (un crossfader o una variación en camino). Un cambio aún pendiente cuando la página se oculta, se cierra o se recarga va además, síncrono, a `localStorage` (clave `spectra.scenePending`): una escritura en IndexedDB empezada en `pagehide` no llega a terminar en Chrome ni en Firefox (comprobado el 2026-10-21). Al arrancar, esa copia manda sobre IndexedDB, se escribe allí y se borra; también se borra en cuanto IndexedDB confirma una escritura posterior
 - `navigator.storage.persist()` no se espera: Firefox pregunta al usuario y la copia no puede quedar parada hasta la respuesta
 
 ## Salidas
