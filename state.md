@@ -1,6 +1,6 @@
 ---
 created: 2026-09-29
-last_updated: 2026-10-21
+last_updated: 2026-10-22
 ---
 
 # Spectra-visio — state
@@ -43,16 +43,16 @@ Visualizador de audio en tiempo real para navegador, reconstruido desde cero en 
   - Revisada a medias por mykl el 2026-10-15 («me gusta mucho»): pidió arreglar la fila Composición de Capas. Desde ese día va encima de las capas, en una línea con el resumen, y pulsar una capa o la Composición trae al frente la pestaña del Inspector; pulsar un clip no (decisión de Claude, para no cambiar la pila en directo)
   - Cambios de la fase 2 respecto al diseño aprobado: el crossfader se queda solo en Capas, no también en Composición; el Inspector muestra el último clip pulsado y no sigue a los clips lanzados con teclas o MIDI
   - Fase 3, hecha el 2026-10-15 con el diseño aprobado por mykl ese día («adelante»): mandos con varios destinos y rango (8 en el muelle nuevo Mandos, 4 de la composición y 4 por capa en el Inspector), menú «Llevar a un mando» con clic derecho, la tecla de menú o Mayús + F10 sobre parámetros, efectos, opacidades y crossfader, MIDI para los mandos y las variaciones, y hasta 8 variaciones de los mandos del panel con transición en golpes (decidido: golpes y no compases, porque la app no sabe dónde empieza el compás). Escena versión 5 y diseños versión 3, con migración. Se dejó fuera, con el diseño aprobado: Mi panel (rejilla libre de controles), aprender MIDI con clic derecho sobre cualquier control y deshacer (fase 5). Detalle en `docs/arquitectura.md`
-  - Sin resolver en la fase 1: los atajos de teclado no funcionan con el foco en la ventana de un muelle; los menús abiertos dentro de esa ventana no se cierran al pulsar fuera
+  - Ventana de muelle, arreglado el 2026-10-22: atajos con el foco en ella; menús y globos abiertos en ella se dibujan allí y se cierran al pulsar fuera. Antes, el menú de mandos se abría en la ventana principal
 - Probado por mykl en su Firefox: fases 2 a 8 (2026-10-10 y 2026-10-11) y la disposición de pestañas laterales, ya sustituida (2026-10-12)
 - Pendiente de la revisión de mykl: fase 9 (OBS real, grabación), fase 10 (móvil real, instalar la app, calidad adaptativa en su equipo) y las fases 1 (muelles), 2 (Inspector) y 3 (mandos) del rediseño
 - Comprobado por Claude, silenciado, en Chrome y Firefox con Playwright: todas las fases, con el detalle de cada una en `state-history.md` (2026-10-12). Las comprobaciones viven en `tests/e2e/` y se pasan con `pnpm e2e`; batería completa en verde el 2026-10-14 tras la fase 1, con `docks.mjs` en lugar de `tabs.mjs` y `fold.mjs`. Batería completa otra vez el 2026-10-15 tras la fase 2, con el guion nuevo `inspector.mjs`: 64 de 66 en verde a la primera; `inspector` en Chrome falló por recargar antes de que se guardara la escena (corregido en el guion, luego en verde en los dos) y `effects` en Firefox falló una vez sin poder reproducirlo (en verde en tres repeticiones sueltas). Tras la fase 3, el mismo día: guion nuevo `knobs.mjs` y las afectadas (knobs, inspector, docks, layers, effects, visuals, presets, transitions, midi, keyboard, live, settings, touch y output-window) en verde en los dos navegadores; la batería completa no se ha vuelto a pasar. 212 tests unitarios en verde
-- La escena se guarda 400 ms después del último cambio y no hay guardado al cerrar la pestaña: lo cambiado en esos últimos 400 ms se pierde al recargar o cerrar. Visto el 2026-10-15; anterior a la fase 2, sin tocar
+- Guardado de la escena, arreglado el 2026-10-22: lo pendiente al ocultar, cerrar o recargar va a `localStorage` (una escritura en IndexedDB empezada en `pagehide` no termina en Chrome ni en Firefox), y con cambios sin pausa se guarda cada 2 s como mucho; antes, en esos casos no se guardaba nada hasta la pausa
 - Sin probar: escuchar a oído emisoras reales del directorio (con emisoras reales, Claude solo comprobó buscar, la comprobación en segundo plano y el arranque); Safari (nada, tampoco `outputLatency`); captura de pestaña en Chrome o Edge; referencias de archivos de Chrome; pistas largas por `<audio>`; stream de otro dominio con CORS real; MIDI con un dispositivo real y con el permiso de Firefox; dos pantallas reales; OBS real y desde GitHub Pages; grabación: sincronía a ojo, Firefox con ventana, sesiones largas; móvil real; instalar la app; calidad adaptativa con una GPU lenta real
 - La versión anterior (canvas, 8 visualizaciones) está en `.archive/v0/`, fuera de git, y en el historial hasta `7a63da1`
 - Investigación de las sesiones en la nube copiada íntegra en `docs/investigacion/`. Se hizo sobre la v0 del `main` de GitHub. Revisada con mykl el 2026-10-20: lo que queda «a estudiar» está en `docs/investigacion/a-estudiar.md`, sin pasar a `docs/funciones.md`, con el CORS de cada fuente de medios, licencias, librerías y modelos comprobados por Claude el 2026-10-20 y 2026-10-21
 - Presets de Milkdrop sin licencia conocida: `butterchurn-presets` solo trae el MIT del autor del paquete (comprobado el 2026-10-21, detalle en R8 de `a-estudiar.md`). Pendiente decidir con mykl antes de publicar
-- Sin hacer, del contrato (`docs/funciones.md`), comprobado en el código el 2026-10-21: menú de clip con clic derecho (hoy el clic derecho solo vacía) y columnas de clips con nombre y nota MIDI
+- Menú de clip y columnas con nombre y nota MIDI: hechos el 2026-10-22 (mykl: «adelante con todo, reviso al final»). Decisiones de Claude: guardar encima de un clip quita su nombre y conserva el modo de lanzar; pegar pone el clip con su nombre y su modo; copiar dura la visita; la nota MIDI de una columna es la misma asignación que «Lanzar la columna» en Ajustes › MIDI. Guion nuevo `clips.mjs`
 - Orden hasta publicar, acordado por mykl el 2026-10-21: 1 menú de clip y columnas con nombre y nota MIDI; 2 los dos fallos de la ventana de muelle y el guardado al cerrar; 3 fase 4; 4 fase 5 con Mi panel y aprender MIDI con clic derecho; 5 batería e2e completa y una ronda de revisión de mykl; 6 presets de Milkdrop y publicar. La entrada visual por capa (diseño aprobado) no tiene sitio en ese orden
 - Repo privado en GitHub, Pages sin activar. Se publicará al terminar la app (decisión de mykl, 2026-10-10). El `main` local no se ha subido: 74 commits por delante de `origin/main` el 2026-10-21. Las sesiones en la nube parten del `main` de GitHub, es decir, de la v0
 
@@ -86,10 +86,11 @@ Las revisiones y pruebas manuales pendientes se harán todas juntas en una sola 
 - [ ] Revisión de la fase 2 del rediseño por mykl en su Firefox
 - [x] Rediseño de la interfaz: fase 3 (panel de mandos con variaciones)
 - [ ] Revisión de la fase 3 del rediseño por mykl en su Firefox
-- [ ] Menú de clip con clic derecho: lanzar, guardar la capa aquí, copiar, pegar, renombrar y vaciar
-- [ ] Columnas de clips con nombre y lanzables con una nota MIDI
-- [ ] Ventana de muelle: atajos de teclado con el foco en ella y cerrar sus menús al pulsar fuera
-- [ ] Guardar la escena al cerrar o recargar la pestaña
+- [x] Menú de clip con clic derecho: lanzar, guardar la capa aquí, copiar, pegar, renombrar y vaciar
+- [x] Columnas de clips con nombre y lanzables con una nota MIDI
+- [x] Ventana de muelle: atajos de teclado con el foco en ella y cerrar sus menús al pulsar fuera
+- [x] Guardar la escena al cerrar o recargar la pestaña
+- [ ] Revisión por mykl del menú de clip, las columnas, la ventana de muelle y el guardado
 - [ ] Rediseño de la interfaz: fase 4 (moduladores compartidos)
 - [ ] Rediseño de la interfaz: fase 5 (buscador Ctrl K y deshacer), con Mi panel y aprender MIDI con clic derecho sobre cualquier control
 - [ ] Entrada visual por capa (diseño aprobado, sin sitio en el orden)
