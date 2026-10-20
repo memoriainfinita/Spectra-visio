@@ -1,6 +1,6 @@
 ---
 created: 2026-09-29
-last_updated: 2026-10-20
+last_updated: 2026-10-21
 ---
 
 # Spectra-visio — state
@@ -50,8 +50,11 @@ Visualizador de audio en tiempo real para navegador, reconstruido desde cero en 
 - La escena se guarda 400 ms después del último cambio y no hay guardado al cerrar la pestaña: lo cambiado en esos últimos 400 ms se pierde al recargar o cerrar. Visto el 2026-10-15; anterior a la fase 2, sin tocar
 - Sin probar: escuchar a oído emisoras reales del directorio (con emisoras reales, Claude solo comprobó buscar, la comprobación en segundo plano y el arranque); Safari (nada, tampoco `outputLatency`); captura de pestaña en Chrome o Edge; referencias de archivos de Chrome; pistas largas por `<audio>`; stream de otro dominio con CORS real; MIDI con un dispositivo real y con el permiso de Firefox; dos pantallas reales; OBS real y desde GitHub Pages; grabación: sincronía a ojo, Firefox con ventana, sesiones largas; móvil real; instalar la app; calidad adaptativa con una GPU lenta real
 - La versión anterior (canvas, 8 visualizaciones) está en `.archive/v0/`, fuera de git, y en el historial hasta `7a63da1`
-- Investigación de las sesiones en la nube (ramas `claude/serene-edison-ztb2a7` y `claude/serene-newton-5j6otx`, sin fusionar) copiada íntegra en `docs/investigacion/` el 2026-10-20. Se hizo sobre la v0 del `main` de GitHub. Revisada con mykl el mismo día: lo que queda «a estudiar» está en `docs/investigacion/a-estudiar.md`, sin pasar a `docs/funciones.md`
-- Repo privado en GitHub, Pages sin activar. Se publicará al terminar la app (decisión de mykl, 2026-10-10)
+- Investigación de las sesiones en la nube copiada íntegra en `docs/investigacion/`. Se hizo sobre la v0 del `main` de GitHub. Revisada con mykl el 2026-10-20: lo que queda «a estudiar» está en `docs/investigacion/a-estudiar.md`, sin pasar a `docs/funciones.md`, con el CORS de cada fuente de medios, licencias, librerías y modelos comprobados por Claude el 2026-10-20 y 2026-10-21
+- Presets de Milkdrop sin licencia conocida: `butterchurn-presets` solo trae el MIT del autor del paquete (comprobado el 2026-10-21, detalle en R8 de `a-estudiar.md`). Pendiente decidir con mykl antes de publicar
+- Sin hacer, del contrato (`docs/funciones.md`), comprobado en el código el 2026-10-21: menú de clip con clic derecho (hoy el clic derecho solo vacía) y columnas de clips con nombre y nota MIDI
+- Orden hasta publicar, acordado por mykl el 2026-10-21: 1 menú de clip y columnas con nombre y nota MIDI; 2 los dos fallos de la ventana de muelle y el guardado al cerrar; 3 fase 4; 4 fase 5 con Mi panel y aprender MIDI con clic derecho; 5 batería e2e completa y una ronda de revisión de mykl; 6 presets de Milkdrop y publicar. La entrada visual por capa (diseño aprobado) no tiene sitio en ese orden
+- Repo privado en GitHub, Pages sin activar. Se publicará al terminar la app (decisión de mykl, 2026-10-10). El `main` local no se ha subido: 74 commits por delante de `origin/main` el 2026-10-21. Las sesiones en la nube parten del `main` de GitHub, es decir, de la v0
 
 ## Patterns
 
@@ -83,7 +86,14 @@ Las revisiones y pruebas manuales pendientes se harán todas juntas en una sola 
 - [ ] Revisión de la fase 2 del rediseño por mykl en su Firefox
 - [x] Rediseño de la interfaz: fase 3 (panel de mandos con variaciones)
 - [ ] Revisión de la fase 3 del rediseño por mykl en su Firefox
+- [ ] Menú de clip con clic derecho: lanzar, guardar la capa aquí, copiar, pegar, renombrar y vaciar
+- [ ] Columnas de clips con nombre y lanzables con una nota MIDI
+- [ ] Ventana de muelle: atajos de teclado con el foco en ella y cerrar sus menús al pulsar fuera
+- [ ] Guardar la escena al cerrar o recargar la pestaña
 - [ ] Rediseño de la interfaz: fase 4 (moduladores compartidos)
+- [ ] Rediseño de la interfaz: fase 5 (buscador Ctrl K y deshacer), con Mi panel y aprender MIDI con clic derecho sobre cualquier control
+- [ ] Entrada visual por capa (diseño aprobado, sin sitio en el orden)
+- [ ] Decidir con mykl qué hacer con los presets de Milkdrop antes de publicar
 - [ ] Al terminar la app: repo público, activar Pages con origen GitHub Actions (`gh api -X POST repos/memoriainfinita/Spectra-visio/pages -f build_type=workflow`) y push
 - [ ] Probar la captura de pestaña en Chrome o Edge
 - [ ] Probar stream con CORS real de otro dominio

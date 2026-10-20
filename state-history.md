@@ -119,3 +119,7 @@ El CDN de images-assets.nasa.gov guarda copias sin la cabecera CORS y las sirve 
 - En Chrome con móvil emulado, el ratón virtual de la emulación dejaba el globo abierto tras el segundo toque: abrir al pasar por encima solo cuenta donde `(hover: hover)`
 - Ajustes deja la columna de paneles por secciones a la izquierda y filas de opción a la derecha, como los ajustes de Claude, a petición de mykl
 - Asas de tamaño: mykl creía que solo se redimensionaba la zona izquierda; la derecha funcionaba pero el asa no se veía. Se hicieron visibles y se añadieron el alto bajo el escenario y el reparto entre pilas
+
+### 2026-10-21 — Ramas de investigación de la nube borradas
+
+- `claude/serene-edison-ztb2a7` y `claude/serene-newton-5j6otx` borradas de GitHub tras comprobar que su contenido es idéntico al copiado en `docs/investigacion/`. Las dos sesiones en la nube partieron del `main` de GitHub, la v0, porque el `main` local no estaba subido: por eso sus hallazgos sobre el código (C1–C6) no aplican
