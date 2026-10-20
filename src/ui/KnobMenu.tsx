@@ -1,10 +1,12 @@
-import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent, type MouseEvent } from 'react'
+import { useRef, type KeyboardEvent } from 'react'
+import { createPortal } from 'react-dom'
 import { addKnobDest, removeKnobDest } from '../app/knobs'
 import { sceneStore } from '../app/scene'
 import { createStore } from '../core/store'
 import { COMP, LEVEL_KNOBS, PANEL_KNOBS, sameTarget, type KnobRef, type KnobTarget } from '../engine/scene/knobs'
 import type { SceneState } from '../engine/scene/scene'
 import { knobAt } from '../engine/scene/turn'
+import { menuHandlers, useMenuBox, type MenuPlace } from './contextMenu'
 import { describeTarget, knobName } from './Knob'
 import { useStore } from './useStore'
 import { useT } from './useT'
@@ -13,35 +15,16 @@ import { useT } from './useT'
 // to put it on a knob of the panel, of the composition or of its layer. A knob that already
 // sets it is ticked, and choosing it again takes it off.
 
-interface MenuState {
-  x: number
-  y: number
+interface MenuState extends MenuPlace {
   target: KnobTarget
-  // Where focus goes back on close.
-  from: HTMLElement | null
 }
 
 const menuStore = createStore<MenuState | null>(null)
 
-// Handlers for what holds the control: right click, and the menu key or Shift+F10 handled
-// here, since not every browser turns them into a context menu.
+// Handlers for what holds the control.
 export function knobMenu(target: KnobTarget) {
-  const openAt = (x: number, y: number) => menuStore.set({ x, y, target, from: document.activeElement as HTMLElement | null })
-  return {
-    onContextMenu: (e: MouseEvent<HTMLElement>) => {
-      e.preventDefault()
-      const r = e.currentTarget.getBoundingClientRect()
-      // A context menu from the keyboard has no pointer: under the control.
-      if (e.clientX === 0 && e.clientY === 0) openAt(r.left, r.bottom)
-      else openAt(e.clientX, e.clientY)
-    },
-    onKeyDown: (e: KeyboardEvent<HTMLElement>) => {
-      if (e.key !== 'ContextMenu' && !(e.shiftKey && e.key === 'F10')) return
-      e.preventDefault()
-      const r = (e.target as HTMLElement).getBoundingClientRect()
-      openAt(r.left, r.bottom)
-    },
-  }
+  const h = menuHandlers(menuStore, { target })
+  return { onContextMenu: h.onContextMenu, onKeyDown: (e: KeyboardEvent<HTMLElement>) => void h.onMenuKey(e) }
 }
 
 // The layer a target belongs to, for the knobs offered: otherwise the selected one.
@@ -56,36 +39,13 @@ export function KnobMenu() {
   const menu = useStore(menuStore)
   const scene = useStore(sceneStore)
   const box = useRef<HTMLDivElement>(null)
-  const [pos, setPos] = useState({ x: 0, y: 0 })
 
   const close = (refocus = true) => {
     const from = menuStore.get()?.from
     menuStore.set(null)
     if (refocus) from?.focus()
   }
-
-  // Kept inside the window, then the first item focused.
-  useLayoutEffect(() => {
-    const el = box.current
-    if (!menu || !el) return
-    const r = el.getBoundingClientRect()
-    setPos({ x: Math.max(4, Math.min(menu.x, innerWidth - r.width - 4)), y: Math.max(4, Math.min(menu.y, innerHeight - r.height - 4)) })
-    el.querySelector<HTMLButtonElement>('[role^=menuitem]')?.focus()
-  }, [menu])
-
-  useEffect(() => {
-    if (!menu) return
-    const onDown = (e: PointerEvent) => {
-      if (!box.current?.contains(e.target as Node)) close(false)
-    }
-    const onScroll = () => close(false)
-    document.addEventListener('pointerdown', onDown)
-    addEventListener('resize', onScroll)
-    return () => {
-      document.removeEventListener('pointerdown', onDown)
-      removeEventListener('resize', onScroll)
-    }
-  }, [menu])
+  const pos = useMenuBox(menu, box, close)
 
   if (!menu) return null
   const layerId = layerOf(scene, menu.target)
@@ -98,7 +58,7 @@ export function KnobMenu() {
 
   const onKey = (e: KeyboardEvent) => {
     const items = [...(box.current?.querySelectorAll<HTMLButtonElement>('[role^=menuitem]') ?? [])]
-    const i = items.indexOf(document.activeElement as HTMLButtonElement)
+    const i = items.indexOf(menu.doc.activeElement as HTMLButtonElement)
     const to = e.key === 'ArrowDown' ? i + 1 : e.key === 'ArrowUp' ? i - 1 : e.key === 'Home' ? 0 : e.key === 'End' ? items.length - 1 : null
     if (e.key === 'Escape' || e.key === 'Tab') {
       e.preventDefault()
@@ -110,7 +70,7 @@ export function KnobMenu() {
     items[(to + items.length) % items.length]?.focus()
   }
 
-  return (
+  return createPortal(
     <div ref={box} className="knob-menu" role="menu" aria-label={t('knobs.menu', { what: describeTarget(scene, menu.target, t) })} style={{ left: pos.x, top: pos.y }} onKeyDown={onKey}>
       <p className="knob-menu-what">{describeTarget(scene, menu.target, t)}</p>
       <p className="knob-menu-title">{t('knobs.toKnob')}</p>
@@ -143,6 +103,7 @@ export function KnobMenu() {
           </div>
         </div>
       ))}
-    </div>
+    </div>,
+    menu.doc.body,
   )
 }
