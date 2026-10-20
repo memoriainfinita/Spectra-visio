@@ -23,14 +23,14 @@ CORS comprobado por Claude el 2026-10-20 desde España, con el origen de GitHub 
 | NASA APOD | Imagen del día | Sí | Sí (`science.nasa.gov`) | `DEMO_KEY` muy limitada; clave gratuita | Sin logos ni sugerir respaldo de la NASA |
 | NASA EPIC | Tierra completa a diario | Sí | No | No | Solo con proxy |
 | Openverse, imagen | Agregador de unos 900 M de imágenes | Sí | Sí: Flickr, iNaturalist, Wikimedia, rawpixel, Geograph, Met, DigitaltMuseum, Museums Victoria, NASA (vía Flickr). No: svgsilh, Science Museum, Wellcome | No; límites bajos sin registrar (varias peticiones seguidas fallaron) | Filtrar o marcar proveedores sin CORS y licencias NC y ND, frecuentes en Flickr e iNaturalist |
-| Openverse, audio | Freesound, Jamendo, Wikimedia | Sí | Sí en Freesound (`cdn.freesound.org`); no en Jamendo | No | |
+| Openverse, audio | Freesound, Jamendo, Wikimedia | Sí | Sí en Freesound (`cdn.freesound.org`) y Wikimedia; no en Jamendo | No | |
 | Met | Obras en Open Access | Sí; búsqueda en `/public/collection/v1.1/search` (la `/v1/search` se retiró el 2026-10-01) | Sí (`images.metmuseum.org`) | No | Una petición por obra para su imagen |
 | Rijksmuseum | Obras en Open Access, CC0 | Sí (Linked Art, `data.rijksmuseum.nl`) | Sí (IIIF en `iiif.micr.io`) | No | Tres peticiones encadenadas por obra hasta la imagen |
 | Smithsonian | Open Access | Sí | Sí (`ids.si.edu`) | Clave gratuita de api.data.gov | |
 | Europeana | Imagen de museos europeos | Sí | Según el museo de origen: Flickr sí, otros no | Clave; hay una de demostración | Comprobar el CORS de cada resultado, como con la TV |
 | Cleveland | Obras CC0 | Sí | No (`openaccess-cdn.clevelandart.org`) | No | Solo con proxy |
 | Art Institute of Chicago | Dominio público por IIIF | Sí | No: Cloudflare bloquea las imágenes desde otras webs, también sin CORS | No | No viable |
-| Internet Archive | Prelinger, animación antigua, Live Music Archive, libros | Sí | No (vídeo de Prelinger) | No | Solo con proxy. Licencia por ítem, muchos sin declarar |
+| Internet Archive | Prelinger, animación antigua, Live Music Archive, libros, imágenes | Sí | Según el formato: MP3 del Live Music Archive e imágenes JPG sí; vídeo `.mp4` no; vídeo `.ogv` sí, pero ni Chrome 152 ni Firefox 155 reproducen Theora | No | Audio e imagen sin proxy; vídeo solo con proxy. Licencia por ítem, muchos sin declarar |
 | Pexels | Imagen y vídeo de stock | Pide clave | Sí (`images.pexels.com`, `videos.pexels.com`) | Sí, 200/h | Con la clave del usuario en Ajustes, sin proxy. Crédito obligatorio |
 | Pixabay | Imagen y vídeo | Pide clave | Sí (`cdn.pixabay.com`) | Sí | Con la clave del usuario. Caché de 24 h; desaconseja enlazar directo |
 | Giphy | GIF, MP4, WebP | Pide clave | Sí | Sí | Con la clave del usuario. La investigación la descartaba por derechos dudosos |
@@ -42,9 +42,9 @@ CORS comprobado por Claude el 2026-10-20 desde España, con el origen de GitHub 
 ### Condiciones transversales
 
 - B1 Marcar cada resultado del buscador como «se puede procesar» o «solo ver», en lugar de esconder lo que no tiene CORS
-- B2 Proxy propio opcional: la app funciona sin él; quien lo quiera pone su URL en Ajustes. Reenvía solo a una lista de servidores y añade CORS. Según la comprobación del 2026-10-20 solo hace falta para Internet Archive, Cleveland, EPIC e imágenes de la NASA
+- B2 Proxy propio opcional: la app funciona sin él; quien lo quiera pone su URL en Ajustes. Reenvía solo a una lista de servidores y añade CORS. Según la comprobación del 2026-10-20 solo hace falta para el vídeo de Internet Archive, Cleveland, EPIC e imágenes de la NASA
 - B8 Claves propias del usuario en Ajustes, como la contraseña de OBS, para Pexels, Pixabay, Giphy, Tenor, Unsplash, Smithsonian, Europeana y APOD: sus archivos envían CORS, así que no hace falta proxy
-- B9 Audio para el reproductor desde Commons, NASA y Freesound, como entra hoy Audius
+- B9 Audio para el reproductor desde Commons, NASA, Freesound y el Live Music Archive, como entra hoy Audius
 - B3 Filtro de licencia en el buscador: «apto para streams» (sin NC), «sin restricciones», «todas». ND: una visualización que deforma la imagen es probablemente obra derivada
 - B4 Créditos en la imagen como rótulo automático y opcional (autor, título, licencia, enlace), con modo «créditos al final» para directo
 - B5 Gestor de medios común para todas las fuentes, con caché sin conexión para preparar un directo sin depender de la red
@@ -113,15 +113,15 @@ CORS comprobado por Claude el 2026-10-20 desde España, con el origen de GitHub 
 
 - R2 WebGPU: solo si I-10, I-14, I-15 o M-10 se quedan cortos en WebGL2. Hoy fuera de alcance en `funciones.md`
 - R3 Three.js (MIT): para la primera visualización 3D con luces
-- R8 Licencia de los presets de Milkdrop: el MIT de Butterchurn cubre el código, no necesariamente los presets. La app incluye 100. Prioritario antes de publicar. Butterchurn lleva años sin versión nueva: el mantenimiento es nuestro
+- R8 Licencia de los presets de Milkdrop: el MIT de Butterchurn cubre el código, no necesariamente los presets. La app incluye 100. Prioritario antes de publicar. Butterchurn lleva años sin versión nueva: el mantenimiento es nuestro. Comprobado el 2026-10-21: `butterchurn-presets` 2.4.7 (1754 presets en `presets/converted/`) solo trae el MIT de Jordan Berg (2013-2018) y un README de una línea, sin autores ni licencias de los presets; los nombres de archivo llevan el autor. Según Wikipedia, los presets circulan de forma informal (foros de Winamp, webs de sus autores), muchos con varios autores, y projectM no incluye presets en su librería: los distribuye en colecciones aparte. No se encontró licencia de los presets: [PENDIENTE: decidir con mykl]
 - R11 Pack de shaders ISF con licencia libre, incluido o descargable
-- R13 Hydra y Essentia.js (AGPL-3.0): comprobar la compatibilidad con la GPL-3.0 de la app, que se publicará con su código
+- R13 Hydra y Essentia.js (AGPL-3.0). Compatibilidad comprobada el 2026-10-21 en la sección 13 de la GPL-3.0 del repo (`LICENSE`): permite combinar con una obra AGPL-3.0 y distribuir el conjunto; la parte GPL sigue con la GPL, y al conjunto se le aplica la sección 13 de la AGPL (ofrecer el código a quien usa la app por red). Paquetes en npm: `hydra-synth` 1.4.0, AGPL, último cambio 2025-09, 1,8 MB, depende de meyda y regl; `essentia.js` 0.1.3, AGPL-3.0, último cambio 2022-05, 10 MB
 - R15 cables.gl (MIT): para prototipar visualizaciones, fuera de la app
 
 ## Análisis
 
-- A1 Centroide espectral, croma y MFCC, con Meyda (MIT) o propios: fuentes de modulación nuevas
-- A2 Tono con pitchy (MIT, McLeod) o pitchfinder (YIN): desbloquea I-09, I-24 y una fuente de modulación «nota»
+- A1 Centroide espectral, croma y MFCC, con Meyda (MIT) o propios: fuentes de modulación nuevas. Comprobado el 2026-10-21: `meyda` 5.6.3, MIT, último cambio 2024-04, 556 KB; su documentación lista `spectralFlux`, `chroma`, `mfcc`, `spectralCentroid`, `spectralFlatness`, `spectralRolloff`, `loudness`, `perceptualSharpness` y otros. Sus dependencias declaradas incluyen herramientas de línea de órdenes (`node-getopt`, `wav`, `@rollup/plugin-node-resolve`)
+- A2 Tono con pitchy (MIT, McLeod) o pitchfinder (YIN): desbloquea I-09, I-24 y una fuente de modulación «nota». Comprobado el 2026-10-21: `pitchy` 4.1.0, MIT, 33 KB, depende de `fft.js`; `pitchfinder` 2.3.4, licencia declarada «GNU v3», 228 KB
 - A5 AudioWorklet propio, si la FFT grande o el tono pesan en el hilo principal
 - A6 FFT de 8192 a 16384: requisito de I-03, I-24 e I-25. La app usa 4096
 - A7 audioMotion-analyzer (AGPL) como referencia de I-02
@@ -153,7 +153,7 @@ CORS comprobado por Claude el 2026-10-20 desde España, con el origen de GitHub 
 - H30 Presets y escenas compartibles por enlace, comprimidos en la URL
 - H31 Pruebas visuales deterministas: reloj y audio fijos, capturas comparadas con una referencia. Chromium sin ventana puede usar render por software; las referencias se generan siempre en el mismo entorno
 - H33 Synesthesia como referencia de escenas e interfaz
-- H34 Clasificación de género o ánimo en local con Transformers.js para el modo automático. Peso del modelo sin medir
+- H34 Clasificación de género o ánimo en local con Transformers.js para el modo automático. Comprobado el 2026-10-21: `@huggingface/transformers` 4.3.1, Apache-2.0. AST de AudioSet (`MIT/ast-finetuned-audioset-10-10-0.4593`, BSD-3), 527 clases, entre ellas géneros (pop, rock, electrónica, house, trance, ambient, clásica…) y ánimo («Happy music», «Sad music», «Funny music»…); en ONNX pesa 51–91 MB cuantizado y 347 MB completo. CLAP (`laion/clap-htsat-unfused`, Apache-2.0), clasificación con etiquetas libres: modelo de audio de 34 MB cuantizado y de texto de 127 MB cuantizado
 
 ## Descartado en la revisión
 
