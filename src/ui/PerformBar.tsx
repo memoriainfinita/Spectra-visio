@@ -3,6 +3,7 @@ import { liveStore, toggleLive } from '../app/live'
 import { launchColumn, sceneStore, setCrossfade } from '../app/scene'
 import { settingsStore } from '../app/settings'
 import { CLIP_COLUMNS } from '../engine/scene/scene'
+import { columnLabel } from './ClipMenu'
 import { knobMenu } from './KnobMenu'
 import { useStore } from './useStore'
 import { useT } from './useT'
@@ -15,6 +16,7 @@ export function PerformBar() {
   const live = useStore(liveStore)
   const reduceFlashes = useStore(settingsStore, (s) => s.reduceFlashes)
   const crossfade = useStore(sceneStore, (s) => s.crossfade)
+  const columns = useStore(sceneStore, (s) => s.columns)
   const auto = useStore(autoStore, (s) => s.enabled)
 
   const toggle = (key: 'blackout' | 'freeze' | 'strobe') => (
@@ -37,7 +39,7 @@ export function PerformBar() {
       </div>
       <div className="perform-group">
         {COLUMNS.map((c) => (
-          <button key={c} className="clip-col" title={t('clips.column', { n: c + 1 })} aria-label={t('clips.column', { n: c + 1 })} onClick={() => launchColumn(c)}>
+          <button key={c} className="clip-col" title={columnLabel(columns, c, t)} aria-label={columnLabel(columns, c, t)} onClick={() => launchColumn(c)}>
             {c + 1}
           </button>
         ))}

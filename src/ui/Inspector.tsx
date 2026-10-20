@@ -32,6 +32,7 @@ import type { MessageKey } from '../i18n'
 import { PanelSlot } from './dock/panels'
 import type { MidiTarget } from '../engine/midi/midi'
 import { LEVEL_KNOBS, type KnobRef } from '../engine/scene/knobs'
+import { clipName } from './ClipMenu'
 import { EffectChain } from './Effects'
 import { KnobDial } from './Knob'
 import { Hint } from './Hint'
@@ -299,7 +300,7 @@ function ClipLevel({ column }: { column: number | null }) {
   const status = waiting ? t('inspector.waiting') : playing ? t('inspector.playing') : ''
   return (
     <>
-      <Fold id="clip.clip" title={def ? nameOf(def, t) : clip.visual} meta={status}>
+      <Fold id="clip.clip" title={clipName(clip, t)} meta={status}>
         <div className="segmented" role="group" aria-label={t('inspector.launch')}>
           {LAUNCH_MODES.map((m) => {
             const on = (clip.launch ?? 'press') === m

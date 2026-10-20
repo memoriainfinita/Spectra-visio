@@ -7,6 +7,7 @@ import { EditBar, Splitter, StripSplitter, Zone, zoneGrid } from './ui/dock/Dock
 import { PanelPortals, PanelSlot, type PanelId } from './ui/dock/panels'
 import { SettingsWindow } from './ui/dock/SettingsWindow'
 import { FlashNotice } from './ui/FlashNotice'
+import { ClipMenu } from './ui/ClipMenu'
 import { KnobMenu } from './ui/KnobMenu'
 import { useFileDrop, usePlayerShortcuts } from './ui/hooks'
 import { Stage } from './ui/Stage'
@@ -109,6 +110,7 @@ export function App() {
       {wide && <DockWindows />}
       <FlashNotice />
       <KnobMenu />
+      <ClipMenu />
 
       {dropping && (
         <div className="drop-overlay" aria-hidden="true">

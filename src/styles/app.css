@@ -477,6 +477,10 @@ input[type='range'] { accent-color: var(--accent); }
 .clip.empty:hover { color: var(--text); }
 .clip.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
 .clip-name { font-size: 10px; padding: 2px; overflow: hidden; }
+.clip { position: relative; }
+.clip-label { position: absolute; left: 0; right: 0; bottom: 0; padding: 1px 3px; background: rgba(0, 0, 0, 0.65); color: var(--text); font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.clip-grid .clip-col { display: flex; align-items: center; justify-content: center; gap: 4px; max-width: 64px; padding: 0 4px; }
+.clip-col-name { min-width: 0; font-family: var(--font); font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .clip-grid tr.off .clip { opacity: 0.5; }
 
 /* Effects */
@@ -681,6 +685,12 @@ input[type='range'] { accent-color: var(--accent); }
 .knob-menu-items { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3px; }
 .knob-menu-item { min-width: 0; height: 30px; padding: 0 4px; border: 1px solid var(--border); border-radius: 6px; background: none; cursor: pointer; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .knob-menu-item:hover, .knob-menu-item:focus-visible { background: rgba(255, 255, 255, 0.08); outline: none; border-color: var(--accent); }
+.clip-menu { width: 220px; }
+.menu-item { display: block; width: 100%; padding: 6px 8px; border: 0; border-radius: 6px; background: none; color: var(--text); cursor: pointer; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.menu-item:hover, .menu-item:focus-visible { background: rgba(255, 255, 255, 0.08); outline: none; }
+.clip-rename { display: flex; gap: 6px; margin: 6px 4px 4px; }
+.clip-rename input { flex: 1; min-width: 0; }
+.clip-menu-midi { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: 4px; padding: 6px 8px 2px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted); }
 .knob-menu-item.on { border-color: var(--accent-2); color: var(--accent-2); background: rgba(255, 139, 241, 0.1); }
 .knobs-body { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 12px 20px; }
 .knob-row { display: grid; grid-template-columns: repeat(8, 64px); gap: 6px 4px; }

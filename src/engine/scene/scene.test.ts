@@ -33,6 +33,15 @@ describe('scene normalization', () => {
     expect(normalizeScene('x')).toEqual(defaultScene())
   })
 
+  test('clip and column names are cleaned; scenes without them load with none', () => {
+    const clips = [{ visual: 'plasma', name: '  Intro   lenta ' }, { visual: 'plasma', name: '   ' }, { visual: 'plasma', name: 'x'.repeat(99) }]
+    const s = normalizeScene({ version: SCENE_VERSION, layers: [{ id: 'a', visual: 'plasma', clips }], columns: [' Verso ', 3, 'y'.repeat(99)] })
+    expect(s.layers[0].clips.slice(0, 3).map((c) => c?.name)).toEqual(['Intro lenta', undefined, 'x'.repeat(40)])
+    expect(s.columns).toHaveLength(CLIP_COLUMNS)
+    expect(s.columns.slice(0, 4)).toEqual(['Verso', '', 'y'.repeat(40), ''])
+    expect(normalizeScene({ version: 4, layers: [{ id: 'a' }] }).columns).toEqual(new Array(CLIP_COLUMNS).fill(''))
+  })
+
   test('scenes before the layer stack become layers A and B, with the old blend on B', () => {
     const s = normalizeScene({ version: 3, layers: [{ visual: 'plasma' }, { visual: 'nope' }], crossfade: 4, blend: 'screen', selected: 1, effects: [{ id: 'f', type: 'mirror' }] })
     expect(s.layers.map((l) => [l.visual, l.side, l.blend])).toEqual([
