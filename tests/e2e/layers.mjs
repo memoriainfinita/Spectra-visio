@@ -64,6 +64,7 @@ await page.keyboard.press('2')
 await page.waitForTimeout(200)
 log('after key 2:', (await layerNames()).split(' | ').at(-1))
 await clips.getByRole('button', { name: /^Lanzar Túnel en la capa 1$/ }).click({ button: 'right' })
+await page.getByRole('menuitem', { name: 'Vaciar' }).click()
 log('cells with a clip after right click:', await clips.locator('.clip:not(.empty)').count())
 
 // Move layer 3 down and remove layer 2; then reload.

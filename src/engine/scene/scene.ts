@@ -28,7 +28,7 @@ export const BLEND_MODES = ['normal', 'add', 'screen', 'multiply', 'difference',
 export type BlendMode = (typeof BLEND_MODES)[number]
 
 // 2 added the effect chain, 3 the overlays, 4 the layer stack and the clips, 5 the knobs
-// and the variations. Older scenes load as two layers, A and B, with the old blend on B.
+// and the variations; clip and column names came later, without a new version. Older scenes load as two layers, A and B, with the old blend on B.
 export const SCENE_VERSION = 5
 
 export { CLIP_COLUMNS, MAX_LAYERS } from './limits'
@@ -58,6 +58,8 @@ export interface Clip {
   effects: EffectState[]
   // 'beat' waits for the next beat; missing launches at once. Presets leave it out.
   launch?: LaunchMode
+  // Given in the clip menu; missing shows the visualization's name.
+  name?: string
 }
 
 export const LAUNCH_MODES = ['press', 'beat'] as const
@@ -104,9 +106,16 @@ export interface SceneState {
   knobs: Knob[]
   compKnobs: Knob[]
   variations: Variation[]
+  // CLIP_COLUMNS names; '' shows the number alone.
+  columns: string[]
 }
 
 export const TRANSITION_MAX = 10
+export const CLIP_NAME_MAX = 40
+
+// Spaces collapsed and trimmed, cut to CLIP_NAME_MAX.
+export const cleanClipName = (name: string) => name.replace(/\s+/g, ' ').trim().slice(0, CLIP_NAME_MAX)
+export const emptyColumns = () => new Array<string>(CLIP_COLUMNS).fill('')
 
 let seq = 0
 // Unique enough across visits: time plus a counter.
@@ -128,6 +137,7 @@ export function defaultScene(): SceneState {
     knobs: emptyKnobs(PANEL_KNOBS),
     compKnobs: emptyKnobs(LEVEL_KNOBS),
     variations: [],
+    columns: emptyColumns(),
   }
 }
 
@@ -254,6 +264,8 @@ function normalizeClip(raw: unknown): Clip | null {
   if (!settings) return null
   const clip: Clip = { visual: raw.visual, settings, effects: normalizeEffects(raw.effects) }
   if (raw.launch === 'beat') clip.launch = 'beat'
+  const name = typeof raw.name === 'string' ? cleanClipName(raw.name) : ''
+  if (name) clip.name = name
   return clip
 }
 
@@ -334,5 +346,9 @@ export function normalizeScene(raw: unknown): SceneState {
     knobs: normalizeKnobs(raw.knobs, PANEL_KNOBS, ids),
     compKnobs: normalizeKnobs(raw.compKnobs, LEVEL_KNOBS, ids),
     variations: normalizeVariations(raw.variations),
+    columns: Array.from({ length: CLIP_COLUMNS }, (_, c) => {
+      const v = Array.isArray(raw.columns) ? raw.columns[c] : undefined
+      return typeof v === 'string' ? cleanClipName(v) : ''
+    }),
   }
 }

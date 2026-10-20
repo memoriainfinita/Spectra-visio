@@ -3,9 +3,8 @@ import { useEffect } from 'react'
 import { loadThumbnails, thumbsStore } from '../app/library'
 import { inspectClip, inspectLayer } from '../app/inspector'
 import { clearClip, launchClip, launchColumn, queuedStore, saveClip, sceneStore } from '../app/scene'
-import { getVisual } from '../engine/render/registry'
-import { nameOf } from '../engine/render/visual'
 import { CLIP_COLUMNS } from '../engine/scene/scene'
+import { clipMenu, clipName, columnLabel } from './ClipMenu'
 import { useStore } from './useStore'
 import { useT } from './useT'
 import { Hint } from './Hint'
@@ -16,6 +15,7 @@ const COLUMNS = Array.from({ length: CLIP_COLUMNS }, (_, c) => c)
 export function Clips() {
   const t = useT()
   const layers = useStore(sceneStore, (s) => s.layers)
+  const columns = useStore(sceneStore, (s) => s.columns)
   const selected = useStore(sceneStore, (s) => s.selected)
   const thumbs = useStore(thumbsStore)
   const queued = useStore(queuedStore)
@@ -35,13 +35,18 @@ export function Clips() {
           <thead>
             <tr>
               <th />
-              {COLUMNS.map((c) => (
-                <th key={c}>
-                  <button className="clip-col" title={t('clips.column', { n: c + 1 })} aria-label={t('clips.column', { n: c + 1 })} onClick={() => launchColumn(c)}>
-                    {c + 1}
-                  </button>
-                </th>
-              ))}
+              {COLUMNS.map((c) => {
+                const label = columnLabel(columns, c, t)
+                const menu = clipMenu({ kind: 'column', column: c })
+                return (
+                  <th key={c}>
+                    <button className="clip-col" title={label} aria-label={label} onClick={() => launchColumn(c)} onContextMenu={menu.onContextMenu} onKeyDown={menu.onMenuKey}>
+                      <span>{c + 1}</span>
+                      {columns[c] && <span className="clip-col-name">{columns[c]}</span>}
+                    </button>
+                  </th>
+                )
+              })}
             </tr>
           </thead>
           <tbody>
@@ -57,9 +62,10 @@ export function Clips() {
                   </th>
                   {COLUMNS.map((c) => {
                     const clip = l.clips[c]
-                    const v = clip ? getVisual(clip.visual) : undefined
-                    const name = clip ? (v ? nameOf(v, t) : clip.visual) : ''
+                    const name = clip ? clipName(clip, t) : ''
                     const label = !clip ? t('clips.save', { n, c: c + 1 }) : queued.get(l.id) === c ? t('clips.waiting', { name, n }) : clip.launch === 'beat' ? t('clips.launchBeat', { name, n }) : t('clips.launch', { name, n })
+                    const menu = clipMenu({ kind: 'clip', layer: l.id, column: c })
+                    const thumb = clip && thumbs[clip.visual]
                     return (
                       <td key={c}>
                         <button
@@ -71,12 +77,9 @@ export function Clips() {
                             else saveClip(i, c)
                             inspectClip(i, c)
                           }}
-                          onContextMenu={(e) => {
-                            if (!clip) return
-                            e.preventDefault()
-                            clearClip(i, c)
-                          }}
+                          onContextMenu={menu.onContextMenu}
                           onKeyDown={(e) => {
+                            if (menu.onMenuKey(e)) return
                             // Shift + Enter saves over a clip, as Shift + click does.
                             if (e.key === 'Enter' && e.shiftKey) {
                               e.preventDefault()
@@ -88,7 +91,8 @@ export function Clips() {
                             clearClip(i, c)
                           }}
                         >
-                          {!clip ? <Plus size={14} /> : thumbs[clip.visual] ? <img src={thumbs[clip.visual]} alt="" /> : <span className="clip-name">{v ? nameOf(v, t) : clip.visual}</span>}
+                          {!clip ? <Plus size={14} /> : thumb ? <img src={thumb} alt="" /> : <span className="clip-name">{name}</span>}
+                          {clip?.name && thumb && <span className="clip-label">{clip.name}</span>}
                         </button>
                       </td>
                     )

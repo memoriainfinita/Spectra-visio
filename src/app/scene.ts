@@ -7,6 +7,7 @@ import {
   CLIP_COLUMNS,
   MAX_LAYERS,
   applyClip,
+  cleanClipName,
   clipOf,
   defaultEffectParams,
   defaultScene,
@@ -173,7 +174,44 @@ const queue = new LaunchQueue()
 export const queuedStore = createStore<ReadonlyMap<string, number>>(new Map())
 const publishQueue = () => queuedStore.set(new Map(queue.pending()))
 
-// Stores what the layer shows in one of its cells. A clip saved over keeps its launch mode.
+// The clip copied last, for "Paste" in the clip menu. Kept for the visit only.
+export const clipboardStore = createStore<Clip | null>(null)
+
+export function copyClip(layer: number, column: number): void {
+  const clip = sceneStore.get().layers[layer]?.clips[column]
+  if (clip) clipboardStore.set(clip)
+}
+
+// The copied clip, with its name and launch mode, over whatever the cell holds.
+export function pasteClip(layer: number, column: number): void {
+  const clip = clipboardStore.get()
+  const l = sceneStore.get().layers[layer]
+  if (!clip || !l || column < 0 || column >= CLIP_COLUMNS) return
+  unqueue(l.id, column)
+  editLayer(layer, (l) => {
+    const clips = [...l.clips]
+    clips[column] = clip
+    return { ...l, clips, active: l.active === column ? null : l.active }
+  })
+}
+
+// An empty name goes back to the visualization's.
+export function renameClip(layer: number, column: number, name: string): void {
+  const clean = cleanClipName(name)
+  editClip(layer, column, ({ name: _, ...c }) => (clean ? { ...c, name: clean } : c))
+}
+
+export function renameColumn(column: number, name: string): void {
+  if (column < 0 || column >= CLIP_COLUMNS) return
+  sceneStore.set((s) => {
+    const columns = [...s.columns]
+    columns[column] = cleanClipName(name)
+    return { ...s, columns }
+  })
+}
+
+// Stores what the layer shows in one of its cells. A clip saved over keeps its launch mode;
+// its name goes, since it named what was there.
 export function saveClip(layer: number, column: number): void {
   if (column < 0 || column >= CLIP_COLUMNS) return
   editLayer(layer, (l) => {
