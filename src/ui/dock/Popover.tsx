@@ -36,20 +36,23 @@ export function Popover({
     const b = trigger.current
     const el = body.current
     if (!open || !floating || !b || !el) return
+    // The window it is in: a dock can have one of its own.
+    const view = b.ownerDocument.defaultView ?? window
     const r = b.getBoundingClientRect()
     const h = el.offsetHeight
     const w = el.offsetWidth
-    const below = r.bottom + 6 + h <= innerHeight - 8 || r.top - 6 - h < 8
+    const below = r.bottom + 6 + h <= view.innerHeight - 8 || r.top - 6 - h < 8
     setPlace({
       position: 'fixed',
-      left: Math.max(8, Math.min(align === 'end' ? r.right - w : r.left, innerWidth - w - 8)),
-      top: below ? Math.min(r.bottom + 6, innerHeight - h - 8) : r.top - 6 - h,
+      left: Math.max(8, Math.min(align === 'end' ? r.right - w : r.left, view.innerWidth - w - 8)),
+      top: below ? Math.min(r.bottom + 6, view.innerHeight - h - 8) : r.top - 6 - h,
       right: 'auto',
     })
   }, [open, floating, align])
 
   useEffect(() => {
-    if (!open) return
+    const doc = box.current?.ownerDocument
+    if (!open || !doc) return
     const onDown = (e: PointerEvent) => {
       if (!box.current?.contains(e.target as Node)) setOpen(false)
     }
@@ -62,13 +65,13 @@ export function Popover({
     const onScroll = (e: Event) => {
       if (floating && !box.current?.contains(e.target as Node)) setOpen(false)
     }
-    document.addEventListener('pointerdown', onDown)
-    document.addEventListener('keydown', onKey)
-    document.addEventListener('scroll', onScroll, true)
+    doc.addEventListener('pointerdown', onDown)
+    doc.addEventListener('keydown', onKey)
+    doc.addEventListener('scroll', onScroll, true)
     return () => {
-      document.removeEventListener('pointerdown', onDown)
-      document.removeEventListener('keydown', onKey)
-      document.removeEventListener('scroll', onScroll, true)
+      doc.removeEventListener('pointerdown', onDown)
+      doc.removeEventListener('keydown', onKey)
+      doc.removeEventListener('scroll', onScroll, true)
     }
   }, [open, floating])
 

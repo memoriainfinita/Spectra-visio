@@ -1,4 +1,5 @@
-import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent, type MouseEvent } from 'react'
+import { useRef, useState, type KeyboardEvent } from 'react'
+import { createPortal } from 'react-dom'
 import { mapTarget } from '../app/midi'
 import { clearClip, clipboardStore, copyClip, launchClip, launchColumn, pasteClip, renameClip, renameColumn, saveClip, sceneStore } from '../app/scene'
 import { settingsStore } from '../app/settings'
@@ -7,6 +8,7 @@ import type { MidiTarget } from '../engine/midi/midi'
 import { getVisual } from '../engine/render/registry'
 import { nameOf } from '../engine/render/visual'
 import { CLIP_NAME_MAX, type Clip } from '../engine/scene/scene'
+import { menuHandlers, useMenuBox, type MenuPlace } from './contextMenu'
 import { MidiLearn } from './Midi'
 import { useStore } from './useStore'
 import { useT } from './useT'
@@ -29,34 +31,14 @@ export function columnLabel(names: readonly string[], c: number, t: T): string {
 
 type What = { kind: 'clip'; layer: string; column: number } | { kind: 'column'; column: number }
 
-interface MenuState {
-  x: number
-  y: number
+interface MenuState extends MenuPlace {
   what: What
-  from: HTMLElement | null
 }
 
 const menuStore = createStore<MenuState | null>(null)
 
 // Handlers for a cell or a header, as `knobMenu` does for parameters.
-export function clipMenu(what: What) {
-  const openAt = (x: number, y: number) => menuStore.set({ x, y, what, from: document.activeElement as HTMLElement | null })
-  return {
-    onContextMenu: (e: MouseEvent<HTMLElement>) => {
-      e.preventDefault()
-      const r = e.currentTarget.getBoundingClientRect()
-      if (e.clientX === 0 && e.clientY === 0) openAt(r.left, r.bottom)
-      else openAt(e.clientX, e.clientY)
-    },
-    onMenuKey: (e: KeyboardEvent<HTMLElement>): boolean => {
-      if (e.key !== 'ContextMenu' && !(e.shiftKey && e.key === 'F10')) return false
-      e.preventDefault()
-      const r = e.currentTarget.getBoundingClientRect()
-      openAt(r.left, r.bottom)
-      return true
-    },
-  }
-}
+export const clipMenu = (what: What) => menuHandlers(menuStore, { what })
 
 export function ClipMenu() {
   const t = useT()
@@ -65,7 +47,6 @@ export function ClipMenu() {
   const copied = useStore(clipboardStore)
   const map = useStore(settingsStore, (s) => s.midi.map)
   const box = useRef<HTMLDivElement>(null)
-  const [pos, setPos] = useState({ x: 0, y: 0 })
   const [renaming, setRenaming] = useState<string | null>(null)
 
   const close = (refocus = true) => {
@@ -75,27 +56,7 @@ export function ClipMenu() {
     if (refocus) from?.focus()
   }
 
-  useLayoutEffect(() => {
-    const el = box.current
-    if (!menu || !el) return
-    const r = el.getBoundingClientRect()
-    setPos({ x: Math.max(4, Math.min(menu.x, innerWidth - r.width - 4)), y: Math.max(4, Math.min(menu.y, innerHeight - r.height - 4)) })
-    el.querySelector<HTMLElement>('input, [role^=menuitem]')?.focus()
-  }, [menu, renaming !== null])
-
-  useEffect(() => {
-    if (!menu) return
-    const onDown = (e: PointerEvent) => {
-      if (!box.current?.contains(e.target as Node)) close(false)
-    }
-    const onResize = () => close(false)
-    document.addEventListener('pointerdown', onDown)
-    addEventListener('resize', onResize)
-    return () => {
-      document.removeEventListener('pointerdown', onDown)
-      removeEventListener('resize', onResize)
-    }
-  }, [menu])
+  const pos = useMenuBox(menu, box, close, renaming !== null)
 
   if (!menu) return null
   const { what } = menu
@@ -127,7 +88,7 @@ export function ClipMenu() {
     }
     if (renaming !== null) return
     const items = [...(box.current?.querySelectorAll<HTMLButtonElement>('[role^=menuitem], .midi-learn button') ?? [])]
-    const at = items.indexOf(document.activeElement as HTMLButtonElement)
+    const at = items.indexOf(menu.doc.activeElement as HTMLButtonElement)
     const to = e.key === 'ArrowDown' ? at + 1 : e.key === 'ArrowUp' ? at - 1 : e.key === 'Home' ? 0 : e.key === 'End' ? items.length - 1 : null
     if (to === null) return
     e.preventDefault()
@@ -141,7 +102,7 @@ export function ClipMenu() {
       </button>
     )
 
-  return (
+  return createPortal(
     <div ref={box} className="knob-menu clip-menu" role="menu" aria-label={t('clips.menu', { what: title })} style={{ left: pos.x, top: pos.y }} onKeyDown={onKey}>
       <p className="knob-menu-what">{title}</p>
       {renaming !== null ? (
@@ -183,6 +144,7 @@ export function ClipMenu() {
           </div>
         </>
       )}
-    </div>
+    </div>,
+    menu.doc.body,
   )
 }

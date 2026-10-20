@@ -28,32 +28,39 @@ const ARROWS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown']
 
 // Whether the focused control uses this key itself: text fields and selects use every key,
 // checkboxes Space, sliders the arrows. Anything else is left to the player shortcuts.
+// By tag name, not instanceof: a dock in a window of its own has elements of that window.
 function ownsKey(target: EventTarget | null, key: string): boolean {
-  if (!(target instanceof HTMLElement)) return false
-  if (target.isContentEditable || target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement) return true
+  const el = target as HTMLElement | null
+  if (!el || el.nodeType !== 1) return false
+  const tag = el.tagName
+  if (el.isContentEditable || tag === 'TEXTAREA' || tag === 'SELECT') return true
   // Drawn sliders, such as the knobs.
-  if (target.getAttribute('role') === 'slider') return ARROWS.includes(key)
-  if (!(target instanceof HTMLInputElement)) return false
-  if (target.type === 'checkbox' || target.type === 'radio') return key === ' '
-  if (target.type === 'range') return ARROWS.includes(key)
+  if (el.getAttribute('role') === 'slider') return ARROWS.includes(key)
+  if (tag !== 'INPUT') return false
+  const type = (el as HTMLInputElement).type
+  if (type === 'checkbox' || type === 'radio') return key === ' '
+  if (type === 'range') return ARROWS.includes(key)
   return true
+}
+
+// The live shortcuts, for the app's document and for those of docks in windows of their own.
+export function onShortcutKey(e: KeyboardEvent): void {
+  // A key being captured for a shortcut, or one a focused control uses.
+  if (e.defaultPrevented || ownsKey(e.target, e.key)) return
+  const combo = keyCombo(e)
+  const action = combo && actionForKey(settingsStore.get().live.keys, combo)
+  if (!action) return
+  runAction(action)
+  e.preventDefault()
+  // A focused button would also be clicked by the Space keyup.
+  const focused = (e.target as Node | null)?.ownerDocument?.activeElement as HTMLElement | null | undefined
+  if (focused?.tagName === 'BUTTON') focused.blur()
 }
 
 export function usePlayerShortcuts(): void {
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      // A key being captured for a shortcut, or one a focused control uses.
-      if (e.defaultPrevented || ownsKey(e.target, e.key)) return
-      const combo = keyCombo(e)
-      const action = combo && actionForKey(settingsStore.get().live.keys, combo)
-      if (!action) return
-      runAction(action)
-      e.preventDefault()
-      // A focused button would also be clicked by the Space keyup.
-      if (document.activeElement instanceof HTMLButtonElement) document.activeElement.blur()
-    }
-    document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
+    document.addEventListener('keydown', onShortcutKey)
+    return () => document.removeEventListener('keydown', onShortcutKey)
   }, [])
 }
 

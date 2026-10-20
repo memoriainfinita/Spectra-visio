@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { dockUi } from '../../app/layout'
 import type { DockId } from '../../engine/layout/layout'
+import { onShortcutKey } from '../hooks'
 import { useStore } from '../useStore'
 import { DockBody } from './DockBody'
 
@@ -41,6 +42,8 @@ export function popOut(dock: DockId, title: string): boolean {
   if (!w) return false
   open.set(dock, w)
   roots.set(dock, prepare(w, title))
+  // The live shortcuts work there too.
+  w.document.addEventListener('keydown', onShortcutKey)
   // The dock comes back when its window closes, by the user or with the app.
   w.addEventListener('pagehide', () => bringBack(dock))
   dockUi.set((u) => (u.windows.includes(dock) ? u : { ...u, windows: [...u.windows, dock] }))
