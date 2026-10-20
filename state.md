@@ -50,7 +50,7 @@ Visualizador de audio en tiempo real para navegador, reconstruido desde cero en 
 - La escena se guarda 400 ms después del último cambio y no hay guardado al cerrar la pestaña: lo cambiado en esos últimos 400 ms se pierde al recargar o cerrar. Visto el 2026-10-15; anterior a la fase 2, sin tocar
 - Sin probar: escuchar a oído emisoras reales del directorio (con emisoras reales, Claude solo comprobó buscar, la comprobación en segundo plano y el arranque); Safari (nada, tampoco `outputLatency`); captura de pestaña en Chrome o Edge; referencias de archivos de Chrome; pistas largas por `<audio>`; stream de otro dominio con CORS real; MIDI con un dispositivo real y con el permiso de Firefox; dos pantallas reales; OBS real y desde GitHub Pages; grabación: sincronía a ojo, Firefox con ventana, sesiones largas; móvil real; instalar la app; calidad adaptativa con una GPU lenta real
 - La versión anterior (canvas, 8 visualizaciones) está en `.archive/v0/`, fuera de git, y en el historial hasta `7a63da1`
-- Investigación de las sesiones en la nube (ramas `claude/serene-edison-ztb2a7` y `claude/serene-newton-5j6otx`, sin fusionar) copiada íntegra en `docs/investigacion/` el 2026-10-20. Se hizo sobre la v0 del `main` de GitHub; pendiente decidir con mykl qué se aprovecha
+- Investigación de las sesiones en la nube (ramas `claude/serene-edison-ztb2a7` y `claude/serene-newton-5j6otx`, sin fusionar) copiada íntegra en `docs/investigacion/` el 2026-10-20. Se hizo sobre la v0 del `main` de GitHub. Revisada con mykl el mismo día: lo que queda «a estudiar» está en `docs/investigacion/a-estudiar.md`, sin pasar a `docs/funciones.md`
 - Repo privado en GitHub, Pages sin activar. Se publicará al terminar la app (decisión de mykl, 2026-10-10)
 
 ## Patterns
