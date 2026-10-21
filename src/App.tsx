@@ -9,6 +9,7 @@ import { SettingsWindow } from './ui/dock/SettingsWindow'
 import { FlashNotice } from './ui/FlashNotice'
 import { ClipMenu } from './ui/ClipMenu'
 import { KnobMenu } from './ui/KnobMenu'
+import { Notices } from './ui/Notices'
 import { useFileDrop, usePlayerShortcuts } from './ui/hooks'
 import { Stage } from './ui/Stage'
 import { layoutName, TopBar } from './ui/TopBar'
@@ -111,6 +112,7 @@ export function App() {
       <FlashNotice />
       <KnobMenu />
       <ClipMenu />
+      <Notices />
 
       {dropping && (
         <div className="drop-overlay" aria-hidden="true">

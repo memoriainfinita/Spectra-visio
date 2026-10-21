@@ -3,6 +3,7 @@ import { AutoClock, pickNext, type AutoTrigger } from '../engine/auto/auto'
 import { visualsStore } from '../engine/render/registry'
 import { applyPreset } from '../engine/scene/preset'
 import { moveCrossfader, stopCrossfader } from './crossfader'
+import { withoutHistory } from './history'
 import { analysis, inputs, player } from './engine'
 import { favoritesStore } from './library'
 import { presetsStore } from './presets'
@@ -45,7 +46,11 @@ function loop(now: number): void {
   const p = player.state.get()
   const trackId = p.status === 'playing' && inputs.state.get().kind === 'player' ? p.currentId : null
   const why = clock.tick({ now, settings: settingsStore.get().auto, frame: analysis.frame(now), trackId })
-  if (why && change()) autoStore.set((s) => ({ ...s, last: why }))
+  if (!why) return
+  // The auto mode's changes are not edits to undo.
+  let changed = false
+  withoutHistory(() => (changed = change()))
+  if (changed) autoStore.set((s) => ({ ...s, last: why }))
 }
 
 // Visualizations of the chosen pool; the visual input one only while there is an input.
@@ -84,7 +89,7 @@ function change(): boolean {
     if (!id || (id === scene.layers[layer].visual && !alternate)) return false
     setVisual(layer, id)
   }
-  if (alternate) moveCrossfader(hiddenSide === 'b' ? 1 : 0, scene.transition * 1000)
+  if (alternate) moveCrossfader(hiddenSide === 'b' ? 1 : 0, scene.transition * 1000, true)
   return true
 }
 

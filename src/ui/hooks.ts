@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react'
 import { addPicked, player } from '../app/engine'
+import { redo, undo } from '../app/history'
 import { runAction } from '../app/live'
+import { notify } from '../app/notices'
 import { settingsStore } from '../app/settings'
 import { actionForKey, keyCombo } from '../engine/live/live'
 import { fromDrop } from '../engine/player/pick'
+import { translate } from '../i18n'
 import { useStore } from './useStore'
 
 // Playback position, refreshed every frame while playing and on state changes otherwise.
@@ -47,6 +50,7 @@ function ownsKey(target: EventTarget | null, key: string): boolean {
 export function onShortcutKey(e: KeyboardEvent): void {
   // A key being captured for a shortcut, or one a focused control uses.
   if (e.defaultPrevented || ownsKey(e.target, e.key)) return
+  if (undoKey(e)) return
   const combo = keyCombo(e)
   const action = combo && actionForKey(settingsStore.get().live.keys, combo)
   if (!action) return
@@ -55,6 +59,20 @@ export function onShortcutKey(e: KeyboardEvent): void {
   // A focused button would also be clicked by the Space keyup.
   const focused = (e.target as Node | null)?.ownerDocument?.activeElement as HTMLElement | null | undefined
   if (focused?.tagName === 'BUTTON') focused.blur()
+}
+
+// Ctrl Z undoes, Ctrl Shift Z and Ctrl Y redo (Cmd on a Mac). Text fields keep their own.
+function undoKey(e: KeyboardEvent): boolean {
+  if (!(e.ctrlKey || e.metaKey) || e.altKey) return false
+  const k = e.key.toLowerCase()
+  const back = k === 'z' && !e.shiftKey
+  const again = (k === 'z' && e.shiftKey) || (k === 'y' && !e.shiftKey)
+  if (!back && !again) return false
+  e.preventDefault()
+  const lang = settingsStore.get().lang
+  if (back ? undo() : redo()) notify(translate(lang, back ? 'history.undone' : 'history.redone'))
+  else notify(translate(lang, back ? 'history.nothingToUndo' : 'history.nothingToRedo'))
+  return true
 }
 
 export function usePlayerShortcuts(): void {
