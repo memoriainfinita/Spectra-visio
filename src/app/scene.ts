@@ -27,6 +27,7 @@ import {
 } from '../engine/scene/scene'
 import { withoutLayer, type Knob } from '../engine/scene/knobs'
 import { withoutLayer as modsWithoutLayer } from '../engine/modulation/shared'
+import { panelWithoutLayer } from '../engine/scene/panel'
 import { LaunchQueue } from '../engine/scene/launch'
 
 const KEY = 'scene'
@@ -180,12 +181,12 @@ export function removeLayer(i: number): void {
   if (gone && sceneStore.get().layers.length > 1) unqueue(gone.id)
   sceneStore.set((s) => {
     if (s.layers.length <= 1 || !s.layers[i]) return s
-    // Knobs and modulators drop what they set on it.
+    // Knobs, modulators and my panel drop what they set on it.
     const id = s.layers[i].id
     const prune = (list: Knob[]) => list.map((k) => withoutLayer(k, id))
     const layers = s.layers.filter((_, j) => j !== i).map((l) => ({ ...l, knobs: prune(l.knobs) }))
     const selected = s.selected > i || s.selected === layers.length ? s.selected - 1 : s.selected
-    return { ...s, layers, selected: Math.max(0, selected), knobs: prune(s.knobs), compKnobs: prune(s.compKnobs), modulators: s.modulators.map((m) => modsWithoutLayer(m, id)) }
+    return { ...s, layers, selected: Math.max(0, selected), knobs: prune(s.knobs), compKnobs: prune(s.compKnobs), modulators: s.modulators.map((m) => modsWithoutLayer(m, id)), panel: panelWithoutLayer(s.panel, id) }
   })
 }
 

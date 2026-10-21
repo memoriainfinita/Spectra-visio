@@ -1,6 +1,7 @@
 import { CURVES, SMOOTHING_MAX, normalizeSource, type Modulation } from '../modulation/modulation'
 import { MAX_EFFECTS, getEffect } from '../effects/registry'
 import { normalizeModulators, type SharedModulator } from '../modulation/shared'
+import { emptyPanel, normalizePanel, type PanelControl } from './panel'
 import { CLIP_COLUMNS, MAX_LAYERS } from './limits'
 import { LEVEL_KNOBS, PANEL_KNOBS, emptyKnobs, normalizeKnobs, normalizeVariations, type Knob, type Variation } from './knobs'
 import { defaultOverlays, normalizeOverlays, type OverlaySettings } from '../overlay/settings'
@@ -15,7 +16,7 @@ export const BLEND_MODES = ['normal', 'add', 'screen', 'multiply', 'difference',
 export type BlendMode = (typeof BLEND_MODES)[number]
 
 // 2 added the effect chain, 3 the overlays, 4 the layer stack and the clips, 5 the knobs
-// and the variations; clip and column names and the shared modulators came later, without
+// and the variations; clip and column names, the shared modulators and my panel came later, without
 // a new version. Older scenes load as two layers, A and B, with the old blend on B.
 export const SCENE_VERSION = 5
 
@@ -98,6 +99,8 @@ export interface SceneState {
   columns: string[]
   // Shared modulators, each mapped onto any number of parameters.
   modulators: SharedModulator[]
+  // My panel: PANEL_CELLS cells, each with a control or null.
+  panel: (PanelControl | null)[]
 }
 
 export const TRANSITION_MAX = 10
@@ -129,6 +132,7 @@ export function defaultScene(): SceneState {
     variations: [],
     columns: emptyColumns(),
     modulators: [],
+    panel: emptyPanel(),
   }
 }
 
@@ -329,5 +333,6 @@ export function normalizeScene(raw: unknown): SceneState {
       return typeof v === 'string' ? cleanClipName(v) : ''
     }),
     modulators: normalizeModulators(raw.modulators, ids),
+    panel: normalizePanel(raw.panel, ids),
   }
 }

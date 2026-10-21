@@ -9,6 +9,7 @@ import { Knobs } from '../Knobs'
 import { Live } from '../Live'
 import { Midi } from '../Midi'
 import { Modulators } from '../Modulators'
+import { MyPanel } from '../MyPanel'
 import { Output } from '../Output'
 import { Overlays } from '../Overlays'
 import { PerformBar } from '../PerformBar'
@@ -51,6 +52,7 @@ const PANELS = {
   perform: <PerformBar />,
   knobs: <Knobs />,
   modulators: <Modulators />,
+  mypanel: <MyPanel />,
 } satisfies Record<string, ReactNode>
 
 export type PanelId = keyof typeof PANELS

@@ -1,5 +1,6 @@
 import { createStore } from '../core/store'
-import { MidiClock, PressDetector, controlOf, isContinuous, mapControl, parseMidi, type ControlId, type MidiTarget } from '../engine/midi/midi'
+import { MidiClock, PressDetector, controlOf, isContinuous, mapControl, parseMidi, targetOfKey, type ControlId, type MidiTarget } from '../engine/midi/midi'
+import { setTarget } from '../engine/scene/turn'
 import { isAction } from '../engine/live/live'
 import { stopCrossfader } from './crossfader'
 import { analysis, renderer } from './engine'
@@ -115,7 +116,9 @@ function onMessage(inputId: string, e: MIDIMessageEvent): void {
 
 function continuous(target: MidiTarget, value: number): void {
   const n = (prefix: string) => Number(target.slice(prefix.length)) - 1
-  if (target === 'crossfader') {
+  const learned = targetOfKey(target)
+  if (learned) sceneStore.set((s) => setTarget(s, learned, value))
+  else if (target === 'crossfader') {
     stopCrossfader()
     setCrossfade(value)
   } else if (target.startsWith('opacity')) setLayerOpacity(n('opacity'), value)

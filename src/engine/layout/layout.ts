@@ -2,7 +2,7 @@
 // Each zone holds stacks one above the other; a stack shows one of its docks at a time,
 // with tabs. The stage itself is never part of a layout, so nothing can cover it.
 
-export const DOCKS = ['layers', 'inspector', 'library', 'clips', 'audio', 'live', 'perform', 'knobs', 'modulators'] as const
+export const DOCKS = ['layers', 'inspector', 'library', 'clips', 'audio', 'live', 'perform', 'knobs', 'modulators', 'mypanel'] as const
 export type DockId = (typeof DOCKS)[number]
 
 export const ZONES = ['left', 'right', 'strip'] as const
@@ -17,8 +17,8 @@ export const BUILT_IN = ['live', 'prepare', 'two', 'laptop'] as const
 export type BuiltInId = (typeof BUILT_IN)[number]
 
 // 2 put the Inspector in place of the docks Effects, Overlays and Auto; 3 added Knobs, 4
-// Modulators.
-export const LAYOUTS_VERSION = 4
+// Modulators, 5 My panel.
+export const LAYOUTS_VERSION = 5
 export const WIDTH_MIN = 220
 export const WIDTH_MAX = 640
 export const NAME_MAX = 40
@@ -68,22 +68,22 @@ const FACTORY: Record<BuiltInId, Omit<Layout, 'id' | 'name' | 'strip'>> = {
   // Everything for a show at hand: layers on the left, the rest on the right, clips and
   // the perform controls under the stage.
   live: {
-    zones: { left: [stack('layers', 'library')], right: [stack('inspector', 'audio', 'modulators', 'live')], strip: [stack('clips'), stack('perform', 'knobs')] },
+    zones: { left: [stack('layers', 'library')], right: [stack('inspector', 'audio', 'modulators', 'live')], strip: [stack('clips'), stack('perform', 'knobs', 'mypanel')] },
     widths: { left: 320, right: 360 },
   },
   // Building a set: the libraries first, two stacks on the right.
   prepare: {
-    zones: { left: [stack('library', 'layers')], right: [stack('inspector'), stack('audio', 'modulators', 'live')], strip: [stack('clips', 'perform', 'knobs')] },
+    zones: { left: [stack('library', 'layers')], right: [stack('inspector'), stack('audio', 'modulators', 'live')], strip: [stack('clips', 'perform', 'knobs', 'mypanel')] },
     widths: { left: 380, right: 360 },
   },
   // The image on the projector: the clips get the room.
   two: {
-    zones: { left: [stack('layers', 'audio', 'modulators', 'library')], right: [stack('inspector', 'live')], strip: [stack('clips'), stack('perform', 'knobs')] },
+    zones: { left: [stack('layers', 'audio', 'modulators', 'library')], right: [stack('inspector', 'live')], strip: [stack('clips'), stack('perform', 'knobs', 'mypanel')] },
     widths: { left: 300, right: 340 },
   },
   // One zone with every dock, for narrower screens.
   laptop: {
-    zones: { left: [stack('layers', 'inspector', 'audio', 'modulators', 'library', 'live')], right: [], strip: [stack('clips'), stack('perform', 'knobs')] },
+    zones: { left: [stack('layers', 'inspector', 'audio', 'modulators', 'library', 'live')], right: [], strip: [stack('clips'), stack('perform', 'knobs', 'mypanel')] },
     widths: { left: 340, right: 340 },
   },
 }
@@ -321,10 +321,12 @@ export function normalizeLayouts(raw: unknown): Layouts {
   const d = defaultLayouts()
   if (isObj(raw) && raw.version === 1) raw = migrateV1(raw)
   // Version 2 had no Knobs: they join Performance as a tab. Version 3 had no Modulators:
-  // they join Audio. The tab shown stays.
-  const addKnobs = isObj(raw) && raw.version === 2
-  const addModulators = isObj(raw) && (raw.version === 2 || raw.version === 3)
-  if (addModulators) raw = { ...(raw as Record<string, unknown>), version: LAYOUTS_VERSION }
+  // they join Audio. Version 4 had no My panel: it joins Knobs. The tab shown stays.
+  const from = isObj(raw) ? raw.version : null
+  const addKnobs = from === 2
+  const addModulators = from === 2 || from === 3
+  const addPanel = from === 2 || from === 3 || from === 4
+  if (addPanel) raw = { ...(raw as Record<string, unknown>), version: LAYOUTS_VERSION }
   if (!isObj(raw) || raw.version !== LAYOUTS_VERSION || !Array.isArray(raw.list)) return d
   const stored = raw.list.filter(isObj)
   const byId = (id: string) => stored.find((l) => l.id === id)
@@ -341,6 +343,7 @@ export function normalizeLayouts(raw: unknown): Layouts {
   const active = { ...d.active }
   for (const w of WIDTHS) if (typeof act[w] === 'string' && ids.has(act[w] as string)) active[w] = act[w] as string
   const migrated = list.map((l) => (addKnobs ? withDockAfter(l, 'knobs', 'perform') : l)).map((l) => (addModulators ? withDockAfter(l, 'modulators', 'audio') : l))
+    .map((l) => (addPanel ? withDockAfter(l, 'mypanel', 'knobs') : l))
   return { version: LAYOUTS_VERSION, list: migrated, active, locked: raw.locked === true }
 }
 
