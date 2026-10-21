@@ -1,5 +1,5 @@
 import { Activity, Plus, X } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import {
   BAND_REFS,
   BEAT_REFS,
@@ -12,17 +12,24 @@ import {
   SMOOTHING_MAX,
   SYNC_RATES,
   defaultSource,
+  type ModSource,
   type Modulation,
   type SourceKind,
 } from '../engine/modulation/modulation'
+import { destIndex, isModTarget } from '../engine/modulation/shared'
+import { toUnit } from '../engine/render/registry'
 import { nameOf, type ParamDef, type Params } from '../engine/render/visual'
 import type { MessageKey } from '../i18n'
 import type { KnobTarget } from '../engine/scene/knobs'
+import { mappingStore, toggleModDest } from '../app/modulators'
+import { sceneStore } from '../app/scene'
 import { knobMenu } from './KnobMenu'
 import { MidiLearn } from './Midi'
+import { modulatorName } from './modulatorName'
+import { useStore } from './useStore'
 import { useT } from './useT'
 
-const SOURCE_KINDS: SourceKind[] = ['band', 'beat', 'lfo', 'midi']
+export const SOURCE_KINDS: SourceKind[] = ['band', 'beat', 'lfo', 'midi']
 
 function formatValue(def: ParamDef, v: number): string {
   if (def.int || def.max - def.min >= 100) return String(Math.round(v))
@@ -41,8 +48,21 @@ export interface ParamListProps {
   onAddMod(id: string): void
   onUpdateMod(id: string, mod: Modulation): void
   onRemoveMod(id: string, modId: string): void
-  // What a knob sets for each parameter; without it, no knob menu (a clip's parameters).
+  // What a knob sets for each parameter; without it, no knob menu and no shared modulators
+  // (a clip's parameters).
   knobTarget?: (id: string) => KnobTarget
+}
+
+// How far modulation can take a parameter from its value, in units of its range: the
+// negative amounts down and the positive up, its own and the shared ones.
+function reach(amounts: readonly number[]): [number, number] {
+  let down = 0
+  let up = 0
+  for (const a of amounts) {
+    if (a < 0) down += a
+    else up += a
+  }
+  return [down, up]
 }
 
 // Sliders (or lists for named values) with a live mark and their modulation editors.
@@ -52,6 +72,9 @@ export function ParamList({ defs, values, mods, scope, live, onParam, onAddMod, 
   const markers = useRef(new Map<string, HTMLElement>())
   const liveRef = useRef(live)
   liveRef.current = live
+  const modulators = useStore(sceneStore, (s) => s.modulators)
+  const mapping = useStore(mappingStore)
+  const mapper = mapping ? modulators.find((m) => m.id === mapping) : undefined
 
   // Live position of each parameter after modulation, drawn outside React.
   useEffect(() => {
@@ -77,9 +100,15 @@ export function ParamList({ defs, values, mods, scope, live, onParam, onAddMod, 
         const name = nameOf(p, t)
         const key = `${scope}:${p.id}`
         const choices = p.options ? p.options.map((o) => t(o)) : p.labels
+        const target = knobTarget?.(p.id)
+        const modTarget = target && isModTarget(target) ? target : null
+        const shared = modTarget ? modulators.flatMap((m) => m.dests[destIndex(m, modTarget)]?.amount ?? []) : []
+        const [down, up] = reach([...list.map((m) => m.amount), ...shared])
+        const base = toUnit(p, value)
+        const on = !!(mapper && modTarget && destIndex(mapper, modTarget) >= 0)
         return (
-          <li key={key} className="param">
-            <div className="param-row" {...(knobTarget ? knobMenu(knobTarget(p.id)) : {})}>
+          <li key={key} className={`param${mapper && modTarget ? ' mappable' : ''}${on ? ' mapped' : ''}`}>
+            <div className="param-row" {...(target ? knobMenu(target) : {})}>
               <span className="param-name">{name}</span>
               <div className="param-slider">
                 {choices ? (
@@ -93,6 +122,9 @@ export function ParamList({ defs, values, mods, scope, live, onParam, onAddMod, 
                 ) : (
                   <input type="range" aria-label={name} min={p.min} max={p.max} step={p.int ? 1 : (p.max - p.min) / 200} value={value} onChange={(e) => onParam(p.id, Number(e.target.value))} />
                 )}
+                {!choices && (down || up) ? (
+                  <span className="mod-band" aria-hidden="true" style={{ left: `${Math.max(0, base + down) * 100}%`, right: `${(1 - Math.min(1, base + up)) * 100}%` }} />
+                ) : null}
                 {!choices && (
                   <span
                     className="live-mark"
@@ -115,6 +147,14 @@ export function ParamList({ defs, values, mods, scope, live, onParam, onAddMod, 
                 <Activity size={15} />
                 {list.length > 0 && <span className="badge">{list.length}</span>}
               </button>
+              {mapper && modTarget && (
+                <button
+                  className="map-target"
+                  aria-pressed={on}
+                  aria-label={t(on ? 'modulators.unmapFrom' : 'modulators.mapTo', { name, mod: modulatorName(mapper, modulators, t) })}
+                  onClick={() => toggleModDest(mapper.id, modTarget)}
+                />
+              )}
             </div>
             {open === key && (
               <div className="mods">
@@ -135,11 +175,42 @@ export function ParamList({ defs, values, mods, scope, live, onParam, onAddMod, 
 
 function ModEditor({ mod, onChange, onRemove }: { mod: Modulation; onChange: (m: Modulation) => void; onRemove: () => void }) {
   const t = useT()
-  const src = mod.source
   const set = (patch: Partial<Modulation>) => onChange({ ...mod, ...patch })
-
   return (
     <div className="mod">
+      <SourceFields
+        value={mod}
+        onChange={set}
+        extra={
+          <button className="icon-btn small mod-remove" title={t('mod.remove')} aria-label={t('mod.remove')} onClick={onRemove}>
+            <X size={15} />
+          </button>
+        }
+        amount={
+          <label className="mod-field">
+            <span>{t('mod.amount')}</span>
+            <input type="range" min={-1} max={1} step={0.01} value={mod.amount} onChange={(e) => set({ amount: Number(e.target.value) })} />
+            <span className="mono">{mod.amount > 0 ? '+' : ''}{Math.round(mod.amount * 100)} %</span>
+          </label>
+        }
+      />
+    </div>
+  )
+}
+
+export type SourceSettings = { source: ModSource; curve: Modulation['curve']; smoothing: number }
+
+// A modulation source with its curve and smoothing: a parameter's own modulations and the
+// shared modulators edit them the same way. `extra` ends the first row; `amount` goes
+// before the curve.
+export function SourceFields({ value, onChange, extra, amount }: { value: SourceSettings; onChange: (patch: Partial<SourceSettings>) => void; extra?: ReactNode; amount?: ReactNode }) {
+  const t = useT()
+  const src = value.source
+  const set = onChange
+  const mod = value
+
+  return (
+    <>
       <div className="mod-row">
         <select aria-label={t('mod.source')} value={src.kind} onChange={(e) => set({ source: defaultSource(e.target.value as SourceKind) })}>
           {SOURCE_KINDS.map((k) => (
@@ -185,9 +256,7 @@ function ModEditor({ mod, onChange, onRemove }: { mod: Modulation; onChange: (m:
 
         {src.kind === 'midi' && <MidiLearn control={src.control} onLearn={(control) => set({ source: { ...src, control } })} />}
 
-        <button className="icon-btn small mod-remove" title={t('mod.remove')} aria-label={t('mod.remove')} onClick={onRemove}>
-          <X size={15} />
-        </button>
+        {extra}
       </div>
 
       {src.kind === 'beat' && (
@@ -225,11 +294,7 @@ function ModEditor({ mod, onChange, onRemove }: { mod: Modulation; onChange: (m:
           </label>
         ))}
 
-      <label className="mod-field">
-        <span>{t('mod.amount')}</span>
-        <input type="range" min={-1} max={1} step={0.01} value={mod.amount} onChange={(e) => set({ amount: Number(e.target.value) })} />
-        <span className="mono">{mod.amount > 0 ? '+' : ''}{Math.round(mod.amount * 100)} %</span>
-      </label>
+      {amount}
       <label className="mod-field">
         <span>{t('mod.curve')}</span>
         <select value={mod.curve} onChange={(e) => set({ curve: e.target.value as Modulation['curve'] })}>
@@ -245,6 +310,6 @@ function ModEditor({ mod, onChange, onRemove }: { mod: Modulation; onChange: (m:
         <input type="range" min={0} max={SMOOTHING_MAX} step={10} value={mod.smoothing} onChange={(e) => set({ smoothing: Number(e.target.value) })} />
         <span className="mono">{mod.smoothing} ms</span>
       </label>
-    </div>
+    </>
   )
 }

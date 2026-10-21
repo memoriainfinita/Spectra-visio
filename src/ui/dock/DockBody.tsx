@@ -13,6 +13,7 @@ const CONTENT: Record<Exclude<DockId, 'library'>, PanelId[]> = {
   live: ['live'],
   perform: ['perform'],
   knobs: ['knobs'],
+  modulators: ['modulators'],
 }
 
 export function DockBody({ id }: { id: DockId }) {

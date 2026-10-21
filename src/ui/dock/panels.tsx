@@ -8,6 +8,7 @@ import { Inspector } from '../Inspector'
 import { Knobs } from '../Knobs'
 import { Live } from '../Live'
 import { Midi } from '../Midi'
+import { Modulators } from '../Modulators'
 import { Output } from '../Output'
 import { Overlays } from '../Overlays'
 import { PerformBar } from '../PerformBar'
@@ -49,6 +50,7 @@ const PANELS = {
   settings: <Settings />,
   perform: <PerformBar />,
   knobs: <Knobs />,
+  modulators: <Modulators />,
 } satisfies Record<string, ReactNode>
 
 export type PanelId = keyof typeof PANELS

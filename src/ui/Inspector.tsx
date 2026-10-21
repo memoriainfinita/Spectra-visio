@@ -32,6 +32,7 @@ import type { MessageKey } from '../i18n'
 import { PanelSlot } from './dock/panels'
 import type { MidiTarget } from '../engine/midi/midi'
 import { LEVEL_KNOBS, type KnobRef } from '../engine/scene/knobs'
+import type { SharedModulator } from '../engine/modulation/shared'
 import { clipName } from './ClipMenu'
 import { EffectChain } from './Effects'
 import { KnobDial } from './Knob'
@@ -171,14 +172,24 @@ function CompLevel() {
   )
 }
 
-function modulated(s: VisualSettings): number {
-  return Object.values(s.mods).filter((m) => m.length).length
+// Parameters with a modulation of their own or, given `shared`, a shared modulator on them.
+function modulated(s: VisualSettings, shared: ReadonlySet<string> = new Set()): number {
+  const own = Object.keys(s.mods).filter((id) => s.mods[id].length)
+  return new Set([...own, ...shared]).size
+}
+
+// The parameters of `visual` on `layer` that shared modulators move.
+function sharedOn(mods: readonly SharedModulator[], layer: string, visual: string): Set<string> {
+  const out = new Set<string>()
+  for (const m of mods) for (const d of m.dests) if (d.target.kind === 'param' && d.target.layer === layer && d.target.visual === visual) out.add(d.target.param)
+  return out
 }
 
 function LayerLevel() {
   const t = useT()
   const sel = useStore(sceneStore, (s) => s.selected)
   const layer = useStore(sceneStore, (s) => s.layers[s.selected])
+  const modulators = useStore(sceneStore, (s) => s.modulators)
   const visuals = useStore(visualsStore)
   const video = useStore(videoControlStore, (s) => s.active)
   const def = getVisual(layer.visual)
@@ -202,7 +213,7 @@ function LayerLevel() {
           </button>
         </div>
       </Fold>
-      <Fold id="layer.params" title={t('inspector.params')} meta={t('inspector.paramsMeta', { n: params.length, m: modulated(settings) })}>
+      <Fold id="layer.params" title={t('inspector.params')} meta={t('inspector.paramsMeta', { n: params.length, m: modulated(settings, sharedOn(modulators, layer.id, layer.visual)) })}>
         {def && (
           <ParamList
             defs={params}
