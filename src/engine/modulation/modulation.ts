@@ -1,5 +1,6 @@
 import { KICK, SECTION, type AnalysisFrame } from '../analysis/analyzer'
 import { NAMED_BANDS, type NamedBand } from '../analysis/bands'
+import { isControl } from '../midi/midi'
 
 // Modulation: source → transformation (amount, curve, smoothing) → parameter.
 // Sources give 0–1; contributions are added to the parameter's position in its range.
@@ -51,6 +52,24 @@ export function defaultSource(kind: SourceKind): ModSource {
   return { kind, shape: 'sine', rate: 1, sync: true }
 }
 
+const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v)
+const num = (v: unknown, min: number, max: number, fallback: number) => (typeof v === 'number' && Number.isFinite(v) ? Math.max(min, Math.min(max, v)) : fallback)
+const oneOf = <T>(v: unknown, list: readonly T[], fallback: T): T => (list.includes(v as T) ? (v as T) : fallback)
+
+// A stored source checked; null when it is not one.
+export function normalizeSource(raw: unknown): ModSource | null {
+  if (!isObj(raw)) return null
+  if (raw.kind === 'band') return { kind: 'band', band: oneOf(raw.band, BAND_REFS, 'bass') }
+  if (raw.kind === 'beat') return { kind: 'beat', band: oneOf(raw.band, BEAT_REFS, 'kick'), decay: num(raw.decay, DECAY_MIN, DECAY_MAX, 250) }
+  if (raw.kind === 'lfo') {
+    const sync = raw.sync === true
+    const rate = sync ? oneOf(raw.rate, SYNC_RATES, 1) : num(raw.rate, LFO_RATE_MIN, LFO_RATE_MAX, 1)
+    return { kind: 'lfo', shape: oneOf(raw.shape, LFO_SHAPES, 'sine'), rate, sync }
+  }
+  if (raw.kind === 'midi') return { kind: 'midi', control: isControl(raw.control) ? raw.control : null }
+  return null
+}
+
 let nextId = 0
 export function newModulation(kind: SourceKind = 'band'): Modulation {
   nextId++
@@ -96,11 +115,15 @@ export class Modulator {
   beats = 0
   // Current value of a MIDI control, 0–1; set by the app.
   controls: (id: string) => number = () => 0
+  // Frames advanced, so a shared modulator is worked out once per frame.
+  private tick = 0
+  private readonly sharedTick = new Map<string, number>()
 
   advance(time: number, dt: number, frame: AnalysisFrame | null): void {
     this.time = time
     this.dt = dt
     this.frame = frame
+    this.tick++
     if (frame && frame.bpm > 0) {
       let next = Math.floor(this.beats) + frame.phase
       if (next < this.beats - 0.5) next += 1
@@ -117,7 +140,15 @@ export class Modulator {
     return total
   }
 
-  private output(key: string, m: Modulation): number {
+  // A shared modulator's output this frame, 0–1, the same wherever it is read.
+  shared(id: string, m: Pick<Modulation, 'source' | 'curve' | 'smoothing'>): number {
+    const key = `shared:${id}`
+    if (this.sharedTick.get(key) === this.tick) return this.states.get(key)?.value ?? 0
+    this.sharedTick.set(key, this.tick)
+    return this.output(key, m)
+  }
+
+  private output(key: string, m: Pick<Modulation, 'source' | 'curve' | 'smoothing'>): number {
     let s = this.states.get(key)
     if (!s) {
       s = { value: 0, env: 0, seen: 0, started: false }

@@ -1,19 +1,6 @@
-import {
-  BAND_REFS,
-  BEAT_REFS,
-  CURVES,
-  DECAY_MAX,
-  DECAY_MIN,
-  LFO_RATE_MAX,
-  LFO_RATE_MIN,
-  LFO_SHAPES,
-  SMOOTHING_MAX,
-  SYNC_RATES,
-  type ModSource,
-  type Modulation,
-} from '../modulation/modulation'
+import { CURVES, SMOOTHING_MAX, normalizeSource, type Modulation } from '../modulation/modulation'
 import { MAX_EFFECTS, getEffect } from '../effects/registry'
-import { isControl } from '../midi/midi'
+import { normalizeModulators, type SharedModulator } from '../modulation/shared'
 import { CLIP_COLUMNS, MAX_LAYERS } from './limits'
 import { LEVEL_KNOBS, PANEL_KNOBS, emptyKnobs, normalizeKnobs, normalizeVariations, type Knob, type Variation } from './knobs'
 import { defaultOverlays, normalizeOverlays, type OverlaySettings } from '../overlay/settings'
@@ -28,7 +15,8 @@ export const BLEND_MODES = ['normal', 'add', 'screen', 'multiply', 'difference',
 export type BlendMode = (typeof BLEND_MODES)[number]
 
 // 2 added the effect chain, 3 the overlays, 4 the layer stack and the clips, 5 the knobs
-// and the variations; clip and column names came later, without a new version. Older scenes load as two layers, A and B, with the old blend on B.
+// and the variations; clip and column names and the shared modulators came later, without
+// a new version. Older scenes load as two layers, A and B, with the old blend on B.
 export const SCENE_VERSION = 5
 
 export { CLIP_COLUMNS, MAX_LAYERS } from './limits'
@@ -108,6 +96,8 @@ export interface SceneState {
   variations: Variation[]
   // CLIP_COLUMNS names; '' shows the number alone.
   columns: string[]
+  // Shared modulators, each mapped onto any number of parameters.
+  modulators: SharedModulator[]
 }
 
 export const TRANSITION_MAX = 10
@@ -138,6 +128,7 @@ export function defaultScene(): SceneState {
     compKnobs: emptyKnobs(LEVEL_KNOBS),
     variations: [],
     columns: emptyColumns(),
+    modulators: [],
   }
 }
 
@@ -183,19 +174,6 @@ export function applyClip(scene: SceneState, i: number, clip: Clip, column: numb
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v)
 const num = (v: unknown, min: number, max: number, fallback: number) => (typeof v === 'number' && Number.isFinite(v) ? Math.max(min, Math.min(max, v)) : fallback)
 const oneOf = <T>(v: unknown, list: readonly T[], fallback: T): T => (list.includes(v as T) ? (v as T) : fallback)
-
-function normalizeSource(raw: unknown): ModSource | null {
-  if (!isObj(raw)) return null
-  if (raw.kind === 'band') return { kind: 'band', band: oneOf(raw.band, BAND_REFS, 'bass') }
-  if (raw.kind === 'beat') return { kind: 'beat', band: oneOf(raw.band, BEAT_REFS, 'kick'), decay: num(raw.decay, DECAY_MIN, DECAY_MAX, 250) }
-  if (raw.kind === 'lfo') {
-    const sync = raw.sync === true
-    const rate = sync ? oneOf(raw.rate, SYNC_RATES, 1) : num(raw.rate, LFO_RATE_MIN, LFO_RATE_MAX, 1)
-    return { kind: 'lfo', shape: oneOf(raw.shape, LFO_SHAPES, 'sine'), rate, sync }
-  }
-  if (raw.kind === 'midi') return { kind: 'midi', control: isControl(raw.control) ? raw.control : null }
-  return null
-}
 
 export function normalizeModulation(raw: unknown): Modulation | null {
   if (!isObj(raw) || typeof raw.id !== 'string') return null
@@ -350,5 +328,6 @@ export function normalizeScene(raw: unknown): SceneState {
       const v = Array.isArray(raw.columns) ? raw.columns[c] : undefined
       return typeof v === 'string' ? cleanClipName(v) : ''
     }),
+    modulators: normalizeModulators(raw.modulators, ids),
   }
 }

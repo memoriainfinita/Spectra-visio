@@ -4,6 +4,8 @@ import { EffectChain, type ChainStep } from '../effects/chain'
 import type { OutputState } from '../live/live'
 import { getEffect } from '../effects/registry'
 import { Modulator } from '../modulation/modulation'
+import { effectKey, paramKey } from '../modulation/shared'
+import { COMP } from '../scene/knobs'
 import { fixedRatio, type PixelSize } from '../output/format'
 import { OverlayRenderer, anyOverlay, type OverlayData } from '../overlay/overlay'
 import { layerAmount, visualSettings, type EffectState, type LayerState, type SceneState, type VisualSettings } from '../scene/scene'
@@ -80,6 +82,11 @@ export class Renderer {
   private readonly slots = new Map<string, Slot>()
   private readonly outgoingLive = new Map<string, number>()
   private readonly evaluated = new Set<string>()
+  // This frame's shared modulation of each parameter they reach, by `paramKey` or
+  // `effectKey`, in units of its range.
+  private readonly shared = new Map<string, number>()
+  // Output of each shared modulator this frame, 0–1, for the Modulators dock.
+  readonly modValues = new Map<string, number>()
   // The last image shown before the overlays, kept while the output is frozen.
   private shown: WebGLTexture | null = null
   private surface: Surface = { width: 1, height: 1, dpr: 1 }
@@ -304,6 +311,7 @@ export class Renderer {
       return
     }
     this.modulator.advance(f.time, dt, a)
+    this.sharedModulation(scene)
     this.dropGoneLayers(scene)
     this.evaluated.clear()
     for (const t of stack) t.size(width, height)
@@ -363,7 +371,7 @@ export class Renderer {
     let live = this.live.get(l.id)
     if (!live) this.live.set(l.id, (live = new Map()))
     const def = getVisual(l.visual)
-    layer.render(f, def ? this.evaluate(paramsOf(def), visualSettings(l), `${l.id}:${l.visual}`, live) : {}, this.surface)
+    layer.render(f, def ? this.evaluate(paramsOf(def), visualSettings(l), `${l.id}:${l.visual}`, live, (p) => paramKey(l.id, l.visual, p)) : {}, this.surface)
     const image: LayerImage = { texture: layer.texture, outgoing: null, progress: 1 }
     const fade = slot.outgoing
     if (fade) {
@@ -374,7 +382,7 @@ export class Renderer {
       } else {
         const outDef = getVisual(fade.layer.visualId)
         const settings = visualSettings(l, fade.layer.visualId)
-        const params = outDef ? this.evaluate(paramsOf(outDef), settings, `${l.id}:${fade.layer.visualId}`, this.outgoingLive) : {}
+        const params = outDef ? this.evaluate(paramsOf(outDef), settings, `${l.id}:${fade.layer.visualId}`, this.outgoingLive, (p) => paramKey(l.id, fade.layer.visualId, p)) : {}
         fade.layer.render(f, params, this.surface)
         image.outgoing = fade.layer.texture
         image.progress = smoothstep(p)
@@ -405,13 +413,38 @@ export class Renderer {
       let live = this.effectLive.get(e.id)
       if (!live) this.effectLive.set(e.id, (live = new Map()))
       this.evaluated.add(e.id)
-      steps.push({ id: e.id, type: e.type, params: this.evaluate(def.params, e, `${key}:${e.id}`, live) })
+      steps.push({ id: e.id, type: e.type, params: this.evaluate(def.params, e, `${key}:${e.id}`, live, (p) => effectKey(e.id, p)) })
     }
     return steps
   }
 
-  // Base values plus modulation, clamped to each parameter's range.
-  private evaluate(defs: ParamDef[], settings: VisualSettings, key: string, live: Map<string, number>): Params {
+  // Each shared modulator worked out once, and added up onto the parameters it reaches. An
+  // effect is found by its place in its chain, as knobs find it.
+  private sharedModulation(scene: SceneState): void {
+    this.shared.clear()
+    this.modValues.clear()
+    for (const m of scene.modulators) {
+      const v = this.modulator.shared(m.id, m)
+      this.modValues.set(m.id, v)
+      for (const d of m.dests) {
+        const t = d.target
+        let key: string
+        if (t.kind === 'param') key = paramKey(t.layer, t.visual, t.param)
+        else {
+          const chain = t.owner === COMP ? scene.effects : scene.layers.find((l) => l.id === t.owner)?.effects
+          let seen = -1
+          const e = chain?.find((x) => x.type === t.type && ++seen === t.nth)
+          if (!e) continue
+          key = effectKey(e.id, t.param)
+        }
+        this.shared.set(key, (this.shared.get(key) ?? 0) + d.amount * v)
+      }
+    }
+  }
+
+  // Base values plus modulation, the parameter's own and the shared, clamped to each
+  // parameter's range. `sharedKey` names a parameter for the shared modulation.
+  private evaluate(defs: ParamDef[], settings: VisualSettings, key: string, live: Map<string, number>, sharedKey: (param: string) => string): Params {
     const out: Params = {}
     live.clear()
     for (const p of defs) {
@@ -419,6 +452,7 @@ export class Renderer {
       const mods = settings.mods[p.id]
       let unit = toUnit(p, base)
       if (mods?.length) unit += this.modulator.sum(`${key}:${p.id}`, mods)
+      if (this.shared.size) unit += this.shared.get(sharedKey(p.id)) ?? 0
       out[p.id] = fromUnit(p, unit)
       live.set(p.id, toUnit(p, out[p.id]))
     }

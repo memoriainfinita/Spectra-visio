@@ -52,7 +52,7 @@ describe('moving docks', () => {
   test('as a tab of another stack, shown there; the stack it left keeps its tab', () => {
     const l = moveDock(live(), 'audio', { zone: 'left', stack: 0, mode: 'tab' })
     expect(l.zones.left[0]).toEqual({ tabs: ['layers', 'library', 'audio'], active: 2 })
-    expect(l.zones.right[0].tabs).toEqual(['inspector', 'live'])
+    expect(l.zones.right[0].tabs).toEqual(['inspector', 'modulators', 'live'])
     expect(l.zones.right[0].active).toBe(0)
   })
 
@@ -67,7 +67,7 @@ describe('moving docks', () => {
   test('the last tab of a stack takes the stack with it', () => {
     const l = moveDock(live(), 'clips', { zone: 'right', stack: 0, mode: 'tab' })
     expect(l.zones.strip).toEqual([{ tabs: ['perform', 'knobs'], active: 0 }])
-    expect(locate(l, 'clips')).toEqual({ zone: 'right', stack: 0, tab: 3 })
+    expect(locate(l, 'clips')).toEqual({ zone: 'right', stack: 0, tab: 4 })
   })
 
   test('into an empty zone, and to the end of one', () => {
@@ -80,16 +80,16 @@ describe('moving docks', () => {
 
   test('onto its own stack it only shows; below itself only with tabs left behind', () => {
     const l = moveDock(live(), 'live', { zone: 'right', stack: 0, mode: 'tab' })
-    expect(l.zones.right).toEqual([{ tabs: ['inspector', 'audio', 'live'], active: 2 }])
+    expect(l.zones.right).toEqual([{ tabs: ['inspector', 'audio', 'modulators', 'live'], active: 3 }])
     const alone = moveDock(live(), 'clips', { zone: 'strip', stack: 0, mode: 'below' })
     expect(alone.zones.strip).toEqual(live().zones.strip)
     const split = moveDock(live(), 'live', { zone: 'right', stack: 0, mode: 'below' })
-    expect(split.zones.right.map((s) => s.tabs)).toEqual([['inspector', 'audio'], ['live']])
+    expect(split.zones.right.map((s) => s.tabs)).toEqual([['inspector', 'audio', 'modulators'], ['live']])
   })
 
   test('the tab shown stays the same when one before it leaves', () => {
-    let l = selectTab(live(), 'right', 0, 2)
-    expect(l.zones.right[0].tabs[2]).toBe('live')
+    let l = selectTab(live(), 'right', 0, 3)
+    expect(l.zones.right[0].tabs[3]).toBe('live')
     l = moveDock(l, 'inspector', { zone: 'left', stack: 0, mode: 'tab' })
     const r = l.zones.right[0]
     expect(r.tabs[r.active]).toBe('live')
@@ -218,7 +218,7 @@ describe('normalization', () => {
     expect(s.locked).toBe(false)
   })
 
-  test('version 2: Knobs join Performance as a tab, the tab shown kept', () => {
+  test('version 2: Knobs join Performance and Modulators join Audio as tabs, the tab shown kept', () => {
     const raw = {
       version: 2,
       list: [
@@ -230,9 +230,22 @@ describe('normalization', () => {
     const s = normalizeLayouts(raw)
     expect(s.version).toBe(LAYOUTS_VERSION)
     expect(s.list[0].zones.strip).toEqual([{ tabs: ['clips', 'perform', 'knobs'], active: 1 }])
-    expect(s.list.find((l) => l.id === 'u1')!.zones.left).toEqual([{ tabs: ['layers', 'audio', 'knobs'], active: 1 }])
+    expect(s.list[0].zones.right).toEqual([{ tabs: ['inspector', 'audio', 'modulators'], active: 1 }])
+    expect(s.list.find((l) => l.id === 'u1')!.zones.left).toEqual([{ tabs: ['layers', 'audio', 'modulators', 'knobs'], active: 1 }])
     // Built-ins never edited come as they ship, Knobs included.
     expect(locate(s.list.find((l) => l.id === 'laptop')!, 'knobs')).not.toBeNull()
+  })
+
+  test('version 3: Modulators join Audio as a tab, the tab shown kept', () => {
+    const raw = {
+      version: 3,
+      list: [{ id: 'u1', name: 'Mío', zones: { left: [{ tabs: ['live', 'audio', 'inspector'], active: 2 }], right: [], strip: [{ tabs: ['clips', 'perform', 'knobs'], active: 0 }] } }],
+      active: { desktop: 'u1', laptop: 'laptop' },
+    }
+    const s = normalizeLayouts(raw)
+    expect(s.version).toBe(LAYOUTS_VERSION)
+    expect(s.list.find((l) => l.id === 'u1')!.zones.left).toEqual([{ tabs: ['live', 'audio', 'modulators', 'inspector'], active: 3 }])
+    expect(locate(s.list.find((l) => l.id === 'live')!, 'modulators')).not.toBeNull()
   })
 
   test('version 1: the Inspector takes the place of Effects, Overlays and Auto go', () => {
@@ -247,11 +260,11 @@ describe('normalization', () => {
     }
     const s = normalizeLayouts(raw)
     expect(s.version).toBe(LAYOUTS_VERSION)
-    expect(s.list[0].zones.right).toEqual([{ tabs: ['inspector', 'audio', 'live', 'knobs'], active: 2 }])
+    expect(s.list[0].zones.right).toEqual([{ tabs: ['inspector', 'audio', 'modulators', 'live', 'knobs'], active: 3 }])
     expect(s.list[0].zones.left).toEqual([{ tabs: ['layers', 'library'], active: 1 }])
     expect(s.list[0].widths).toEqual({ left: 300, right: 400 })
     const mine = s.list.find((l) => l.id === 'u1')!
-    expect(mine.zones.left).toEqual([{ tabs: ['audio', 'inspector', 'knobs'], active: 1 }])
+    expect(mine.zones.left).toEqual([{ tabs: ['audio', 'modulators', 'inspector', 'knobs'], active: 2 }])
     expect(s.active.desktop).toBe('u1')
     expect(s.locked).toBe(true)
   })
