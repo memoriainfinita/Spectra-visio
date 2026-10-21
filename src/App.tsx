@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { dockUi, layoutsStore, resetLayout, setWidthClass } from './app/layout'
 import { settingsStore } from './app/settings'
+import { closeSettings, openSettings, settingsUi } from './app/ui'
 import { activeLayout, isBuiltIn, type WidthClass } from './engine/layout/layout'
 import { DockWindows } from './ui/dock/DockWindows'
 import { EditBar, Splitter, StripSplitter, Zone, zoneGrid } from './ui/dock/Docks'
@@ -10,6 +11,7 @@ import { FlashNotice } from './ui/FlashNotice'
 import { ClipMenu } from './ui/ClipMenu'
 import { KnobMenu } from './ui/KnobMenu'
 import { Notices } from './ui/Notices'
+import { SearchDialog } from './ui/Search'
 import { useFileDrop, usePlayerShortcuts } from './ui/hooks'
 import { Stage } from './ui/Stage'
 import { layoutName, TopBar } from './ui/TopBar'
@@ -53,10 +55,9 @@ export function App() {
   const layouts = useStore(layoutsStore)
   const editing = useStore(dockUi, (u) => u.editing)
   const layout = activeLayout(layouts, wide ? width : 'desktop')
-  const [settings, setSettings] = useState(false)
+  const settings = useStore(settingsUi, (s) => s.open)
   // A side zone's width while its edge is dragged; stored when released.
   const [live, setLive] = useState<{ left: number | null; right: number | null }>({ left: null, right: null })
-  const closeSettings = useCallback(() => setSettings(false), [])
   usePlayerShortcuts()
   setWidthClass(wide ? width : null)
 
@@ -72,7 +73,7 @@ export function App() {
       <PanelPortals />
       {wide ? (
         <>
-          <TopBar width={width} onSettings={() => setSettings(true)} />
+          <TopBar width={width} onSettings={() => openSettings()} />
           {editing && <EditBar layout={layout} name={layoutName(t, layout)} canReset={isBuiltIn(layout.id)} onReset={resetLayout} />}
         </>
       ) : (
@@ -113,6 +114,7 @@ export function App() {
       <KnobMenu />
       <ClipMenu />
       <Notices />
+      <SearchDialog />
 
       {dropping && (
         <div className="drop-overlay" aria-hidden="true">

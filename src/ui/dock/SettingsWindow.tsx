@@ -1,6 +1,8 @@
 import { X } from 'lucide-react'
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
+import { settingsUi } from '../../app/ui'
 import { SECTIONS, SECTION_TITLE, SettingsSection, type SectionId } from '../Settings'
+import { useStore } from '../useStore'
 import { useT } from '../useT'
 
 const SECTION_KEY = 'spectra.settingsSection'
@@ -46,6 +48,15 @@ export function SettingsWindow({ open, onClose }: { open: boolean; onClose: () =
     }
     if (focus) refs.current[id]?.focus()
   }
+  // A section asked for from elsewhere, as the search does.
+  const asked = useStore(settingsUi, (s) => s.section)
+  useEffect(() => {
+    const id = SECTIONS.find((x) => x === asked)
+    if (!asked) return
+    if (id) pick(id)
+    settingsUi.set((s) => ({ ...s, section: null }))
+  }, [asked])
+
   // Up and down move between sections, as in any vertical tab list.
   const onNavKey = (e: KeyboardEvent) => {
     const i = SECTIONS.indexOf(section)
