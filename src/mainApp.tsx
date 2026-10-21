@@ -18,6 +18,7 @@ import { initRadio } from './app/radio'
 import { initTransport } from './app/transport'
 import { initTv } from './app/tv'
 import { initRecord } from './app/record'
+import { initHistory } from './app/history'
 import { initScene } from './app/scene'
 import { initSettings } from './app/settings'
 import { initShaders } from './app/shaders'
@@ -34,6 +35,7 @@ await initLayouts()
 // Imported shaders first: the scene and the presets may point at them.
 await initShaders()
 await initScene()
+initHistory()
 await initPresets()
 await initLibrary()
 await initEngine()

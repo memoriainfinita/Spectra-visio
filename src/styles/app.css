@@ -387,6 +387,10 @@ input[type='range'] { accent-color: var(--accent); }
 .mod-assign-dst { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mod-assign-row input { width: 100%; }
 
+/* Notices, bottom right; never on the output, which has a page of its own. */
+.notices { position: fixed; right: 16px; bottom: 16px; z-index: 70; pointer-events: none; }
+.notices p { margin: 0; padding: 8px 12px; border-radius: 8px; background: #13162a; border: 1px solid rgba(255, 255, 255, 0.14); box-shadow: var(--shadow); font-size: 13px; }
+
 .icon-btn { position: relative; }
 .badge {
   position: absolute;
