@@ -2,6 +2,7 @@ import { autoStore, toggleAuto } from '../app/auto'
 import { liveStore, toggleLive } from '../app/live'
 import { launchColumn, sceneStore, setCrossfade } from '../app/scene'
 import { settingsStore } from '../app/settings'
+import type { ActionId } from '../engine/live/live'
 import { CLIP_COLUMNS } from '../engine/scene/scene'
 import { columnLabel } from './ClipMenu'
 import { knobMenu } from './KnobMenu'
@@ -20,7 +21,7 @@ export function PerformBar() {
   const auto = useStore(autoStore, (s) => s.enabled)
 
   const toggle = (key: 'blackout' | 'freeze' | 'strobe') => (
-    <button className={`btn${live[key] ? ' on' : ''}`} aria-pressed={live[key]} disabled={key === 'strobe' && reduceFlashes} onClick={() => toggleLive(key)}>
+    <button className={`btn${live[key] ? ' on' : ''}`} aria-pressed={live[key]} disabled={key === 'strobe' && reduceFlashes} onClick={() => toggleLive(key)} {...knobMenu({ kind: 'action', id: key })}>
       {t(`live.${key}`)}
     </button>
   )
@@ -39,12 +40,12 @@ export function PerformBar() {
       </div>
       <div className="perform-group">
         {COLUMNS.map((c) => (
-          <button key={c} className="clip-col" title={columnLabel(columns, c, t)} aria-label={columnLabel(columns, c, t)} onClick={() => launchColumn(c)}>
+          <button key={c} className="clip-col" title={columnLabel(columns, c, t)} aria-label={columnLabel(columns, c, t)} onClick={() => launchColumn(c)} {...knobMenu({ kind: 'action', id: `column${c + 1}` as ActionId })}>
             {c + 1}
           </button>
         ))}
       </div>
-      <button className={`btn${auto ? ' on' : ''}`} aria-pressed={auto} title={t('auto.toggleHint')} onClick={() => toggleAuto()}>
+      <button className={`btn${auto ? ' on' : ''}`} aria-pressed={auto} title={t('auto.toggleHint')} onClick={() => toggleAuto()} {...knobMenu({ kind: 'action', id: 'auto' })}>
         {t('perform.auto', { state: auto ? t('auto.on') : t('auto.off') })}
       </button>
     </section>

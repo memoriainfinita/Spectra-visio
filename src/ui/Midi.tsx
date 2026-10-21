@@ -3,7 +3,9 @@ import { useEffect, useId } from 'react'
 import { enableMidi, learnControl, mapTarget, midiStore, midiSupported, setMidiClock, setMidiInput, stopLearning } from '../app/midi'
 import { settingsStore } from '../app/settings'
 import { isAction } from '../engine/live/live'
-import { MIDI_TARGETS, type ControlId, type MidiTarget } from '../engine/midi/midi'
+import { MIDI_TARGETS, targetOfKey, type ControlId, type MidiTarget } from '../engine/midi/midi'
+import { sceneStore } from '../app/scene'
+import { describeTarget } from './Knob'
 import { actionLabel } from './Live'
 import { useStore } from './useStore'
 import { useT } from './useT'
@@ -18,6 +20,8 @@ export function controlName(id: ControlId, t: T): string {
 }
 
 function targetLabel(target: MidiTarget, t: T): string {
+  const learned = targetOfKey(target)
+  if (learned) return describeTarget(sceneStore.get(), learned, t)
   if (isAction(target)) return actionLabel(target, t)
   if (target === 'crossfader') return t('visuals.crossfade')
   if (target.startsWith('knob')) return t('knobs.midiPanel', { n: target.slice(4) })
@@ -108,7 +112,7 @@ export function Midi() {
         <details className="live-keys setting-group">
           <summary>{t('midi.map')}</summary>
           <Hint text={t('midi.mapHint')} />
-          {MIDI_TARGETS.map((target) => {
+          {[...MIDI_TARGETS, ...(Object.keys(settings.map).filter((k) => targetOfKey(k)) as MidiTarget[])].map((target) => {
             const label = targetLabel(target, t)
             return (
               <Row key={target} title={label}>

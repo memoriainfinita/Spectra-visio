@@ -3,6 +3,7 @@ import { setReduceFlashes, settingsStore } from '../app/settings'
 import { STROBE_RATES, type ActionId, type StrobeRate } from '../engine/live/live'
 import type { MessageKey } from '../i18n'
 import { Hint } from './Hint'
+import { knobMenu } from './KnobMenu'
 import { useStore } from './useStore'
 import { useT } from './useT'
 
@@ -20,7 +21,7 @@ export function Live() {
   const reduceFlashes = useStore(settingsStore, (s) => s.reduceFlashes)
 
   const toggle = (key: 'blackout' | 'freeze' | 'strobe') => (
-    <button className={`btn${live[key] ? ' on' : ''}`} aria-pressed={live[key]} disabled={key === 'strobe' && reduceFlashes} onClick={() => toggleLive(key)}>
+    <button className={`btn${live[key] ? ' on' : ''}`} aria-pressed={live[key]} disabled={key === 'strobe' && reduceFlashes} onClick={() => toggleLive(key)} {...knobMenu({ kind: 'action', id: key })}>
       {t(`live.${key}`)}
     </button>
   )
@@ -59,13 +60,13 @@ export function Live() {
       <Hint text={t('safety.reduceHint')} />
 
       <div className="live-row">
-        <button className="btn" onClick={() => runAction('crossA')}>
+        <button className="btn" onClick={() => runAction('crossA')} {...knobMenu({ kind: 'action', id: 'crossA' })}>
           {t('action.crossA')}
         </button>
-        <button className="btn" onClick={() => runAction('crossSwap')}>
+        <button className="btn" onClick={() => runAction('crossSwap')} {...knobMenu({ kind: 'action', id: 'crossSwap' })}>
           {t('action.crossSwap')}
         </button>
-        <button className="btn" onClick={() => runAction('crossB')}>
+        <button className="btn" onClick={() => runAction('crossB')} {...knobMenu({ kind: 'action', id: 'crossB' })}>
           {t('action.crossB')}
         </button>
       </div>

@@ -14,6 +14,7 @@ const CONTENT: Record<Exclude<DockId, 'library'>, PanelId[]> = {
   perform: ['perform'],
   knobs: ['knobs'],
   modulators: ['modulators'],
+  mypanel: ['mypanel'],
 }
 
 export function DockBody({ id }: { id: DockId }) {

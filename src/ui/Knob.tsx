@@ -2,6 +2,7 @@ import { X } from 'lucide-react'
 import { useEffect, useRef, type KeyboardEvent, type PointerEvent as ReactPointerEvent } from 'react'
 import { clearKnob, removeKnobDest, renameKnob, setDestRange, turnKnobTo } from '../app/knobs'
 import { mapTarget } from '../app/midi'
+import { togglePanelControl } from '../app/panel'
 import { sceneStore } from '../app/scene'
 import { settingsStore } from '../app/settings'
 import { getEffect } from '../engine/effects/registry'
@@ -10,6 +11,7 @@ import { getVisual, paramsOf } from '../engine/render/registry'
 import { nameOf } from '../engine/render/visual'
 import { COMP, NAME_MAX, type KnobRef, type KnobTarget } from '../engine/scene/knobs'
 import type { SceneState } from '../engine/scene/scene'
+import { sameControl } from '../engine/scene/panel'
 import { knobAt } from '../engine/scene/turn'
 import { Popover } from './dock/Popover'
 import { MidiLearn } from './Midi'
@@ -171,6 +173,9 @@ function KnobEditor({ knobRef, n, midi }: { knobRef: KnobRef; n: number; midi?: 
           <MidiLearn label={name} control={map[midi] ?? null} onLearn={(c) => mapTarget(midi, c)} onClear={() => mapTarget(midi, null)} />
         </div>
       )}
+      <button className="btn" onClick={() => togglePanelControl({ kind: 'knob', ref: knobRef })}>
+        {t(scene.panel.some((c) => c && sameControl(c, { kind: 'knob', ref: knobRef })) ? 'control.offPanel' : 'control.toPanel')}
+      </button>
       <h3 className="knob-editor-head">{t('knobs.destsTitle')}</h3>
       {knob.dests.length === 0 ? (
         <p className="small muted">{t('knobs.howTo')}</p>

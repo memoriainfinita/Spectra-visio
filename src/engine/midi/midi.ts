@@ -1,5 +1,5 @@
 import { ACTIONS, isAction, type ActionId } from '../live/live'
-import { LEVEL_KNOBS, PANEL_KNOBS } from '../scene/knobs'
+import { LEVEL_KNOBS, PANEL_KNOBS, normalizeTarget, type KnobTarget } from '../scene/knobs'
 import { MAX_LAYERS } from '../scene/limits'
 
 // MIDI input: messages, controls, the clock and what controls are mapped to.
@@ -106,9 +106,23 @@ export const MIDI_TARGETS = [
   ...numbered('compKnob', LEVEL_KNOBS),
   ...numbered('layerKnob', LEVEL_KNOBS),
 ] as const
-export type MidiTarget = ActionId | 'crossfader' | `opacity${number}` | `knob${number}` | `compKnob${number}` | `layerKnob${number}`
+// Learned with a right click on a control: any parameter, effect parameter or layer opacity,
+// as "t:" and the target in JSON. The control's value sets it, 0–1 of its range.
+export type MidiTarget = ActionId | 'crossfader' | `opacity${number}` | `knob${number}` | `compKnob${number}` | `layerKnob${number}` | `t:${string}`
 
-export const isMidiTarget = (v: unknown): v is MidiTarget => (MIDI_TARGETS as readonly unknown[]).includes(v)
+export const targetKey = (t: KnobTarget): MidiTarget => (t.kind === 'crossfade' ? 'crossfader' : `t:${JSON.stringify(t)}`)
+
+export function targetOfKey(key: string): KnobTarget | null {
+  if (!key.startsWith('t:')) return null
+  try {
+    const t = normalizeTarget(JSON.parse(key.slice(2)))
+    return t && t.kind !== 'crossfade' ? t : null
+  } catch {
+    return null
+  }
+}
+
+export const isMidiTarget = (v: unknown): v is MidiTarget => (MIDI_TARGETS as readonly unknown[]).includes(v) || (typeof v === 'string' && targetOfKey(v) !== null)
 export const isContinuous = (t: MidiTarget) => !isAction(t)
 
 export interface MidiSettings {
