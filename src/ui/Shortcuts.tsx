@@ -10,19 +10,22 @@ import { useT } from './useT'
 
 const ARROWS: Record<string, string> = { ArrowLeft: '←', ArrowRight: '→', ArrowUp: '↑', ArrowDown: '↓' }
 
+// A key as `keyCombo` stores it, for people to read.
+export function keyLabel(key: string | undefined, t: ReturnType<typeof useT>): string {
+  if (!key) return t('live.keyNone')
+  const shift = key.startsWith('Shift+')
+  const k = shift ? key.slice(6) : key
+  const name = k === ' ' ? t('live.key.space') : (ARROWS[k] ?? (k.length === 1 ? k.toUpperCase() : k))
+  return shift ? `${t('live.key.shift')} + ${name}` : name
+}
+
 // The keyboard shortcut of every live action: click one and press the new key.
 export function Shortcuts() {
   const t = useT()
   const keys = useStore(settingsStore, (s) => s.live.keys)
   const [capturing, setCapturing] = useState<ActionId | null>(null)
 
-  const keyName = (key: string | undefined) => {
-    if (!key) return t('live.keyNone')
-    const shift = key.startsWith('Shift+')
-    const k = shift ? key.slice(6) : key
-    const name = k === ' ' ? t('live.key.space') : (ARROWS[k] ?? (k.length === 1 ? k.toUpperCase() : k))
-    return shift ? `${t('live.key.shift')} + ${name}` : name
-  }
+  const keyName = (key: string | undefined) => keyLabel(key, t)
 
   // The next key goes to the action being captured; nothing else sees it.
   useEffect(() => {

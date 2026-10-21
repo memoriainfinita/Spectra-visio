@@ -60,6 +60,9 @@ const IDS = Object.keys(PANELS) as PanelId[]
 
 const nodes = new Map<PanelId, HTMLElement>()
 
+// Every panel's node, shown or not, for the search.
+export const panelNodes = (): [PanelId, HTMLElement][] => [...nodes]
+
 function panelNode(id: PanelId): HTMLElement {
   let node = nodes.get(id)
   if (!node) {

@@ -3,6 +3,7 @@ import { addPicked, player } from '../app/engine'
 import { redo, undo } from '../app/history'
 import { runAction } from '../app/live'
 import { notify } from '../app/notices'
+import { searchStore } from '../app/ui'
 import { settingsStore } from '../app/settings'
 import { actionForKey, keyCombo } from '../engine/live/live'
 import { fromDrop } from '../engine/player/pick'
@@ -49,7 +50,14 @@ function ownsKey(target: EventTarget | null, key: string): boolean {
 // The live shortcuts, for the app's document and for those of docks in windows of their own.
 export function onShortcutKey(e: KeyboardEvent): void {
   // A key being captured for a shortcut, or one a focused control uses.
-  if (e.defaultPrevented || ownsKey(e.target, e.key)) return
+  if (e.defaultPrevented) return
+  // Ctrl K opens the search, also from a text field.
+  if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === 'k') {
+    e.preventDefault()
+    searchStore.set(true)
+    return
+  }
+  if (ownsKey(e.target, e.key)) return
   if (undoKey(e)) return
   const combo = keyCombo(e)
   const action = combo && actionForKey(settingsStore.get().live.keys, combo)

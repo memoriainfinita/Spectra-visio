@@ -1,6 +1,8 @@
-import { useRef, useState, type KeyboardEvent } from 'react'
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
+import { shelfRequest } from '../../app/ui'
 import type { DockId } from '../../engine/layout/layout'
 import type { MessageKey } from '../../i18n'
+import { useStore } from '../useStore'
 import { useT } from '../useT'
 import { PanelSlot, type PanelId } from './panels'
 
@@ -15,6 +17,14 @@ const CONTENT: Record<Exclude<DockId, 'library'>, PanelId[]> = {
   knobs: ['knobs'],
   modulators: ['modulators'],
   mypanel: ['mypanel'],
+}
+
+// The dock a panel shows in; null for those that are not in one (menus of the top bar,
+// settings).
+export function dockOfPanel(panel: PanelId): DockId | null {
+  if (SHELVES.some((s) => s.id === panel)) return 'library'
+  const found = (Object.entries(CONTENT) as [DockId, PanelId[]][]).find(([, list]) => list.includes(panel))
+  return found ? found[0] : null
 }
 
 export function DockBody({ id }: { id: DockId }) {
@@ -61,6 +71,15 @@ function Library() {
     }
     if (focus) refs.current[id]?.focus()
   }
+  // A shelf asked for from elsewhere, as the search does.
+  const asked = useStore(shelfRequest)
+  useEffect(() => {
+    if (!asked) return
+    const s = SHELVES.find((x) => x.id === asked)
+    if (s) pick(s.id)
+    shelfRequest.set(null)
+  }, [asked])
+
   const onKey = (e: KeyboardEvent) => {
     const i = SHELVES.findIndex((s) => s.id === shelf)
     const to = e.key === 'ArrowRight' ? i + 1 : e.key === 'ArrowLeft' ? i - 1 : e.key === 'Home' ? 0 : e.key === 'End' ? SHELVES.length - 1 : null

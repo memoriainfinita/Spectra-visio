@@ -8,6 +8,7 @@ import { isBuiltIn, type Layout, type WidthClass } from '../engine/layout/layout
 import { activeLayout } from '../engine/layout/layout'
 import { PanelSlot } from './dock/panels'
 import { Popover } from './dock/Popover'
+import { SearchButton } from './Search'
 import logo from './logo.svg'
 import { MiniTransport } from './Transport'
 import { useStore } from './useStore'
@@ -35,6 +36,7 @@ export function TopBar({ width, onSettings }: { width: WidthClass; onSettings: (
       <Tempo />
       <LayoutMenu width={width} />
       <div className="bar-end">
+        <SearchButton />
         <Popover
           label={t('bar.output')}
           align="end"
