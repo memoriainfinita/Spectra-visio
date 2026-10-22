@@ -123,3 +123,10 @@ El CDN de images-assets.nasa.gov guarda copias sin la cabecera CORS y las sirve 
 ### 2026-10-21 — Ramas de investigación de la nube borradas
 
 - `claude/serene-edison-ztb2a7` y `claude/serene-newton-5j6otx` borradas de GitHub tras comprobar que su contenido es idéntico al copiado en `docs/investigacion/`. Las dos sesiones en la nube partieron del `main` de GitHub, la v0, porque el `main` local no estaba subido: por eso sus hallazgos sobre el código (C1–C6) no aplican
+
+### 2026-10-22 — Fallos de la ventana de muelle y del guardado de la escena
+
+- Atajos de teclado sin efecto con el foco en la ventana de un muelle: solo se escuchaba el `document` principal y la comprobación del control enfocado usaba `instanceof`, que falla con elementos de otra ventana. Ahora se escucha también el documento de cada ventana y se compara por `tagName`
+- Menús sin cerrarse al pulsar fuera en esa ventana: escuchaban el `document` principal; el de mandos además se dibujaba en la ventana principal. Ahora se dibujan y escuchan en el documento del control que los abre (`src/ui/contextMenu.ts`)
+- Cambios perdidos al recargar: una escritura en IndexedDB empezada en `pagehide` no termina en Chrome ni en Firefox (comprobado leyendo IndexedDB tras recargar). Lo pendiente va ahora, síncrono, a `localStorage` y se recupera al arrancar
+- Con cambios sin pausa de 400 ms (Playwright en Chrome, un crossfader en camino) no se guardaba nada hasta la pausa. Ahora se guarda como mucho cada 2 s
