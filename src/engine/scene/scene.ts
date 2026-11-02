@@ -24,6 +24,8 @@ export { CLIP_COLUMNS, MAX_LAYERS } from './limits'
 export const SIDES = ['a', 'b'] as const
 export type Side = (typeof SIDES)[number]
 export const DEFAULT_VISUAL = 'kaleido'
+// The visualization that shows the layer's visual input.
+export const INPUT_VISUAL = 'media'
 
 // Tweaks per visualization, kept when the layer switches away and back.
 export interface VisualSettings {

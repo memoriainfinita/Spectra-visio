@@ -5,6 +5,7 @@ import type { OutputState } from '../live/live'
 import { getEffect } from '../effects/registry'
 import { Modulator } from '../modulation/modulation'
 import { effectKey, opacityKey, paramKey } from '../modulation/shared'
+import { setInputLayer, visualSourceOf } from './visualInput'
 import { COMP } from '../scene/knobs'
 import { fixedRatio, type PixelSize } from '../output/format'
 import { OverlayRenderer, anyOverlay, type OverlayData } from '../overlay/overlay'
@@ -338,7 +339,13 @@ export class Renderer {
     chain?.sync(steps)
     if (chain && steps.length) {
       chain.resize(this.surface)
-      base = chain.run(base ?? compositor.black, steps, f, this.surface)
+      // The composition's effects read the input of the topmost layer that has one.
+      setInputLayer(scene.layers.findLast((l) => visualSourceOf(l.id))?.id ?? null)
+      try {
+        base = chain.run(base ?? compositor.black, steps, f, this.surface)
+      } finally {
+        setInputLayer(null)
+      }
     }
     this.shown = base ?? compositor.black
     this.present(compositor, this.shown, out, scene, f.time, dt)
@@ -366,6 +373,16 @@ export class Renderer {
 
   // The layer rendered, with its fade and its effects; null when it cannot start.
   private layerImage(l: LayerState, f: VisualFrame, transition: number): LayerImage | null {
+    // What the layer's visualization and effects read as the input is the layer's own.
+    setInputLayer(l.id)
+    try {
+      return this.drawLayer(l, f, transition)
+    } finally {
+      setInputLayer(null)
+    }
+  }
+
+  private drawLayer(l: LayerState, f: VisualFrame, transition: number): LayerImage | null {
     const slot = this.slotFor(l.id)
     const layer = this.layerFor(slot, l.visual, f.time, transition)
     if (!layer) return null

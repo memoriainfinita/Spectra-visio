@@ -1,5 +1,6 @@
-// The visual input: one image, video or camera shared by every visualization that reads
-// it (imported shaders, the input visualization). Each WebGL context keeps its own copy.
+// The visual input: an image, video or camera for each layer, read by the visualizations
+// and effects of that layer (imported shaders, the input visualization, the input mix).
+// Each WebGL context keeps its own copy of the textures.
 
 export interface VisualSource {
   element: HTMLVideoElement | HTMLImageElement | HTMLCanvasElement | ImageBitmap
@@ -9,16 +10,25 @@ export interface VisualSource {
   live: boolean
 }
 
-let current: VisualSource | null = null
-let version = 0
+// By layer id.
+const sources = new Map<string, VisualSource>()
+// The layer being drawn: what it reads is its own input.
+let drawing: string | null = null
 
-export function setVisualSource(source: VisualSource | null): void {
-  current = source
-  version++
+export function setVisualSource(layer: string, source: VisualSource | null): void {
+  if (source) sources.set(layer, source)
+  else sources.delete(layer)
 }
 
-export function visualSource(): VisualSource | null {
-  return current
+export const visualSourceOf = (layer: string): VisualSource | null => sources.get(layer) ?? null
+
+// The map itself, for the output window to follow.
+export const visualSources = (): ReadonlyMap<string, VisualSource> => sources
+
+// Set by the renderer around each layer, and around the composition's effects with the
+// layer whose input they read.
+export function setInputLayer(layer: string | null): void {
+  drawing = layer
 }
 
 // By property, not instanceof: in the output window the element belongs to the main window.
@@ -30,7 +40,8 @@ export class InputTexture {
   width = 1
   height = 1
   private readonly gl: WebGL2RenderingContext
-  private seen = -1
+  // The source last uploaded: null for none; undefined before the first look.
+  private seen: VisualSource | null | undefined
 
   constructor(gl: WebGL2RenderingContext) {
     this.gl = gl
@@ -43,16 +54,17 @@ export class InputTexture {
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 255]))
   }
 
-  // Uploads the current source when it changed or plays; leaves the texture bound.
+  // Uploads the source of the layer being drawn when it changed or plays; leaves the
+  // texture bound.
   update(): WebGLTexture {
     const gl = this.gl
-    const s = current
+    const s = drawing === null ? null : (sources.get(drawing) ?? null)
     gl.bindTexture(gl.TEXTURE_2D, this.texture)
-    if (this.seen === version && !(s?.live && ready(s))) return this.texture
+    if (this.seen === s && !(s?.live && ready(s))) return this.texture
     if (!s) {
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 255]))
       this.width = this.height = 1
-      this.seen = version
+      this.seen = null
       return this.texture
     }
     if (!ready(s)) return this.texture
@@ -66,7 +78,7 @@ export class InputTexture {
       // A source from another origin without CORS cannot be read: it stays black.
     }
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false)
-    this.seen = version
+    this.seen = s
     return this.texture
   }
 

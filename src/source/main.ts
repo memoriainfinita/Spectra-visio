@@ -3,7 +3,11 @@ import type { OutputState } from '../engine/live/live'
 import { decodeFrame } from '../engine/obs/codec'
 import { FRAME_EVENT, STATE_EVENT, unwrap, type FrameMessage, type StateMessage } from '../engine/obs/messages'
 import type { UserShader } from '../engine/shaders/userVisual'
+import type { VisualSource } from '../engine/render/visualInput'
 import { startView, type ViewBridge } from '../output/view'
+
+// The browser source has no visual input: OBS has no camera or file to hand it.
+const NO_VISUALS: ReadonlyMap<string, VisualSource> = new Map()
 
 // The OBS source: a browser source in OBS pointed at `?source`. OBS gives it no microphone
 // and its own storage, so everything comes from the app in the browser, through
@@ -73,7 +77,7 @@ function bridge(): ViewBridge | null {
     output: () => out,
     control: (id) => controls.get(id) ?? 0,
     overlay: () => ({ trackId: s.track.id, title: s.track.title, artist: s.track.artist, lyrics: s.track.lyrics, time: time + (live ? (now - frameAt) / 1000 : 0), logo }),
-    visual: () => null,
+    visuals: () => NO_VISUALS,
     shaders: () => shaders,
     size: () => s.size,
     key: () => {},

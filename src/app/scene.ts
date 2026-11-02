@@ -2,9 +2,11 @@ import { get, set } from 'idb-keyval'
 import { createStore } from '../core/store'
 import { newModulation, type Modulation, type SourceKind } from '../engine/modulation/modulation'
 import { MAX_EFFECTS, getEffect } from '../engine/effects/registry'
-import { clampParam, getVisual, paramsOf } from '../engine/render/registry'
+import { clampParam, defaultParams, getVisual, paramsOf } from '../engine/render/registry'
 import {
   CLIP_COLUMNS,
+  DEFAULT_VISUAL,
+  INPUT_VISUAL,
   MAX_LAYERS,
   applyClip,
   cleanClipName,
@@ -347,6 +349,17 @@ function editClip(layer: number, column: number, change: (c: Clip) => Clip): voi
     const clips = [...l.clips]
     clips[column] = change(clip)
     return { ...l, clips }
+  })
+}
+
+// What a clip shows when launched: the visual input of the layer, or a visualization (the
+// default one when it was the input). Its settings start from the visualization's own.
+export function setClipContent(layer: number, column: number, input: boolean): void {
+  editClip(layer, column, (c) => {
+    if ((c.visual === INPUT_VISUAL) === input) return c
+    const id = input ? INPUT_VISUAL : DEFAULT_VISUAL
+    const def = getVisual(id)
+    return { ...c, visual: id, settings: { params: def ? defaultParams(def) : {}, mods: {} } }
   })
 }
 

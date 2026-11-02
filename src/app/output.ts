@@ -2,7 +2,7 @@ import { createStore } from '../core/store'
 import { actionForKey } from '../engine/live/live'
 import { BRIDGE_KEY, OUTPUT_PARAM, type OutputBridge } from '../engine/output/bridge'
 import { formatPixels } from '../engine/output/format'
-import { visualSource } from '../engine/render/visualInput'
+import { visualSources } from '../engine/render/visualInput'
 import { analysis, renderer } from './engine'
 import { liveOutput, runAction } from './live'
 import { controlValue } from './midi'
@@ -37,7 +37,7 @@ export function initOutput(): void {
     output: (frame) => liveOutput(performance.now(), frame),
     control: controlValue,
     overlay: overlayData,
-    visual: visualSource,
+    visuals: visualSources,
     shaders: () => shadersStore.get(),
     size: () => renderer.fixedSize,
     performance: () => settingsStore.get().performance,
