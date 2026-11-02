@@ -20,6 +20,7 @@ export const DEMOS = [
   { id: 'fx', name: 'demo.fx', hint: 'demo.fx.hint' },
   { id: 'live', name: 'demo.live', hint: 'demo.live.hint' },
   { id: 'gallery', name: 'demo.gallery', hint: 'demo.gallery.hint' },
+  { id: 'show', name: 'demo.show', hint: 'demo.show.hint' },
 ] as const satisfies readonly { id: string; name: MessageKey; hint: MessageKey }[]
 
 export type DemoId = (typeof DEMOS)[number]['id']
@@ -30,11 +31,13 @@ const NAMES = {
     calm: 'Calma', pulse: 'Pulso', chaos: 'Caos', end: 'Final', intense: 'Intenso',
     breath: 'Respiración', bass: 'Graves', spin: 'Giro', color: 'Color', energy: 'Energía', mix: 'Mezcla', crossfader: 'Crossfader',
     glow: 'Brillo', feedback: 'Realimentación', kaleido: 'Caleidoscopio', mirror: 'Espejo', palette: 'Paleta', tone: 'Color', trails: 'Estelas', all: 'Todo junto',
+    intro: 'Intro', flow: 'Flujo', burst: 'Estallido', geometry: 'Geometría', fractal: 'Fractal', cosmos: 'Cosmos', milkdrop: 'Milkdrop',
   },
   en: {
     calm: 'Calm', pulse: 'Pulse', chaos: 'Chaos', end: 'End', intense: 'Intense',
     breath: 'Breath', bass: 'Bass', spin: 'Spin', color: 'Color', energy: 'Energy', mix: 'Mix', crossfader: 'Crossfader',
     glow: 'Glow', feedback: 'Feedback', kaleido: 'Kaleidoscope', mirror: 'Mirror', palette: 'Palette', tone: 'Color', trails: 'Trails', all: 'All together',
+    intro: 'Intro', flow: 'Flow', burst: 'Burst', geometry: 'Geometry', fractal: 'Fractal', cosmos: 'Cosmos', milkdrop: 'Milkdrop',
   },
 } as const
 type Names = (typeof NAMES)[Lang]
@@ -248,6 +251,105 @@ function gallery(): SceneState {
   })
 }
 
+// A whole set in one scene: the gallery's three layers by family, now with a column for each
+// moment (a visualization from every layer launched together), effects and oscillators on the
+// clips, some that wait for the beat, shared modulators, knobs, two variations, the crossfader,
+// a transition and my panel with all of it at hand. Every visualization is in it.
+function show(n: Names): SceneState {
+  const [a, b, c] = [uid('l'), uid('l'), uid('l')]
+  // Spectrum on side A, shapes and fractals on side B, space and shader across both.
+  const moments: { name: string; a: Clip; b: Clip; c: Clip }[] = [
+    {
+      name: n.intro,
+      a: { ...clip('oscilloscope'), effects: [effect('palette', { palette: 2, amount: 1 }, { offset: [mod(lfo('sine', 0.25), 1)] })] },
+      b: clip('kaleido', settings({}, { hue: [mod(lfo('saw', 0.25), 1)] })),
+      c: clip('starfield', settings({ warp: 1.2 })),
+    },
+    {
+      name: n.pulse,
+      a: clip('bars'),
+      b: { ...clip('tunnel', settings({ rings: 16 }, { twist: [mod(lfo('sine', 0.25), 0.8)] })), effects: [effect('color', { saturation: 1.4 })] },
+      c: clip('orbitals', settings({ particles: 200 }, { speed: [mod(beat('kick', 300), 0.5)] })),
+    },
+    {
+      name: n.flow,
+      a: { ...clip('ribbons', settings({ rows: 7 }, { amplitude: [mod(lfo('sine', 0.5), 0.5)] })), effects: [effect('trails', { length: 1.3 })] },
+      b: clip('gridWarp'),
+      c: clip('plasma', settings({ scale: 1.6 }, { hue: [mod(lfo('saw', 0.25), 1)] })),
+    },
+    {
+      name: n.burst,
+      a: clip('radialBars'),
+      b: { ...clip('polygons', settings({ sides: 5 }, { rings: [mod(lfo('triangle', 0.5), 0.5)] })), launch: 'beat' },
+      c: { ...clip('fireworks'), launch: 'beat', effects: [effect('bloom', { threshold: 0.4, strength: 1.4 }, { strength: [mod(beat('kick'), 0.5)] })] },
+    },
+    {
+      name: n.geometry,
+      a: clip('lissajous'),
+      b: { ...clip('cells'), effects: [effect('mirror', { mode: 2 })] },
+      c: clip('warpTunnel'),
+    },
+    {
+      name: n.fractal,
+      a: clip('radialWave'),
+      b: { ...clip('julia'), effects: [effect('kaleido', { segments: 8 }, { rotation: [mod(lfo('saw', 0.25), 1)] })] },
+      c: clip('terrain'),
+    },
+    {
+      name: n.cosmos,
+      a: clip('spectrogram'),
+      b: clip('kifs'),
+      c: { ...clip('strobeBloom'), launch: 'beat', effects: [effect('feedback', { length: 1.2, zoom: 0.3, rotation: 20, hueShift: 30 })] },
+    },
+    { name: n.milkdrop, a: clip('bars', settings({}, { sensitivity: [mod(band('bass'), 0.4)] })), b: clip('kaleido'), c: clip('milkdrop') },
+  ]
+  const col = (k: 'a' | 'b' | 'c') => row(...moments.map((m) => m[k]))
+  const bloom = fx(COMP, 'bloom', 'strength')
+  const tint = fx(COMP, 'color', 'hue')
+  const panel = knobs(PANEL_KNOBS, [
+    knob(n.color, 0.2, dest(tint, 0, 1), dest(opacity(b), 0.4, 1)),
+    knob(n.energy, 0.3, dest(bloom, 0.2, 1), dest(opacity(c), 0.2, 0.9)),
+    knob(n.mix, 0.55, dest({ kind: 'crossfade' })),
+  ])
+  const variations: Variation[] = [
+    { id: uid('v'), name: n.calm, values: [0.2, 0.2, 0.3, 0, 0, 0, 0, 0], beats: 4 },
+    { id: uid('v'), name: n.intense, values: [0.8, 0.9, 0.7, 0, 0, 0, 0, 0], beats: 4 },
+  ]
+  return build({
+    layers: [
+      layer(a, { visual: 'oscilloscope', side: 'a', clips: col('a'), active: 0, effects: moments[0].a.effects.map((e) => ({ ...e, id: uid('e') })) }),
+      layer(b, { visual: 'kaleido', side: 'b', blend: 'add', opacity: 0.9, clips: col('b'), active: 0, settings: moments[0].b.settings }),
+      layer(c, { visual: 'starfield', blend: 'screen', opacity: 0.6, clips: col('c'), active: 0, settings: moments[0].c.settings }),
+    ],
+    crossfade: 0.5,
+    selected: 0,
+    transition: 1.5,
+    columns: [...moments.map((m) => m.name), ''],
+    effects: [effect('bloom', { threshold: 0.6, strength: 0.7 }, { strength: [mod(beat('kick'), 0.3)] }), effect('color', { saturation: 1.15 })],
+    modulators: [
+      modulator(n.breath, lfo('sine', 0.25), [to(opacity(b), 0.3), to(opacity(c), 0.3)]),
+      modulator(n.pulse, beat('kick'), [to(bloom, 0.3)], 'linear', 40),
+      modulator(n.bass, band('bass'), [to(tint, 0.2)], 'smooth'),
+    ],
+    knobs: panel,
+    variations,
+    panel: [
+      { kind: 'knob', ref: { bank: 'panel', i: 0 } },
+      { kind: 'knob', ref: { bank: 'panel', i: 1 } },
+      { kind: 'knob', ref: { bank: 'panel', i: 2 } },
+      { kind: 'action', id: 'variation1' },
+      { kind: 'action', id: 'variation2' },
+      { kind: 'action', id: 'blackout' },
+      { kind: 'action', id: 'freeze' },
+      { kind: 'action', id: 'strobe' },
+      { kind: 'action', id: 'crossA' },
+      { kind: 'action', id: 'crossSwap' },
+      { kind: 'action', id: 'crossB' },
+      ...Array.from({ length: 5 }, () => null),
+    ],
+  })
+}
+
 export function demoScene(id: DemoId, lang: Lang = 'es'): SceneState {
   const n = NAMES[lang]
   if (id === 'sources') return sources()
@@ -255,5 +357,6 @@ export function demoScene(id: DemoId, lang: Lang = 'es'): SceneState {
   if (id === 'fx') return effects(n)
   if (id === 'live') return live(n)
   if (id === 'gallery') return gallery()
+  if (id === 'show') return show(n)
   return start()
 }

@@ -525,6 +525,8 @@ export const es = {
   'demo.fx.hint': 'Una columna por efecto (brillo, realimentación, caleidoscopio, espejo, paleta, color y estelas) y otra con tres encadenados: lanza las columnas',
   'demo.gallery': 'Todas las visualizaciones',
   'demo.gallery.hint': 'Las 22 visualizaciones como clips en tres capas por familia, con fundido entre ellas: lanza clips o mueve el crossfader',
+  'demo.show': 'Espectáculo completo',
+  'demo.show.hint': 'Todo junto: las 22 visualizaciones en ocho columnas que lanzan una de cada capa, con efectos y osciladores en los clips, golpes, moduladores, mandos, variaciones, crossfader y Mi panel',
   'demo.mods': 'Moduladores y mandos',
   'demo.mods.hint': 'Moduladores compartidos sobre varios parámetros, mandos con varios destinos y dos variaciones',
   'demo.live': 'Clips y directo',
