@@ -149,4 +149,5 @@ El CDN de images-assets.nasa.gov guarda copias sin la cabecera CORS y las sirve 
 
 - Decisión del 2026-10-10 («se publicará al terminar la app») revertida por mykl: quiere ir probándola ya
 - Hecho: push de 91 commits, repo pasado a público, Pages activado con origen GitHub Actions, CI en verde
-- Con el repo público, los presets de Milkdrop sin licencia conocida (R8 de `a-estudiar.md`) quedan expuestos hasta que se decida qué hacer con ellos
+- Los presets de Milkdrop sin licencia conocida (R8 de `a-estudiar.md`) no están en el repo, solo la dependencia; se sirven en el build de Pages. Resuelto el mismo día: se mantienen con `NOTICE.md`, nota en el README y retirada por incidencia
+- Descripción, web y tópicos de GitHub puestos al día (la descripción era de la v0); README con el enlace a la app y las funciones del rediseño
