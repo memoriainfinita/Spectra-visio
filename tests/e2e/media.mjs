@@ -4,7 +4,7 @@
 // real searches follow.
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { open, reveal, loadTrack, grab, stats, FIXTURES } from './lib.mjs'
+import { open, reveal, loadTrack, grab, stats, useSource, FIXTURES } from './lib.mjs'
 
 const kind = process.argv[2] ?? 'firefox'
 const log = (...a) => console.log(`[${kind}]`, ...a)
@@ -29,7 +29,7 @@ await page.route(/(upload\.wikimedia\.org\/(i|v)\/.*\.png|images-assets\.nasa\.g
 const panel = page.locator('.panel.visual-input')
 const status = () => panel.getByRole('status').textContent()
 await loadTrack(page)
-await page.locator('.panel.browser').getByRole('button', { name: 'Poner Entrada visual en la capa 1' }).click()
+await useSource(page)
 await page.waitForTimeout(800)
 const dark = stats(await grab(page)).mean
 log('contacted before searching:', calls)

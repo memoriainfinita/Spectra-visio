@@ -1,12 +1,12 @@
 // Phase 6, part 4: visual input (image, video, camera) in the visualization, the effect and shaders.
-import { open, loadTrack, grab, stats, shot, stageError, OUT, FIXTURES, reveal } from './lib.mjs'
+import { open, loadTrack, grab, stats, shot, stageError, OUT, FIXTURES, reveal, useSource, sourceBox, expandSource } from './lib.mjs'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 const kind = process.argv[2] ?? 'firefox'
 const { browser, page, errors } = await open(kind, { camera: true })
 const log = (...a) => console.log(`[${kind}]`, ...a)
-const panel = page.locator('.panel.visual-input')
+const panel = sourceBox(page)
 const br = page.locator('.panel.browser')
 const fx = page.locator('#insp-layer .effects')
 const sh = page.locator('.panel.shaders')
@@ -34,9 +34,9 @@ await page.evaluate(() => new Promise((r) => { const q = indexedDB.open('keyval-
 await page.reload()
 await page.waitForSelector('.stage canvas')
 await reveal(page)
-await page.waitForSelector('.panel.visual-input')
+await page.waitForSelector('#insp-layer', { state: 'attached' })
 log('playing:', await loadTrack(page))
-await pick('Entrada visual')
+await useSource(page)
 log('no input:', await status(), JSON.stringify(stats(await grab(page))))
 
 await openFile('test-image.png')
@@ -92,6 +92,7 @@ await sh.getByRole('button', { name: 'Poner Channel one en la capa 1' }).click()
 await page.waitForTimeout(2000)
 log('Shadertoy iChannel1', JSON.stringify(stats(await grab(page))), 'error:', await stageError(page))
 
+await expandSource(page)
 await panel.getByRole('button', { name: 'Quitar' }).click()
 await page.waitForTimeout(500)
 log('removed:', await status(), JSON.stringify(stats(await grab(page))))

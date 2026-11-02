@@ -18,6 +18,7 @@ import {
   setClipLaunch,
   setClipParam,
   setParam,
+  setLayerContent,
   setTransition,
   setVisual,
   updateClipModulation,
@@ -25,7 +26,6 @@ import {
 } from '../app/scene'
 import { videoControlStore } from '../app/videoControl'
 import { visualInputStore } from '../app/visualInput'
-import { InputSources } from './InputSources'
 import { getEffect } from '../engine/effects/registry'
 import { getVisual, paramsOf, visualsStore } from '../engine/render/registry'
 import { nameOf } from '../engine/render/visual'
@@ -43,6 +43,7 @@ import { Hint } from './Hint'
 import { ParamList } from './ParamList'
 import { useStore } from './useStore'
 import { useT } from './useT'
+import { Source } from './VisualInput'
 import { VideoControls } from './VideoControls'
 
 type T = ReturnType<typeof useT>
@@ -200,22 +201,37 @@ function LayerLevel() {
   const settings = visualSettings(layer)
   const params = def ? paramsOf(def) : []
   const n = sel + 1
+  const source = layer.visual === INPUT_VISUAL
   return (
     <>
       <KnobRow refs={LEVEL.map((i) => ({ bank: 'layer', layer: layer.id, i }))} midi="layerKnob" label={t('inspector.knobsOf', { name: t('visuals.layer', { n }) })} />
-      <Fold id="layer.visual" title={t('inspector.visual')} meta={def ? nameOf(def, t) : layer.visual}>
-        <div className="field">
-          <select aria-label={t('inspector.visualOf', { n })} value={layer.visual} onChange={(e) => setVisual(sel, e.target.value)}>
-            {visuals.map((v) => (
-              <option key={v.id} value={v.id}>
-                {nameOf(v, t)}
-              </option>
-            ))}
-          </select>
-          <button className="icon-btn small" title={t('visuals.reset')} aria-label={t('visuals.reset')} onClick={() => resetParams(sel)}>
-            <RotateCcw size={15} />
-          </button>
+      <Fold id="layer.visual" title={t('inspector.content')} meta={source ? t('inspector.content.input') : def ? nameOf(def, t) : layer.visual}>
+        <div className="segmented" role="group" aria-label={t('inspector.content')}>
+          {[false, true].map((on) => (
+            <button key={String(on)} className={`seg${source === on ? ' on' : ''}`} aria-pressed={source === on} onClick={() => setLayerContent(sel, on)}>
+              {t(on ? 'inspector.content.input' : 'inspector.content.visual')}
+            </button>
+          ))}
         </div>
+        {!source && (
+          <div className="field">
+            <select aria-label={t('inspector.visualOf', { n })} value={layer.visual} onChange={(e) => setVisual(sel, e.target.value)}>
+              {visuals
+                .filter((v) => v.id !== INPUT_VISUAL)
+                .map((v) => (
+                  <option key={v.id} value={v.id}>
+                    {nameOf(v, t)}
+                  </option>
+                ))}
+            </select>
+            <button className="icon-btn small" title={t('visuals.reset')} aria-label={t('visuals.reset')} onClick={() => resetParams(sel)}>
+              <RotateCcw size={15} />
+            </button>
+          </div>
+        )}
+      </Fold>
+      <Fold id={source ? 'layer.source' : 'layer.input'} title={t('inspector.input')} meta={input.name || t('inspector.inputNone')} folded={!source}>
+        <Source />
       </Fold>
       <Fold id="layer.params" title={t('inspector.params')} meta={t('inspector.paramsMeta', { n: params.length, m: modulated(settings, sharedOn(modulators, layer.id, layer.visual)) })}>
         {def && (
@@ -235,9 +251,6 @@ function LayerLevel() {
       </Fold>
       <Fold id="layer.effects" title={t('effects.title')} meta={effectNames(t, layer.effects)}>
         <EffectChain target={sel} />
-      </Fold>
-      <Fold id="layer.input" title={t('inspector.input')} meta={input.name || t('inspector.inputNone')} folded>
-        <InputSources />
       </Fold>
       {video && (
         <Fold id="layer.video" title={t('inspector.video')}>

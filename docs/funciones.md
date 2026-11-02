@@ -75,7 +75,7 @@ Lista de funciones confirmada por mykl el 2026-10-10. Es el contrato del redise�
 - Columnas de clips con nombre y lanzables con una nota MIDI, además de las teclas numéricas
 - Mi panel: los controles de la app se arrastran a sus celdas desde el modo Editar
 - El aviso de deshacer dice qué se deshizo cuando fue una sola cosa
-- Entrada visual por capa: cada capa tiene su cámara, archivo, TV o vídeo en línea, y el contenido de un clip puede ser la entrada visual. Al abrir una fuente, la capa pasa a la visualización Entrada visual (salvo que ya corra un shader), y un aviso dice si el crossfader oculta el lado de esa capa
+- Fuente por capa: cada capa tiene su cámara, archivo, TV o vídeo en línea. El contenido de una capa y el de un clip es Visualización o Fuente, y se elige y se configura en el Inspector (Contenido y Fuente, con su vista previa y los controles del vídeo). La fuente sigue en la capa cuando esta muestra una visualización, y la leen los shaders y el efecto Mezcla con entrada. «Entrada visual» no sale como una visualización más en el navegador. Bibliotecas › Fuentes solo tiene los catálogos de TV y de vídeo e imagen libres, que cargan en la capa seleccionada. Al abrir una fuente, la capa pasa a mostrarla (salvo que ya corra un shader), y un aviso dice si el crossfader oculta el lado de esa capa
 - Salida en segunda ventana para proyector, controlada desde la principal
 - Apagón, congelar imagen y estrobo con límite fotosensible global
 

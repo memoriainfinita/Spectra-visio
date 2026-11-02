@@ -3,13 +3,15 @@ import { useEffect, useMemo, useState } from 'react'
 import { favoritesStore, loadThumbnails, thumbsStore, toggleFavorite } from '../app/library'
 import { sceneStore, setVisual } from '../app/scene'
 import { visualsStore } from '../engine/render/registry'
+import { INPUT_VISUAL } from '../engine/scene/scene'
 import { CATEGORIES, nameOf, type VisualCategory } from '../engine/render/visual'
 import { LANGS, translate, type MessageKey } from '../i18n'
 import { useStore } from './useStore'
 import { useT } from './useT'
 
 type Filter = 'all' | 'favorites' | VisualCategory
-const FILTERS: Filter[] = ['all', 'favorites', ...CATEGORIES]
+// The source is not a visualization: it is chosen as the layer's content in the Inspector.
+const FILTERS: Filter[] = ['all', 'favorites', ...CATEGORIES.filter((c) => c !== 'media')]
 
 // Lower case without accents, so "tunel" finds "Túnel".
 const fold = (s: string) => s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase()
@@ -18,7 +20,8 @@ const fold = (s: string) => s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCas
 export function Browser() {
   const t = useT()
   const favorites = useStore(favoritesStore)
-  const visuals = useStore(visualsStore)
+  const all = useStore(visualsStore)
+  const visuals = useMemo(() => all.filter((v) => v.id !== INPUT_VISUAL), [all])
   const thumbs = useStore(thumbsStore)
   const selected = useStore(sceneStore, (s) => s.selected)
   const current = useStore(sceneStore, (s) => s.layers[s.selected].visual)

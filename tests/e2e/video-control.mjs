@@ -5,7 +5,7 @@
 import { spawnSync } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
-import { open, OUT } from './lib.mjs'
+import { open, OUT, useSource, sourceBox } from './lib.mjs'
 
 const kind = process.argv[2] ?? 'firefox'
 const log = (...a) => console.log(`[${kind}]`, ...a)
@@ -17,7 +17,7 @@ if (!existsSync(file)) {
 }
 
 const { browser, page, errors } = await open(kind)
-const panel = page.locator('.panel.visual-input')
+const panel = sourceBox(page)
 const ctl = page.locator('#insp-layer .video-controls')
 const v = () => page.evaluate(() => { const e = document.querySelector('.input-preview video'); return e ? { t: +e.currentTime.toFixed(2), paused: e.paused, rate: e.playbackRate, loop: e.loop } : null })
 // Samples of the clock over `ms`.
@@ -45,6 +45,7 @@ const motion = (ms) => page.evaluate((ms) => new Promise((resolve) => {
 const mode = (direction, atEnd) => Promise.all([ctl.getByLabel('Sentido').selectOption({ label: direction }), ctl.getByLabel('Al final').selectOption({ label: atEnd })])
 
 log('controls before a video:', await ctl.count())
+await useSource(page)
 const chooser = page.waitForEvent('filechooser')
 await panel.getByRole('button', { name: 'Imagen o vídeo' }).click()
 await (await chooser).setFiles(file)

@@ -126,6 +126,23 @@ export function setVisual(layer: number, visual: string): void {
   editLayer(layer, (l) => (l.visual === visual ? l : { ...l, visual, active: null }))
 }
 
+// The last visualization each layer showed before it was given its source, to go back to.
+const beforeSource = new Map<string, string>()
+
+// What a layer shows: its source (camera, file, TV, online) or a visualization. The source
+// itself stays on the layer either way, so shaders can still read it.
+export function setLayerContent(layer: number, source: boolean): void {
+  const l = sceneStore.get().layers[layer]
+  if (!l || (l.visual === INPUT_VISUAL) === source) return
+  if (source) {
+    beforeSource.set(l.id, l.visual)
+    setVisual(layer, INPUT_VISUAL)
+  } else {
+    const back = beforeSource.get(l.id)
+    setVisual(layer, back && getVisual(back) ? back : DEFAULT_VISUAL)
+  }
+}
+
 export function setParam(layer: number, id: string, value: number): void {
   const def = getVisual(sceneStore.get().layers[layer]?.visual ?? '')
   const p = def && paramsOf(def).find((x) => x.id === id)

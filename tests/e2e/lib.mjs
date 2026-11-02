@@ -137,3 +137,16 @@ export const reveal = revealAll
 
 // Selects a layer for editing (1 is the bottom one).
 export const pickLayer = (page, n) => page.locator(`.panel.visuals .layer-pick[title="Editar la capa ${n}"]`).click()
+
+// The selected layer's source, in the Inspector (Layer level).
+export const sourceBox = (page) => page.locator('#insp-layer .source')
+
+// Gives the selected layer its source as content (Inspector › Content › Source).
+export const useSource = (page) => page.locator('#insp-layer').getByRole('group', { name: 'Contenido' }).getByRole('button', { name: 'Fuente', exact: true }).click()
+
+// The source section is folded while the layer shows a visualization: opens it.
+export async function expandSource(page) {
+  const box = sourceBox(page)
+  if (!(await box.first().isVisible())) await page.locator('#insp-layer .fold-head button').filter({ has: page.locator('.fold-title', { hasText: /^Fuente$/ }) }).click()
+  return box
+}
