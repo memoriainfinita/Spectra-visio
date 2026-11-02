@@ -4,7 +4,7 @@ import { EffectChain, type ChainStep } from '../effects/chain'
 import type { OutputState } from '../live/live'
 import { getEffect } from '../effects/registry'
 import { Modulator } from '../modulation/modulation'
-import { effectKey, paramKey } from '../modulation/shared'
+import { effectKey, opacityKey, paramKey } from '../modulation/shared'
 import { COMP } from '../scene/knobs'
 import { fixedRatio, type PixelSize } from '../output/format'
 import { OverlayRenderer, anyOverlay, type OverlayData } from '../overlay/overlay'
@@ -320,7 +320,8 @@ export class Renderer {
     let base: WebGLTexture | null = null
     let next = 0
     scene.layers.forEach((l, i) => {
-      const amount = layerAmount(scene, i)
+      const mod = this.shared.get(opacityKey(l.id))
+      const amount = layerAmount(scene, i, mod === undefined ? l.opacity : Math.max(0, Math.min(1, l.opacity + mod)))
       if (amount <= 0) {
         this.hidden(l)
         return
@@ -430,6 +431,7 @@ export class Renderer {
         const t = d.target
         let key: string
         if (t.kind === 'param') key = paramKey(t.layer, t.visual, t.param)
+        else if (t.kind === 'opacity') key = opacityKey(t.layer)
         else {
           const chain = t.owner === COMP ? scene.effects : scene.layers.find((l) => l.id === t.owner)?.effects
           let seen = -1

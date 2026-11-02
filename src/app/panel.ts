@@ -1,3 +1,4 @@
+import { createStore } from '../core/store'
 import { PANEL_CELLS, sameControl, withControl, withoutControl, type PanelControl } from '../engine/scene/panel'
 import { sceneStore } from './scene'
 
@@ -35,3 +36,20 @@ export function swapPanelCells(i: number, j: number): void {
     return { ...s, panel }
   })
 }
+
+// My panel's Edit mode, shared so that the controls elsewhere can be picked up while it is on.
+export const panelEditStore = createStore(false)
+
+// A control being dragged onto a cell: where the pointer is and the cell under it.
+export interface PanelDrag {
+  control: PanelControl
+  // The cell it was picked up from, when it was one of the panel's own.
+  from: number | null
+  label: string
+  x: number
+  y: number
+  over: number | null
+  // A cell of the panel held outside it: letting go takes it off.
+  removing: boolean
+}
+export const panelDragStore = createStore<PanelDrag | null>(null)

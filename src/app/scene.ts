@@ -266,14 +266,14 @@ export function renameColumn(column: number, name: string): void {
   })
 }
 
-// Stores what the layer shows in one of its cells. A clip saved over keeps its launch mode;
-// its name goes, since it named what was there.
+// Stores what the layer shows in one of its cells. A clip saved over keeps its launch mode
+// and its name: they label the cell, Rename and Empty are there to change them.
 export function saveClip(layer: number, column: number): void {
   if (column < 0 || column >= CLIP_COLUMNS) return
   editLayer(layer, (l) => {
     const clips = [...l.clips]
-    const launch = l.clips[column]?.launch
-    clips[column] = launch ? { ...clipOf(l), launch } : clipOf(l)
+    const { launch, name } = l.clips[column] ?? {}
+    clips[column] = { ...clipOf(l), ...(launch ? { launch } : {}), ...(name ? { name } : {}) }
     return { ...l, clips, active: column }
   })
 }

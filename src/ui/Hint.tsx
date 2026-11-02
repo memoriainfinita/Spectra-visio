@@ -1,13 +1,11 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { useT } from './useT'
 
-// Up to one short line shows as it is.
-const SHORT = 90
 const GAP = 6
 const MARGIN = 8
 
-// A panel's explanation. Short ones show as they are; longer ones wait behind a "?" and
-// show in a bubble: while the mouse is over it, while it has the keyboard's focus, or pinned
+// A panel's explanation, always behind a "?" (named "More information" for a screen reader)
+// and shown in a bubble: while the mouse is over it, while it has the keyboard's focus, or pinned
 // with a click or a tap until the next one, Escape or a press elsewhere. The bubble is
 // fixed to the window, so a scrolling dock does not cut it.
 export function Hint({ text }: { text: string }) {
@@ -56,13 +54,13 @@ export function Hint({ text }: { text: string }) {
     }
   }, [open])
 
-  if (text.length <= SHORT) return <p className="muted small">{text}</p>
   return (
     <div className="hint">
       <button
         ref={button}
         type="button"
         className={`hint-button muted small${open ? ' on' : ''}`}
+        aria-label={t('hint.more')}
         aria-describedby={id}
         aria-expanded={open}
         // Hover only where there is one: a touch screen's stray mouse would keep it open.
@@ -86,7 +84,6 @@ export function Hint({ text }: { text: string }) {
         <span className="hint-mark" aria-hidden="true">
           ?
         </span>
-        {t('hint.more')}
       </button>
       <div ref={bubble} id={id} role="tooltip" className="hint-bubble" hidden={!open}>
         {text}

@@ -1,4 +1,5 @@
 import { createStore } from '../core/store'
+import { describeChange, type Change } from '../engine/scene/changed'
 import type { SceneState } from '../engine/scene/scene'
 import { sceneStore } from './scene'
 
@@ -63,9 +64,15 @@ export function withoutHistory(change: () => void): void {
   }
 }
 
-function go(from: SceneState[], to: SceneState[]): boolean {
+// What an undo or redo did: null when there was nothing to go to; `change` is what moved,
+// when it is one thing.
+export interface Went {
+  change: Change | null
+}
+
+function go(from: SceneState[], to: SceneState[]): Went | null {
   const target = from.pop()
-  if (!target) return false
+  if (!target) return null
   const now = sceneStore.get()
   to.push(now)
   // The layer chosen stays when it is still there.
@@ -74,7 +81,7 @@ function go(from: SceneState[], to: SceneState[]): boolean {
   // The next change starts a step of its own.
   lastAt = -Infinity
   publish()
-  return true
+  return { change: describeChange(now, target) }
 }
 
 export const undo = () => go(past, future)

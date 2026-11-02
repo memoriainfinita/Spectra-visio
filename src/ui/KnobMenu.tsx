@@ -34,7 +34,8 @@ const menuStore = createStore<MenuState | null>(null)
 // Handlers for what holds the control.
 export function knobMenu(target: ControlTarget) {
   const h = menuHandlers(menuStore, { target })
-  return { onContextMenu: h.onContextMenu, onKeyDown: (e: KeyboardEvent<HTMLElement>) => void h.onMenuKey(e) }
+  // `data-control`: what My panel picks up while it is being edited (see PanelDrag).
+  return { onContextMenu: h.onContextMenu, onKeyDown: (e: KeyboardEvent<HTMLElement>) => void h.onMenuKey(e), 'data-control': JSON.stringify(target) }
 }
 
 const midiKey = (c: ControlTarget): MidiTarget => (c.kind === 'action' ? c.id : targetKey(c))

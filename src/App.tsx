@@ -10,6 +10,7 @@ import { SettingsWindow } from './ui/dock/SettingsWindow'
 import { FlashNotice } from './ui/FlashNotice'
 import { ClipMenu } from './ui/ClipMenu'
 import { KnobMenu } from './ui/KnobMenu'
+import { PanelDrag } from './ui/PanelDrag'
 import { Notices } from './ui/Notices'
 import { SearchDialog } from './ui/Search'
 import { useFileDrop, usePlayerShortcuts } from './ui/hooks'
@@ -112,6 +113,7 @@ export function App() {
       {wide && <DockWindows />}
       <FlashNotice />
       <KnobMenu />
+      <PanelDrag />
       <ClipMenu />
       <Notices />
       <SearchDialog />

@@ -1,6 +1,6 @@
 import { createStore } from '../core/store'
 import type { Curve, ModSource, SourceKind } from '../engine/modulation/modulation'
-import { MAX_MODULATORS, cleanModName, newSharedModulator, toggleDest, type ModTarget, type SharedModulator } from '../engine/modulation/shared'
+import { MAX_MODULATORS, cleanModName, newSharedModulator, setDest, toggleDest, type ModTarget, type SharedModulator } from '../engine/modulation/shared'
 import { newId } from '../engine/scene/scene'
 import { sceneStore } from './scene'
 
@@ -37,6 +37,10 @@ export function setModulatorSource(id: string, patch: { source?: ModSource; curv
 
 export function toggleModDest(id: string, target: ModTarget): void {
   edit(id, (m) => toggleDest(m, target))
+}
+
+export function setModDest(id: string, target: ModTarget, amount: number): void {
+  edit(id, (m) => setDest(m, target, amount))
 }
 
 export function setModDestAmount(id: string, i: number, amount: number): void {

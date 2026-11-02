@@ -21,7 +21,8 @@ import { toUnit } from '../engine/render/registry'
 import { nameOf, type ParamDef, type Params } from '../engine/render/visual'
 import type { MessageKey } from '../i18n'
 import type { KnobTarget } from '../engine/scene/knobs'
-import { mappingStore, toggleModDest } from '../app/modulators'
+import { mappingStore } from '../app/modulators'
+import { MapTarget } from './MapTarget'
 import { sceneStore } from '../app/scene'
 import { knobMenu } from './KnobMenu'
 import { MidiLearn } from './Midi'
@@ -55,7 +56,7 @@ export interface ParamListProps {
 
 // How far modulation can take a parameter from its value, in units of its range: the
 // negative amounts down and the positive up, its own and the shared ones.
-function reach(amounts: readonly number[]): [number, number] {
+export function reach(amounts: readonly number[]): [number, number] {
   let down = 0
   let up = 0
   for (const a of amounts) {
@@ -147,14 +148,7 @@ export function ParamList({ defs, values, mods, scope, live, onParam, onAddMod, 
                 <Activity size={15} />
                 {list.length > 0 && <span className="badge">{list.length}</span>}
               </button>
-              {mapper && modTarget && (
-                <button
-                  className="map-target"
-                  aria-pressed={on}
-                  aria-label={t(on ? 'modulators.unmapFrom' : 'modulators.mapTo', { name, mod: modulatorName(mapper, modulators, t) })}
-                  onClick={() => toggleModDest(mapper.id, modTarget)}
-                />
-              )}
+              {mapper && modTarget && <MapTarget mod={mapper} target={modTarget} label={t(on ? 'modulators.unmapFrom' : 'modulators.mapTo', { name, mod: modulatorName(mapper, modulators, t) })} />}
             </div>
             {open === key && (
               <div className="mods">

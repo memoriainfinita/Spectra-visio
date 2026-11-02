@@ -8,7 +8,12 @@ import { BLEND_MODES, MAX_LAYERS, SIDES, type BlendMode, type Side } from '../en
 import type { MessageKey } from '../i18n'
 import { useStore } from './useStore'
 import { useT } from './useT'
+import { mappingStore } from '../app/modulators'
+import { destIndex, type ModTarget } from '../engine/modulation/shared'
 import { Hint } from './Hint'
+import { MapTarget } from './MapTarget'
+import { modulatorName } from './modulatorName'
+import { reach } from './ParamList'
 import { effectNames } from './Inspector'
 import { knobMenu } from './KnobMenu'
 
@@ -67,7 +72,7 @@ export function Visuals() {
                 </button>
               </div>
               <div className="layer-row">
-                <input type="range" className="layer-opacity" {...knobMenu({ kind: 'opacity', layer: l.id })} aria-label={t('visuals.opacity', { n })} title={t('visuals.opacity', { n })} min={0} max={1} step={0.01} value={l.opacity} onChange={(e) => setLayerOpacity(i, Number(e.target.value))} />
+                <OpacitySlider i={i} n={n} />
                 <select aria-label={t('visuals.blendOf', { n })} title={t('visuals.blendOf', { n })} value={l.blend} onChange={(e) => setLayerBlend(i, e.target.value as BlendMode)}>
                   {BLEND_MODES.map((m) => (
                     <option key={m} value={m}>
@@ -96,5 +101,27 @@ export function Visuals() {
       </div>
       <Hint text={t('visuals.hint')} />
     </section>
+  )
+}
+
+// A layer's opacity. While a modulator maps it can take it too, and a band shows how far the
+// shared modulators take it.
+function OpacitySlider({ i, n }: { i: number; n: number }) {
+  const t = useT()
+  const l = useStore(sceneStore, (s) => s.layers[i])
+  const modulators = useStore(sceneStore, (s) => s.modulators)
+  const mapping = useStore(mappingStore)
+  const mapper = mapping ? modulators.find((m) => m.id === mapping) : undefined
+  if (!l) return null
+  const target: ModTarget = { kind: 'opacity', layer: l.id }
+  const name = t('visuals.opacity', { n })
+  const on = !!mapper && destIndex(mapper, target) >= 0
+  const [down, up] = reach(modulators.flatMap((m) => m.dests[destIndex(m, target)]?.amount ?? []))
+  return (
+    <div className="layer-opacity-wrap">
+      <input type="range" className="layer-opacity" {...knobMenu(target)} aria-label={name} title={name} min={0} max={1} step={0.01} value={l.opacity} onChange={(e) => setLayerOpacity(i, Number(e.target.value))} />
+      {down || up ? <span className="mod-band" aria-hidden="true" style={{ left: `${Math.max(0, l.opacity + down) * 100}%`, right: `${(1 - Math.min(1, l.opacity + up)) * 100}%` }} /> : null}
+      {mapper && <MapTarget mod={mapper} target={target} label={t(on ? 'modulators.unmapFrom' : 'modulators.mapTo', { name, mod: modulatorName(mapper, modulators, t) })} />}
+    </div>
   )
 }

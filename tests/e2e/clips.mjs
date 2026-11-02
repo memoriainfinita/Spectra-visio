@@ -42,6 +42,11 @@ await field.fill('  Estribillo   final ')
 await page.keyboard.press('Enter')
 log('renamed:', await cell(2, 3).getAttribute('aria-label'), '| label shown', await cell(2, 3).locator('.clip-label, .clip-name').allTextContents())
 
+// Saving the layer over a named clip keeps its name.
+await cell(2, 3).click({ button: 'right' })
+await item('Guardar la capa aquí').click()
+log('saved over keeps the name:', await cell(2, 3).getAttribute('aria-label'))
+
 // Launch from the menu, then empty it with the keyboard menu key.
 await cell(2, 3).click({ button: 'right' })
 await item('Lanzar').click()

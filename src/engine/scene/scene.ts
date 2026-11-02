@@ -137,12 +137,12 @@ export function defaultScene(): SceneState {
 }
 
 // How much of the layer is drawn, 0 to 1: opacity, bypass, solo and the crossfader.
-export function layerAmount(scene: SceneState, i: number): number {
+export function layerAmount(scene: SceneState, i: number, opacity = scene.layers[i]?.opacity ?? 0): number {
   const l = scene.layers[i]
   if (!l || l.bypass || (!l.solo && scene.layers.some((x) => x.solo))) return 0
   const x = scene.crossfade
   const side = l.side === 'a' ? Math.min(1, 2 * (1 - x)) : l.side === 'b' ? Math.min(1, 2 * x) : 1
-  return l.opacity * side
+  return opacity * side
 }
 
 // Settings of `visual` in this layer: the current one unless told otherwise.
