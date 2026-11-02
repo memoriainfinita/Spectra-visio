@@ -9,7 +9,7 @@ import { favoritesStore } from './library'
 import { presetsStore } from './presets'
 import { sceneStore, setVisual } from './scene'
 import { settingsStore } from './settings'
-import { visualInputStore } from './visualInput'
+import { layerHasInput } from './visualInput'
 
 // Automatic mode. Off on every visit; its settings are kept with the app's.
 
@@ -53,11 +53,11 @@ function loop(now: number): void {
   if (changed) autoStore.set((s) => ({ ...s, last: why }))
 }
 
-// Visualizations of the chosen pool; the visual input one only while there is an input.
-function visualPool(): string[] {
+// Visualizations of the chosen pool; the visual input one only while the layer has an input.
+function visualPool(layerId: string): string[] {
   const s = settingsStore.get().auto
   const favorites = favoritesStore.get()
-  const hasInput = visualInputStore.get().kind !== 'none'
+  const hasInput = layerHasInput(layerId)
   return visualsStore
     .get()
     .filter((v) => (v.category !== 'media' || hasInput) && (s.pool !== 'favorites' || favorites.includes(v.id)) && (s.pool !== 'category' || v.category === s.category))
@@ -85,7 +85,7 @@ function change(): boolean {
     lastPreset.set(layerId, preset.id)
     sceneStore.set((sc) => applyPreset(sc, layer, preset))
   } else {
-    const id = pickNext(visualPool(), scene.layers[layer].visual)
+    const id = pickNext(visualPool(layerId), scene.layers[layer].visual)
     if (!id || (id === scene.layers[layer].visual && !alternate)) return false
     setVisual(layer, id)
   }

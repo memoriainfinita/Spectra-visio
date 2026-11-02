@@ -1,5 +1,6 @@
 import { Camera, Globe, ImagePlus, Tv, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { sceneStore } from '../app/scene'
 import { cameraDevices, openVisualFile, previewStore, startCamera, stopVisualInput, visualInputStore } from '../app/visualInput'
 import type { MessageKey } from '../i18n'
 import { useStore } from './useStore'
@@ -12,6 +13,7 @@ import { videoControlStore } from '../app/videoControl'
 export function VisualInput() {
   const t = useT()
   const state = useStore(visualInputStore)
+  const selected = useStore(sceneStore, (s) => s.selected)
   const preview = useStore(previewStore)
   const video = useStore(videoControlStore, (s) => s.active)
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([])
@@ -37,7 +39,7 @@ export function VisualInput() {
   return (
     <section className="panel visual-input">
       <header className="panel-head">
-        <h2>{t('vinput.title')}</h2>
+        <h2>{t('vinput.titleLayer', { n: selected + 1 })}</h2>
         <div className="head-actions">
           <button className={`btn${state.kind === 'camera' ? ' on' : ''}`} onClick={() => void startCamera()}>
             <Camera size={15} /> {t('vinput.camera')}
@@ -51,7 +53,7 @@ export function VisualInput() {
           <button className={`btn${state.page ? ' on' : ''}`} aria-expanded={browser === 'media'} onClick={() => toggle('media')}>
             <Globe size={15} /> {t('vinput.online')}
           </button>
-          <button className="btn" disabled={state.kind === 'none'} onClick={stopVisualInput}>
+          <button className="btn" disabled={state.kind === 'none'} onClick={() => stopVisualInput()}>
             <X size={15} /> {t('vinput.stop')}
           </button>
           <input

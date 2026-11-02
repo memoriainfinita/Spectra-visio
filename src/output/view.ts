@@ -52,7 +52,8 @@ body.idle { cursor: none; }
 
   let scene: SceneState = o.bridge()?.scene() ?? defaultScene()
   let shaders: readonly UserShader[] | null = null
-  let visual: VisualSource | null = null
+  // The input sources handed to the renderer, by layer id.
+  const known = new Map<string, VisualSource>()
   // Null until the first frame, so the first state always shows.
   let connected: boolean | null = null
 
@@ -72,10 +73,16 @@ body.idle { cursor: none; }
       }
       setUserVisuals(defs)
     }
-    const v = b.visual()
-    if (v !== visual) {
-      visual = v
-      setVisualSource(v)
+    const inputs = b.visuals()
+    for (const [id, v] of inputs) {
+      if (known.get(id) === v) continue
+      known.set(id, v)
+      setVisualSource(id, v)
+    }
+    for (const id of [...known.keys()]) {
+      if (inputs.has(id)) continue
+      known.delete(id)
+      setVisualSource(id, null)
     }
     scene = b.scene()
     renderer.setFixedSize(b.size())
@@ -89,8 +96,8 @@ body.idle { cursor: none; }
     connected = on
     lost.hidden = on
     if (!on) {
-      visual = null
-      setVisualSource(null)
+      for (const id of known.keys()) setVisualSource(id, null)
+      known.clear()
     }
   }
 

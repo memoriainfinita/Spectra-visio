@@ -14,6 +14,7 @@ import {
   resetParams,
   saveClip,
   sceneStore,
+  setClipContent,
   setClipLaunch,
   setClipParam,
   setParam,
@@ -23,11 +24,13 @@ import {
   updateModulation,
 } from '../app/scene'
 import { videoControlStore } from '../app/videoControl'
+import { visualInputStore } from '../app/visualInput'
+import { InputSources } from './InputSources'
 import { getEffect } from '../engine/effects/registry'
 import { getVisual, paramsOf, visualsStore } from '../engine/render/registry'
 import { nameOf } from '../engine/render/visual'
 import { NAME_MAX } from '../engine/scene/preset'
-import { LAUNCH_MODES, TRANSITION_MAX, visualSettings, type EffectState, type VisualSettings } from '../engine/scene/scene'
+import { INPUT_VISUAL, LAUNCH_MODES, TRANSITION_MAX, visualSettings, type EffectState, type VisualSettings } from '../engine/scene/scene'
 import type { MessageKey } from '../i18n'
 import { PanelSlot } from './dock/panels'
 import type { MidiTarget } from '../engine/midi/midi'
@@ -192,6 +195,7 @@ function LayerLevel() {
   const modulators = useStore(sceneStore, (s) => s.modulators)
   const visuals = useStore(visualsStore)
   const video = useStore(videoControlStore, (s) => s.active)
+  const input = useStore(visualInputStore)
   const def = getVisual(layer.visual)
   const settings = visualSettings(layer)
   const params = def ? paramsOf(def) : []
@@ -231,6 +235,9 @@ function LayerLevel() {
       </Fold>
       <Fold id="layer.effects" title={t('effects.title')} meta={effectNames(t, layer.effects)}>
         <EffectChain target={sel} />
+      </Fold>
+      <Fold id="layer.input" title={t('inspector.input')} meta={input.name || t('inspector.inputNone')} folded>
+        <InputSources />
       </Fold>
       {video && (
         <Fold id="layer.video" title={t('inspector.video')}>
@@ -312,6 +319,16 @@ function ClipLevel({ column }: { column: number | null }) {
   return (
     <>
       <Fold id="clip.clip" title={clipName(clip, t)} meta={status}>
+        <div className="segmented" role="group" aria-label={t('inspector.content')}>
+          {[false, true].map((input) => {
+            const on = (clip.visual === INPUT_VISUAL) === input
+            return (
+              <button key={String(input)} className={`seg${on ? ' on' : ''}`} aria-pressed={on} onClick={() => setClipContent(sel, column, input)}>
+                {t(input ? 'inspector.content.input' : 'inspector.content.visual')}
+              </button>
+            )
+          })}
+        </div>
         <div className="segmented" role="group" aria-label={t('inspector.launch')}>
           {LAUNCH_MODES.map((m) => {
             const on = (clip.launch ?? 'press') === m

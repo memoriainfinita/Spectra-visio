@@ -23,7 +23,8 @@ export interface OutputBridge {
   output(frame: AnalysisFrame | null): OutputState
   control(id: string): number
   overlay(): OverlayData
-  visual(): VisualSource | null
+  // The visual input of each layer, by layer id: the map itself, which the main window changes.
+  visuals(): ReadonlyMap<string, VisualSource>
   shaders(): readonly UserShader[]
   // The fixed size the main window renders at, or null when it follows its canvas.
   size(): PixelSize | null
