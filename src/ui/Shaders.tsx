@@ -1,9 +1,10 @@
-import { ClipboardPaste, Play, Trash2, Upload } from 'lucide-react'
+import { ClipboardPaste, Play, Plus, Trash2, Upload } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { sceneStore, setVisual } from '../app/scene'
 import { SHADER_NAME_MAX, addShader, deleteShader, importShaderFiles, shadersStore } from '../app/shaders'
 import { settingsStore } from '../app/settings'
 import { getVisual } from '../engine/render/registry'
+import { SHADER_EXAMPLES, type ShaderExample } from '../engine/shaders/examples'
 import { USER_PREFIX } from '../engine/shaders/userVisual'
 import { useStore } from './useStore'
 import { useT } from './useT'
@@ -26,6 +27,11 @@ export function Shaders() {
     const r = await importShaderFiles(files, lang)
     const lines = [...(r.added ? [t('shaders.added', { n: r.added })] : []), ...r.errors]
     setMessage({ text: lines.join('\n'), error: r.errors.length > 0 })
+  }
+
+  const onAddExample = (ex: ShaderExample) => {
+    const error = addShader(ex.name, ex.source, lang)
+    setMessage(error ? { text: error, error: true } : { text: t('shaders.added', { n: 1 }), error: false })
   }
 
   const onAdd = () => {
@@ -91,6 +97,24 @@ export function Shaders() {
           {message.text}
         </p>
       )}
+
+      <h3 className="muted small">{t('shaders.examples')}</h3>
+      <ul className="preset-list">
+        {SHADER_EXAMPLES.map((ex) => {
+          const added = shaders.some((s) => s.name === ex.name)
+          return (
+            <li key={ex.id} className="preset">
+              <div className="preset-main static">
+                <span className="preset-name">{ex.name}</span>
+                <span className="preset-sub">{ex.format === 'isf' ? 'ISF' : 'Shadertoy'}</span>
+              </div>
+              <button className="icon-btn small" disabled={added} title={t('shaders.addExample', { name: ex.name })} aria-label={t('shaders.addExample', { name: ex.name })} onClick={() => onAddExample(ex)}>
+                <Plus size={15} />
+              </button>
+            </li>
+          )
+        })}
+      </ul>
 
       {shaders.length === 0 ? (
         <p className="empty">{t('shaders.empty')}</p>
