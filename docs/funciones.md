@@ -45,6 +45,7 @@ Lista de funciones confirmada por mykl el 2026-10-10. Es el contrato del redise�
 ## D. Modulación
 
 - Cualquier parámetro de cualquier visualización o efecto se puede conectar a una fuente de modulación: banda, golpe, oscilador lento o control MIDI
+- La opacidad de una capa también se puede modular, y la cantidad de cada modulador se fija arrastrando sobre el parámetro mientras se mapea
 
 ## E. Visualizaciones
 
@@ -71,6 +72,8 @@ Lista de funciones confirmada por mykl el 2026-10-10. Es el contrato del redise�
 - Lanzar clips al pulsar o al siguiente golpe
 - Menú de clip con clic derecho: lanzar, guardar la capa aquí, copiar, pegar, renombrar y vaciar; el nombre por defecto es el de la visualización
 - Columnas de clips con nombre y lanzables con una nota MIDI, además de las teclas numéricas
+- Mi panel: los controles de la app se arrastran a sus celdas desde el modo Editar
+- El aviso de deshacer dice qué se deshizo cuando fue una sola cosa
 - Salida en segunda ventana para proyector, controlada desde la principal
 - Apagón, congelar imagen y estrobo con límite fotosensible global
 

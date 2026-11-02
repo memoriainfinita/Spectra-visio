@@ -130,3 +130,11 @@ El CDN de images-assets.nasa.gov guarda copias sin la cabecera CORS y las sirve 
 - Menús sin cerrarse al pulsar fuera en esa ventana: escuchaban el `document` principal; el de mandos además se dibujaba en la ventana principal. Ahora se dibujan y escuchan en el documento del control que los abre (`src/ui/contextMenu.ts`)
 - Cambios perdidos al recargar: una escritura en IndexedDB empezada en `pagehide` no termina en Chrome ni en Firefox (comprobado leyendo IndexedDB tras recargar). Lo pendiente va ahora, síncrono, a `localStorage` y se recupera al arrancar
 - Con cambios sin pausa de 400 ms (Playwright en Chrome, un crossfader en camino) no se guardaba nada hasta la pausa. Ahora se guarda como mucho cada 2 s
+
+### 2026-11-02 — Decisiones de Claude revisadas con mykl
+
+- Cantidad de un modulador compartido: Claude la había dejado solo en la lista de asignaciones. mykl pidió también arrastrar sobre el parámetro mientras se mapea; las dos vías escriben el mismo valor (`MapTarget.tsx`).
+- Opacidad de capa: Claude la había dejado fuera de los destinos de los moduladores. mykl pidió poder modularla (típico en directo); el crossfader sigue fuera porque llevaría toda la mezcla.
+- Mi panel: Claude había sustituido el arrastrar del lienzo por el menú de clic derecho y el + de cada celda. mykl pidió arrastrar. Mientras Mi panel está en Editar y visible, los controles con menú de clic derecho se cogen y se sueltan en una celda y no actúan; un escuchador global en el documento (`PanelDrag.tsx`) evita tocar los sitios donde se usan. Las flechas de mover y la X tapaban el nombre de la celda y las celdas se encogían al redimensionar: mykl pidió quitar las flechas y mover por arrastre; la rejilla pasa de 8 columnas fijas a las que caben. Una primera X en franja propia hacía crecer las celdas al editar y tapaba los botones, y el botón Editar gastaba una fila: mykl lo señaló; ahora no hay X (se quita arrastrando fuera) y Editar y la ayuda están en la barra de pestañas.
+- Guardar encima de un clip quitaba su nombre («nombraba lo que había»). mykl aceptó el cambio: conserva nombre y modo, y Renombrar y Vaciar los cambian.
+- Aviso de deshacer sin descripción: ahora nombra el cambio si fue una sola cosa. Se deduce comparando la escena antes y después (`changed.ts`), sin etiquetar los pasos.
