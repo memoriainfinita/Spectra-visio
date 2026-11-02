@@ -1,6 +1,8 @@
 import { Download, Trash2, Upload } from 'lucide-react'
 import { useRef, useState } from 'react'
+import { loadDemo } from '../app/demos'
 import { deletePreset, downloadPresets, importPresets, loadPreset, presetsStore, savePreset } from '../app/presets'
+import { DEMOS } from '../engine/scene/demos'
 import { sceneStore } from '../app/scene'
 import { getVisual } from '../engine/render/registry'
 import { nameOf } from '../engine/render/visual'
@@ -52,6 +54,17 @@ export function Presets() {
           />
         </div>
       </header>
+
+      <h3 className="muted small">{t('demo.title')}</h3>
+      <ul className="preset-list">
+        {DEMOS.map((d) => (
+          <li key={d.id} className="preset">
+            <button className="preset-main" title={`${t(d.hint)}. ${t('demo.load')}`} onClick={() => loadDemo(d.id)}>
+              <span className="preset-name">{t(d.name)}</span>
+            </button>
+          </li>
+        ))}
+      </ul>
 
       <form
         className="preset-form"

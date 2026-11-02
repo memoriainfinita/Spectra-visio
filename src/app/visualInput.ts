@@ -1,7 +1,12 @@
 import { createStore } from '../core/store'
+import { translate } from '../i18n'
+import { getVisual } from '../engine/render/registry'
 import { setVisualSource } from '../engine/render/visualInput'
+import { INPUT_VISUAL } from '../engine/scene/scene'
 import { attachHls } from '../engine/tv/hls'
-import { sceneStore } from './scene'
+import { notify } from './notices'
+import { sceneStore, setVisual } from './scene'
+import { settingsStore } from './settings'
 
 // The visual input of each layer: a camera, a video file (looped, silent), an image or a live
 // TV channel (silent). Not kept between visits: the camera asks for permission again and
@@ -133,6 +138,22 @@ export function stopVisualInput(layer = selectedLayer()): void {
   setState(layer, EMPTY)
 }
 
+// A new input is for seeing: the layer gets the input visualization, unless it already has it
+// or runs a shader (imported shaders read the input themselves, Milkdrop is a deliberate pick).
+// A crossfader that hides the layer is only said, never moved.
+function surface(layer: string): void {
+  const s = sceneStore.get()
+  const i = s.layers.findIndex((l) => l.id === layer)
+  const l = s.layers[i]
+  if (!l) return
+  const swap = l.visual !== INPUT_VISUAL && getVisual(l.visual)?.category !== 'shader'
+  if (swap) setVisual(i, INPUT_VISUAL)
+  const hidden = (l.side === 'a' && s.crossfade >= 1) || (l.side === 'b' && s.crossfade <= 0)
+  if (!swap && !hidden) return
+  const key = swap ? (hidden ? 'vinput.shownHidden' : 'vinput.shown') : 'vinput.hidden'
+  notify(translate(settingsStore.get().lang, key, { n: i + 1, side: (l.side ?? '').toUpperCase() }))
+}
+
 const fail = (layer: string, error: InputError) => setState(layer, { ...inputOf(layer), error })
 
 function videoElement(): HTMLVideoElement {
@@ -185,6 +206,7 @@ export async function startCamera(deviceId?: string, layer = selectedLayer()): P
     setVisualSource(layer, { element: v, width: v.videoWidth, height: v.videoHeight, live: true })
     setElement(layer, v)
     setState(layer, { kind: 'camera', name: track?.label ?? '', url: '', page: '', width: v.videoWidth, height: v.videoHeight, error: null })
+    surface(layer)
   } catch (err) {
     if (mine !== slot.op) return
     release(layer)
@@ -209,6 +231,7 @@ export async function openVisualFile(file: File, layer = selectedLayer()): Promi
       setVisualSource(layer, { element: v, width: v.videoWidth, height: v.videoHeight, live: true })
       setElement(layer, v)
       setState(layer, { kind: 'video', name: file.name, url: '', page: '', width: v.videoWidth, height: v.videoHeight, error: null })
+      surface(layer)
     } else {
       const img = new Image()
       img.src = slot.objectUrl
@@ -217,6 +240,7 @@ export async function openVisualFile(file: File, layer = selectedLayer()): Promi
       setVisualSource(layer, { element: img, width: img.naturalWidth, height: img.naturalHeight, live: false })
       setElement(layer, img)
       setState(layer, { kind: 'image', name: file.name, url: '', page: '', width: img.naturalWidth, height: img.naturalHeight, error: null })
+      surface(layer)
     }
   } catch {
     if (mine !== slot.op) return
@@ -251,6 +275,7 @@ export async function startTv(url: string, name: string, layer = selectedLayer()
     tvVideo = v
     tvLayer = layer
     setState(layer, { kind: 'tv', name, url, page: '', width: v.videoWidth, height: v.videoHeight, error: null })
+    surface(layer)
     // A channel that stops for good leaves the input instead of freezing on its last frame.
     v.addEventListener('error', () => {
       if (mine === slot.op) {
@@ -285,6 +310,7 @@ export async function openVisualUrl(url: string, type: 'video' | 'image', name: 
       setVisualSource(layer, { element: v, width: v.videoWidth, height: v.videoHeight, live: true })
       setElement(layer, v)
       setState(layer, { kind: 'video', name, url, page, width: v.videoWidth, height: v.videoHeight, error: null })
+      surface(layer)
     } else {
       const img = new Image()
       img.crossOrigin = 'anonymous'
@@ -294,6 +320,7 @@ export async function openVisualUrl(url: string, type: 'video' | 'image', name: 
       setVisualSource(layer, { element: img, width: img.naturalWidth, height: img.naturalHeight, live: false })
       setElement(layer, img)
       setState(layer, { kind: 'image', name, url, page, width: img.naturalWidth, height: img.naturalHeight, error: null })
+      surface(layer)
     }
   } catch {
     if (mine !== slot.op) return

@@ -61,6 +61,7 @@ Lista de funciones confirmada por mykl el 2026-10-10. Es el contrato del redise�
 - Modo automático: cambio por tiempo, por golpe o al cambiar de canción
 - Navegador de visualizaciones: miniaturas, categorías, búsqueda y favoritos
 - Presets guardados, con exportación e importación
+- Escenas de ejemplo en Bibliotecas › Presets (Primeros pasos, Moduladores y mandos, Clips y directo): reemplazan la escena, se mueven solas con osciladores y Ctrl Z las deshace
 - Capas superpuestas: título de la canción, letras sincronizadas (LRC), logo o imagen, texto
 
 ## F. Directo / VJ
@@ -74,7 +75,7 @@ Lista de funciones confirmada por mykl el 2026-10-10. Es el contrato del redise�
 - Columnas de clips con nombre y lanzables con una nota MIDI, además de las teclas numéricas
 - Mi panel: los controles de la app se arrastran a sus celdas desde el modo Editar
 - El aviso de deshacer dice qué se deshizo cuando fue una sola cosa
-- Entrada visual por capa: cada capa tiene su cámara, archivo, TV o vídeo en línea, y el contenido de un clip puede ser la entrada visual
+- Entrada visual por capa: cada capa tiene su cámara, archivo, TV o vídeo en línea, y el contenido de un clip puede ser la entrada visual. Al abrir una fuente, la capa pasa a la visualización Entrada visual (salvo que ya corra un shader), y un aviso dice si el crossfader oculta el lado de esa capa
 - Salida en segunda ventana para proyector, controlada desde la principal
 - Apagón, congelar imagen y estrobo con límite fotosensible global
 
