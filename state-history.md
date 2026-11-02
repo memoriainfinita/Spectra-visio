@@ -138,3 +138,9 @@ El CDN de images-assets.nasa.gov guarda copias sin la cabecera CORS y las sirve 
 - Mi panel: Claude había sustituido el arrastrar del lienzo por el menú de clic derecho y el + de cada celda. mykl pidió arrastrar. Mientras Mi panel está en Editar y visible, los controles con menú de clic derecho se cogen y se sueltan en una celda y no actúan; un escuchador global en el documento (`PanelDrag.tsx`) evita tocar los sitios donde se usan. Las flechas de mover y la X tapaban el nombre de la celda y las celdas se encogían al redimensionar: mykl pidió quitar las flechas y mover por arrastre; la rejilla pasa de 8 columnas fijas a las que caben. Una primera X en franja propia hacía crecer las celdas al editar y tapaba los botones, y el botón Editar gastaba una fila: mykl lo señaló; ahora no hay X (se quita arrastrando fuera) y Editar y la ayuda están en la barra de pestañas.
 - Guardar encima de un clip quitaba su nombre («nombraba lo que había»). mykl aceptó el cambio: conserva nombre y modo, y Renombrar y Vaciar los cambian.
 - Aviso de deshacer sin descripción: ahora nombra el cambio si fue una sola cosa. Se deduce comparando la escena antes y después (`changed.ts`), sin etiquetar los pasos.
+
+### 2026-11-02 — Entrada visual global sustituida por una por capa
+
+- Había una sola entrada visual para toda la app, leída por la visualización, el efecto y los shaders importados. El diseño aprobado el 2026-10-13 pedía una por capa y quedó fuera del orden hasta ahora.
+- Cada capa guarda su fuente y el renderizador fija la capa que dibuja, así que la visualización y los efectos de esa capa leen la suya. `visualInputStore` y `previewStore` se conservan como vista de la capa seleccionada para no tocar los paneles.
+- El control del vídeo vigilaba solo el vídeo seleccionado: un vídeo en otra capa se habría parado al llegar al final de su tramo. Ahora vigila todos, cada uno con sus ajustes.
