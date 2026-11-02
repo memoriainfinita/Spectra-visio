@@ -60,16 +60,37 @@ await panel.locator('.mypanel-slider input').first().fill('0.5')
 await tab('Inspector').click()
 log(`panel slider at half: ${pname}`, await pslider.inputValue())
 
-// Edit: the crossfader into cell 3, moved left, then removed.
+// Edit: the crossfader into cell 3, dragged onto cell 2, then removed.
 await tab('Mi panel').click()
-await panel.getByRole('button', { name: 'Editar' }).click()
+await page.getByRole('button', { name: 'Editar', exact: true }).click()
 await panel.getByLabel('Control para la celda 3').selectOption('crossfade')
 log('crossfader added:', await filled(), '| cell 3', await panel.locator('.mypanel-cell').nth(2).getByLabel('Crossfader', { exact: true }).count())
-await panel.getByRole('button', { name: 'Mover Crossfader a la izquierda' }).click()
-log('moved: cell 2 crossfader', await panel.locator('.mypanel-cell').nth(1).getByLabel('Crossfader', { exact: true }).count())
-await panel.getByRole('button', { name: 'Quitar Crossfader de Mi panel' }).click()
+await page.waitForTimeout(500)
+const box = async (i) => { const b = await panel.locator('.mypanel-cell').nth(i).boundingBox(); return { x: b.x + b.width / 2, y: b.y + b.height / 2 } }
+const from = await box(2)
+const to = await box(1)
+const heightBefore = (await panel.locator('.mypanel-cell').nth(2).boundingBox()).height
+log('no arrows:', await panel.getByRole('button', { name: /^Mover / }).count(), '| no remove buttons:', await panel.getByRole('button', { name: /^Quitar / }).count(), '| Edit in the tab strip:', await page.locator('.dock-actions ' + 'button').filter({ hasText: 'Hecho' }).count(), '| panel rows with a header:', await panel.locator('.panel-head').count())
+await page.mouse.move(from.x, from.y)
+await page.mouse.down()
+await page.mouse.move((from.x + to.x) / 2, to.y, { steps: 4 })
+await page.mouse.move(to.x, to.y, { steps: 6 })
+await page.mouse.up()
+await page.waitForTimeout(150)
+log('dragged: cell 2 crossfader', await panel.locator('.mypanel-cell').nth(1).getByLabel('Crossfader', { exact: true }).count(), '| cell 3', await panel.locator('.mypanel-cell').nth(2).getByLabel('Crossfader', { exact: true }).count())
+// Out of the panel it comes off: the ghost turns red on the way.
+{
+  const c = await box(1)
+  await page.mouse.move(c.x, c.y)
+  await page.mouse.down()
+  await page.mouse.move(c.x, c.y - 200, { steps: 6 })
+  log('held outside: ghost removing', await page.locator('.panel-ghost.removing').count())
+  await page.mouse.up()
+  await page.waitForTimeout(150)
+}
+log('cell height the same while editing:', Math.abs(heightBefore - (await panel.locator('.mypanel-cell').nth(2).boundingBox()).height) < 1)
 log('removed:', await filled())
-await panel.getByRole('button', { name: 'Hecho' }).click()
+await page.getByRole('button', { name: 'Hecho', exact: true }).click()
 
 // The learned parameter in Settings › MIDI, and all of it after a reload.
 await page.waitForTimeout(600)

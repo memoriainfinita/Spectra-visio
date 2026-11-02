@@ -11,8 +11,9 @@ export const MOD_NAME_MAX = 30
 // What a click while mapping gives a parameter: half its range at full source.
 export const MAP_AMOUNT = 0.5
 
-// The parameters a modulator can move: a visualization's on a layer, or an effect's.
-export type ModTarget = Extract<KnobTarget, { kind: 'param' | 'effect' }>
+// What a modulator can move: a visualization's parameter on a layer, an effect's, or a
+// layer's opacity (not the crossfader: it takes the whole mix with it).
+export type ModTarget = Extract<KnobTarget, { kind: 'param' | 'effect' | 'opacity' }>
 
 export interface ModDest {
   target: ModTarget
@@ -31,7 +32,7 @@ export interface SharedModulator {
   dests: ModDest[]
 }
 
-export const isModTarget = (t: KnobTarget): t is ModTarget => t.kind === 'param' || t.kind === 'effect'
+export const isModTarget = (t: KnobTarget): t is ModTarget => t.kind === 'param' || t.kind === 'effect' || t.kind === 'opacity'
 
 export function newSharedModulator(id: string, kind: SourceKind): SharedModulator {
   return { id, name: '', source: defaultSource(kind), curve: 'linear', smoothing: 0, dests: [] }
@@ -47,9 +48,18 @@ export function toggleDest(m: SharedModulator, target: ModTarget, amount = MAP_A
   return { ...m, dests: [...m.dests, { target, amount }] }
 }
 
+// The amount of a destination, which is put there when it was not.
+export function setDest(m: SharedModulator, target: ModTarget, amount: number): SharedModulator {
+  const a = Math.max(-1, Math.min(1, amount))
+  const i = destIndex(m, target)
+  if (i >= 0) return { ...m, dests: m.dests.map((d, j) => (j === i ? { ...d, amount: a } : d)) }
+  if (m.dests.length >= MAX_MOD_DESTS) return m
+  return { ...m, dests: [...m.dests, { target, amount: a }] }
+}
+
 // Destinations on a layer that is gone.
 export function withoutLayer(m: SharedModulator, layer: string): SharedModulator {
-  const dests = m.dests.filter((d) => (d.target.kind === 'param' ? d.target.layer : d.target.owner) !== layer)
+  const dests = m.dests.filter((d) => (d.target.kind === 'effect' ? d.target.owner : d.target.layer) !== layer)
   return dests.length === m.dests.length ? m : { ...m, dests }
 }
 
@@ -57,6 +67,7 @@ export function withoutLayer(m: SharedModulator, layer: string): SharedModulator
 // effect's by its id (the nth of its type in its chain, resolved by the caller).
 export const paramKey = (layer: string, visual: string, param: string) => `p:${layer}:${visual}:${param}`
 export const effectKey = (effectId: string, param: string) => `e:${effectId}:${param}`
+export const opacityKey = (layer: string) => `o:${layer}`
 
 // --- Normalization of stored data ---
 
@@ -68,6 +79,7 @@ export const cleanModName = (s: string): string => s.replace(/\s+/g, ' ').trim()
 function normalizeTarget(raw: unknown, layers: ReadonlySet<string>): ModTarget | null {
   if (!isObj(raw)) return null
   if (raw.kind === 'param' && str(raw.layer) && str(raw.visual) && str(raw.param) && layers.has(raw.layer)) return { kind: 'param', layer: raw.layer, visual: raw.visual, param: raw.param }
+  if (raw.kind === 'opacity' && str(raw.layer) && layers.has(raw.layer)) return { kind: 'opacity', layer: raw.layer }
   if (raw.kind === 'effect' && str(raw.owner) && str(raw.type) && str(raw.param) && typeof raw.nth === 'number' && Number.isInteger(raw.nth) && raw.nth >= 0 && (raw.owner === COMP || layers.has(raw.owner)))
     return { kind: 'effect', owner: raw.owner, type: raw.type, nth: raw.nth, param: raw.param }
   return null

@@ -204,6 +204,7 @@ function DockStack({
             </button>
           ))}
         </div>
+        <div className="dock-actions" id={`dock-actions-${shown}`} />
         <DockMenu dock={shown} zone={zone} index={index} layout={layout} locked={locked} />
       </div>
       {tabs.map((d, i) => (

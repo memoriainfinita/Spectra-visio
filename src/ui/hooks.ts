@@ -78,8 +78,13 @@ function undoKey(e: KeyboardEvent): boolean {
   if (!back && !again) return false
   e.preventDefault()
   const lang = settingsStore.get().lang
-  if (back ? undo() : redo()) notify(translate(lang, back ? 'history.undone' : 'history.redone'))
-  else notify(translate(lang, back ? 'history.nothingToUndo' : 'history.nothingToRedo'))
+  const went = back ? undo() : redo()
+  if (!went) notify(translate(lang, back ? 'history.nothingToUndo' : 'history.nothingToRedo'))
+  else if (!went.change) notify(translate(lang, back ? 'history.undone' : 'history.redone'))
+  else {
+    const { area, layer } = went.change
+    notify(translate(lang, back ? 'history.undoneWhat' : 'history.redoneWhat', { what: translate(lang, `history.what.${area}`, { n: layer ?? 0 }) }))
+  }
   return true
 }
 

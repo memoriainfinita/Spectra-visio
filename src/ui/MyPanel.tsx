@@ -1,13 +1,14 @@
-import { ChevronLeft, ChevronRight, X } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { dockUi, layoutsStore } from '../app/layout'
 import { autoStore, toggleAuto } from '../app/auto'
 import { liveStore, runAction } from '../app/live'
-import { setPanelCell, swapPanelCells } from '../app/panel'
+import { panelDragStore, panelEditStore, setPanelCell } from '../app/panel'
 import { sceneStore, setCrossfade } from '../app/scene'
 import { ACTIONS, type ActionId } from '../engine/live/live'
 import type { MidiTarget } from '../engine/midi/midi'
 import { LEVEL_KNOBS, PANEL_KNOBS, type KnobRef, type KnobTarget } from '../engine/scene/knobs'
-import { PANEL_CELLS, PANEL_COLUMNS, targetShare, type PanelControl } from '../engine/scene/panel'
+import { PANEL_CELLS, targetShare, type PanelControl } from '../engine/scene/panel'
 import type { SceneState } from '../engine/scene/scene'
 import { knobAt, setTarget } from '../engine/scene/turn'
 import { Hint } from './Hint'
@@ -22,7 +23,7 @@ type T = ReturnType<typeof useT>
 const CELLS = Array.from({ length: PANEL_CELLS }, (_, i) => i)
 const TOGGLES: readonly ActionId[] = ['blackout', 'freeze', 'strobe', 'auto']
 
-function controlName(s: SceneState, c: PanelControl, t: T): string {
+export function controlName(s: SceneState, c: PanelControl, t: T): string {
   if (c.kind === 'action') return actionLabel(c.id, t)
   if (c.kind === 'knob') {
     const k = knobAt(s, c.ref)
@@ -33,32 +34,51 @@ function controlName(s: SceneState, c: PanelControl, t: T): string {
 
 const knobMidi = (ref: KnobRef): MidiTarget | undefined => (ref.bank === 'panel' ? `knob${ref.i + 1}` : ref.bank === 'comp' ? `compKnob${ref.i + 1}` : undefined)
 
-// My panel: PANEL_COLUMNS × 2 cells for the controls of a show. Controls come from their
+// My panel: PANEL_CELLS cells for the controls of a show. Controls come from their
 // right-click menu; Edit adds actions, the crossfader and knobs, moves and removes.
 export function MyPanel() {
   const t = useT()
   const scene = useStore(sceneStore)
-  const [editing, setEditing] = useState(false)
+  const editing = useStore(panelEditStore)
+  const over = useStore(panelDragStore, (d) => d?.over ?? null)
+  const section = useRef<HTMLElement>(null)
+  // The tab strip of the stack that shows this dock has room for the Edit button and the
+  // help, so they do not take a row of the panel; elsewhere (a dock window) they do.
+  const [slot, setSlot] = useState<HTMLElement | null>(null)
+  useStore(layoutsStore)
+  useStore(dockUi)
+  useEffect(() => {
+    const el = section.current?.ownerDocument.getElementById('dock-actions-mypanel') ?? null
+    setSlot((prev) => (prev === el ? prev : el))
+  })
+  const controls = (
+    <>
+      <Hint text={t('mypanel.hint')} />
+      <button className={`btn small${editing ? ' on' : ''}`} aria-pressed={editing} onClick={() => panelEditStore.set(!editing)}>
+        {editing ? t('mypanel.done') : t('mypanel.edit')}
+      </button>
+    </>
+  )
   return (
-    <section className="panel mypanel">
-      <header className="panel-head">
-        <h2>{t('mypanel.title')}</h2>
-        <button className={`btn${editing ? ' on' : ''}`} aria-pressed={editing} onClick={() => setEditing(!editing)}>
-          {editing ? t('mypanel.done') : t('mypanel.edit')}
-        </button>
-      </header>
-      <div className="mypanel-grid" style={{ gridTemplateColumns: `repeat(${PANEL_COLUMNS}, minmax(0, 1fr))` }}>
+    <section ref={section} className={`panel mypanel${editing ? ' editing' : ''}`}>
+      {slot ? (
+        createPortal(controls, slot)
+      ) : (
+        <header className="panel-head">
+          <h2>{t('mypanel.title')}</h2>
+          <div className="mypanel-controls">{controls}</div>
+        </header>
+      )}
+      <div className="mypanel-grid">
         {CELLS.map((i) => {
           const c = scene.panel[i]
           return (
-            <div key={i} className={`mypanel-cell${c ? '' : ' empty'}`}>
+            <div key={i} data-cell={i} className={`mypanel-cell${c ? '' : ' empty'}${over === i ? ' drop-over' : ''}`}>
               {c ? <Cell c={c} scene={scene} t={t} /> : editing ? <Picker i={i} t={t} /> : null}
-              {c && editing && <CellTools i={i} name={controlName(scene, c, t)} t={t} />}
             </div>
           )
         })}
       </div>
-      <Hint text={t('mypanel.hint')} />
     </section>
   )
 }
@@ -101,22 +121,6 @@ function TargetSlider({ target, scene, name }: { target: KnobTarget; scene: Scen
         {...knobMenu(target)}
       />
     </label>
-  )
-}
-
-function CellTools({ i, name, t }: { i: number; name: string; t: T }) {
-  return (
-    <div className="mypanel-tools">
-      <button className="icon-btn small" disabled={i === 0} aria-label={t('mypanel.left', { name })} title={t('mypanel.left', { name })} onClick={() => swapPanelCells(i, i - 1)}>
-        <ChevronLeft size={14} />
-      </button>
-      <button className="icon-btn small" disabled={i === PANEL_CELLS - 1} aria-label={t('mypanel.right', { name })} title={t('mypanel.right', { name })} onClick={() => swapPanelCells(i, i + 1)}>
-        <ChevronRight size={14} />
-      </button>
-      <button className="icon-btn small" aria-label={t('mypanel.remove', { name })} title={t('mypanel.remove', { name })} onClick={() => setPanelCell(i, null)}>
-        <X size={14} />
-      </button>
-    </div>
   )
 }
 

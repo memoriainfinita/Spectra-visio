@@ -123,6 +123,7 @@ export function KnobDial({ knobRef, n, midi }: { knobRef: KnobRef; n: number; mi
       <div
         ref={dialRef}
         className="knob-dial"
+        data-control={knobRef.bank === 'layer' ? undefined : JSON.stringify({ kind: 'knob', ref: knobRef })}
         role="slider"
         tabIndex={0}
         aria-label={name}
