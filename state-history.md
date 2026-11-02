@@ -151,3 +151,7 @@ El CDN de images-assets.nasa.gov guarda copias sin la cabecera CORS y las sirve 
 - Hecho: push de 91 commits, repo pasado a público, Pages activado con origen GitHub Actions, CI en verde
 - Los presets de Milkdrop sin licencia conocida (R8 de `a-estudiar.md`) no están en el repo, solo la dependencia; se sirven en el build de Pages. Resuelto el mismo día: se mantienen con `NOTICE.md`, nota en el README y retirada por incidencia
 - Descripción, web y tópicos de GitHub puestos al día (la descripción era de la v0); README con el enlace a la app y las funciones del rediseño
+
+### 2026-11-02 — La fuente se configura en el Inspector, no en Bibliotecas
+
+Antes: «Entrada visual» era una visualización más del navegador y su configuración (cámara, archivo, TV, en línea) vivía en Bibliotecas, con solo cámara y archivo en una sección plegada del Inspector. mykl no entendía qué eran las fuentes ni cómo llegaban a una capa, y tenía que ir y venir entre sitios. Ahora el contenido de la capa es Visualización o Fuente y todo se configura en el Inspector; Bibliotecas queda como catálogo de TV y en línea. Se revierte la decisión de que TV y en línea fueran solo de Bibliotecas.

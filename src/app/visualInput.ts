@@ -5,7 +5,7 @@ import { setVisualSource } from '../engine/render/visualInput'
 import { INPUT_VISUAL } from '../engine/scene/scene'
 import { attachHls } from '../engine/tv/hls'
 import { notify } from './notices'
-import { sceneStore, setVisual } from './scene'
+import { sceneStore, setLayerContent } from './scene'
 import { settingsStore } from './settings'
 
 // The visual input of each layer: a camera, a video file (looped, silent), an image or a live
@@ -147,7 +147,7 @@ function surface(layer: string): void {
   const l = s.layers[i]
   if (!l) return
   const swap = l.visual !== INPUT_VISUAL && getVisual(l.visual)?.category !== 'shader'
-  if (swap) setVisual(i, INPUT_VISUAL)
+  if (swap) setLayerContent(i, true)
   const hidden = (l.side === 'a' && s.crossfade >= 1) || (l.side === 'b' && s.crossfade <= 0)
   if (!swap && !hidden) return
   const key = swap ? (hidden ? 'vinput.shownHidden' : 'vinput.shown') : 'vinput.hidden'

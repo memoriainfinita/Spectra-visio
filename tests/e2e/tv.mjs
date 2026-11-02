@@ -7,7 +7,7 @@ import { spawnSync } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync } from 'node:fs'
 import { createServer } from 'node:https'
 import { join } from 'node:path'
-import { open, reveal, loadTrack, grab, stats, OUT } from './lib.mjs'
+import { open, reveal, loadTrack, grab, stats, useSource, sourceBox, OUT } from './lib.mjs'
 
 const kind = process.argv[2] ?? 'firefox'
 const log = (...a) => console.log(`[${kind}]`, ...a)
@@ -57,7 +57,7 @@ await page.route('https://iptv-org.github.io/iptv/categories/music.m3u', (r) => 
 const panel = page.locator('.panel.visual-input')
 const status = () => panel.getByRole('status').textContent()
 log('playing:', await loadTrack(page))
-await page.locator('.panel.browser').getByRole('button', { name: 'Poner Entrada visual en la capa 1' }).click()
+await useSource(page)
 await page.waitForTimeout(1000)
 const dark = stats(await grab(page)).mean
 log('iptv-org contacted before opening TV:', asked)
@@ -128,7 +128,7 @@ await page.waitForTimeout(800)
 log('sound off: top', await top(), '| input', await status())
 await panel.getByLabel('Usar también su sonido').check()
 await page.waitForTimeout(1000)
-await panel.getByRole('button', { name: 'Quitar', exact: true }).click()
+await sourceBox(page).getByRole('button', { name: 'Quitar', exact: true }).click()
 await page.waitForTimeout(500)
 log('input removed: top', await top())
 await panel.getByLabel('Usar también su sonido').uncheck()

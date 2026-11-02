@@ -8,14 +8,14 @@ import { useT } from './useT'
 import { Hint } from './Hint'
 import { MediaBrowser } from './Media'
 import { TvBrowser } from './Tv'
-import { videoControlStore } from '../app/videoControl'
 
-export function VisualInput() {
+// The source of the selected layer: camera, file, live TV or what is found online. The
+// Inspector shows it whole; the Libraries panel only has the two catalogs, which fill the
+// selected layer too.
+export function Source({ catalog = false }: { catalog?: boolean }) {
   const t = useT()
   const state = useStore(visualInputStore)
-  const selected = useStore(sceneStore, (s) => s.selected)
   const preview = useStore(previewStore)
-  const video = useStore(videoControlStore, (s) => s.active)
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([])
   // The online browser open below: live TV or free videos and images.
   const [browser, setBrowser] = useState<'tv' | 'media' | null>(null)
@@ -32,45 +32,47 @@ export function VisualInput() {
 
   // Device names are only known once the camera was allowed.
   useEffect(() => {
-    if (state.kind === 'camera') void cameraDevices().then(setDevices)
-  }, [state.kind])
+    if (!catalog && state.kind === 'camera') void cameraDevices().then(setDevices)
+  }, [catalog, state.kind])
 
   const size = { name: state.name, w: state.width, h: state.height }
   return (
-    <section className="panel visual-input">
-      <header className="panel-head">
-        <h2>{t('vinput.titleLayer', { n: selected + 1 })}</h2>
-        <div className="head-actions">
-          <button className={`btn${state.kind === 'camera' ? ' on' : ''}`} onClick={() => void startCamera()}>
-            <Camera size={15} /> {t('vinput.camera')}
-          </button>
-          <button className={`btn${(state.kind === 'video' || state.kind === 'image') && !state.page ? ' on' : ''}`} onClick={() => fileInput.current?.click()}>
-            <ImagePlus size={15} /> {t('vinput.file')}
-          </button>
-          <button className={`btn${state.kind === 'tv' ? ' on' : ''}`} aria-expanded={browser === 'tv'} onClick={() => toggle('tv')}>
-            <Tv size={15} /> {t('vinput.tv')}
-          </button>
-          <button className={`btn${state.page ? ' on' : ''}`} aria-expanded={browser === 'media'} onClick={() => toggle('media')}>
-            <Globe size={15} /> {t('vinput.online')}
-          </button>
+    <div className="source">
+      <div className="head-actions">
+        {!catalog && (
+          <>
+            <button className={`btn${state.kind === 'camera' ? ' on' : ''}`} onClick={() => void startCamera()}>
+              <Camera size={15} /> {t('vinput.camera')}
+            </button>
+            <button className={`btn${(state.kind === 'video' || state.kind === 'image') && !state.page ? ' on' : ''}`} onClick={() => fileInput.current?.click()}>
+              <ImagePlus size={15} /> {t('vinput.file')}
+            </button>
+          </>
+        )}
+        <button className={`btn${state.kind === 'tv' ? ' on' : ''}`} aria-expanded={browser === 'tv'} onClick={() => toggle('tv')}>
+          <Tv size={15} /> {t('vinput.tv')}
+        </button>
+        <button className={`btn${state.page ? ' on' : ''}`} aria-expanded={browser === 'media'} onClick={() => toggle('media')}>
+          <Globe size={15} /> {t('vinput.online')}
+        </button>
+        {!catalog && (
           <button className="btn" disabled={state.kind === 'none'} onClick={() => stopVisualInput()}>
             <X size={15} /> {t('vinput.stop')}
           </button>
-          <input
-            ref={fileInput}
-            type="file"
-            accept="image/*,video/*"
-            hidden
-            onChange={(e) => {
-              const file = e.target.files?.[0]
-              if (file) void openVisualFile(file)
-              e.target.value = ''
-            }}
-          />
-        </div>
-      </header>
-      <Hint text={t('vinput.hint')} />
-      {state.kind === 'camera' && devices.length > 1 && (
+        )}
+        <input
+          ref={fileInput}
+          type="file"
+          accept="image/*,video/*"
+          hidden
+          onChange={(e) => {
+            const file = e.target.files?.[0]
+            if (file) void openVisualFile(file)
+            e.target.value = ''
+          }}
+        />
+      </div>
+      {!catalog && state.kind === 'camera' && devices.length > 1 && (
         <label className="field">
           <span>{t('vinput.device')}</span>
           <select value={devices.find((d) => d.label === state.name)?.deviceId ?? ''} onChange={(e) => void startCamera(e.target.value)}>
@@ -90,10 +92,24 @@ export function VisualInput() {
           {t(`vinput.error.${state.error}` as MessageKey)}
         </p>
       )}
-      <div className="input-preview" ref={box} hidden={!preview} />
-      {video && <p className="small muted">{t('vinput.videoInInspector')}</p>}
+      {!catalog && <div className="input-preview" ref={box} hidden={!preview} />}
       {browser === 'tv' && <TvBrowser />}
       {browser === 'media' && <MediaBrowser />}
+    </div>
+  )
+}
+
+// Libraries › Sources: the catalogs of the selected layer.
+export function VisualInput() {
+  const t = useT()
+  const selected = useStore(sceneStore, (s) => s.selected)
+  return (
+    <section className="panel visual-input">
+      <header className="panel-head">
+        <h2>{t('vinput.titleLayer', { n: selected + 1 })}</h2>
+      </header>
+      <Hint text={t('vinput.hint')} />
+      <Source catalog />
     </section>
   )
 }

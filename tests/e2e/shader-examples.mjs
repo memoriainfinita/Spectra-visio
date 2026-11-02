@@ -1,6 +1,6 @@
 // The example shaders: each is added from the Shaders panel (the app compiles it first and
 // refuses a broken one), then drawn on layer 1 while a track plays.
-import { open, loadTrack, grab, stats, pickLayer, FIXTURES } from './lib.mjs'
+import { open, loadTrack, grab, stats, pickLayer, expandSource, FIXTURES } from './lib.mjs'
 import { join } from 'node:path'
 
 const kind = process.argv[2] ?? 'firefox'
@@ -42,7 +42,7 @@ for (const name of ['Túnel de espectro', 'Rayas al golpe', 'Flujo de ruido']) {
 // The input split draws the layer's input: with one, it is not black.
 await panel.getByRole('button', { name: 'Poner Aberración sobre la entrada en la capa 1' }).click()
 const chooser = page.waitForEvent('filechooser')
-await page.locator('.panel.visual-input').getByRole('button', { name: 'Imagen o vídeo' }).click()
+await (await expandSource(page)).getByRole('button', { name: 'Imagen o vídeo' }).click()
 await (await chooser).setFiles(join(FIXTURES, 'test-video.webm'))
 await page.waitForTimeout(2000)
 const split = await motion()

@@ -1,15 +1,16 @@
 // A new visual input is made to be seen: the layer gets the input visualization, and a
 // crossfader that hides the layer is said in a notice (never moved).
-import { open, pickLayer, FIXTURES } from './lib.mjs'
+import { open, pickLayer, expandSource, FIXTURES } from './lib.mjs'
 import { join } from 'node:path'
 
 const kind = process.argv[2] ?? 'firefox'
 const log = (...a) => console.log(`[${kind}]`, ...a)
 const { browser, page, errors } = await open(kind, {})
-const panel = page.locator('.panel.visual-input')
+const content = () => page.locator('#insp-layer').getByRole('group', { name: 'Contenido' }).getByRole('button', { name: 'Fuente', exact: true }).getAttribute('aria-pressed')
 const visual = () => page.locator('.layer.selected .layer-pick').textContent()
 const notice = () => page.locator('.notices p').textContent().catch(() => '')
 const openFile = async (name) => {
+  const panel = await expandSource(page)
   const chooser = page.waitForEvent('filechooser')
   await panel.getByRole('button', { name: 'Imagen o vídeo' }).click()
   await (await chooser).setFiles(join(FIXTURES, name))
@@ -24,7 +25,7 @@ await openFile('test-image.png')
 const after2 = await visual()
 const n2 = await notice()
 log('layer 2 after:', after2, '|', n2)
-check('layer 2 shows the input', /Entrada visual/.test(after2))
+check('layer 2 shows the input', /Entrada visual/.test(after2) && (await content()) === 'true')
 check('notice says layer 2 is hidden by the crossfader', /capa 2/.test(n2) && /crossfader oculta el lado B/.test(n2))
 
 // The same layer again: already the input, so only the hidden side is said.
@@ -42,7 +43,7 @@ await openFile('test-image.png')
 const after1 = await visual()
 const n1 = await notice()
 log('layer 1 after:', after1, '|', n1)
-check('layer 1 shows the input', /Entrada visual/.test(after1))
+check('layer 1 shows the input', /Entrada visual/.test(after1) && (await content()) === 'true')
 check('notice only says layer 1 shows it', /La capa 1 muestra ahora/.test(n1) && !/crossfader/.test(n1))
 
 // The crossfader was not moved.

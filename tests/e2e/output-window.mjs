@@ -1,5 +1,5 @@
 // Phase 8 part 4: the output window.
-import { open, loadTrack, stats, OUT, reveal, FIXTURES } from './lib.mjs'
+import { open, loadTrack, stats, OUT, reveal, pickLayer, expandSource, useSource, FIXTURES } from './lib.mjs'
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 
@@ -61,12 +61,13 @@ await live.getByLabel('Vista previa aquí también').check()
 const img = join(FIXTURES, 'test-image.png')
 if (existsSync(img)) {
   await vis.getByRole('button', { name: 'Solo la capa 3' }).click()
-  const vi = page.locator('.panel.visual-input')
+  await pickLayer(page, 3)
+  const vi = await expandSource(page)
   const chooser = page.waitForEvent('filechooser')
   await vi.getByRole('button', { name: 'Imagen o vídeo' }).click()
   await (await chooser).setFiles(img)
   await page.waitForTimeout(1000)
-  await page.locator('.panel.browser').getByRole('button', { name: 'Poner Entrada visual en la capa 3' }).click()
+  await useSource(page)
   await vis.getByRole('button', { name: 'Solo la capa 3' }).click()
   await page.waitForTimeout(1000)
   log('visual input: main', JSON.stringify(await st(page)), '| output', JSON.stringify(await st(out)))

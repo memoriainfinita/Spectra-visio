@@ -1,16 +1,15 @@
 // A visual input for each layer: an image on layer 1 and a video on layer 2, each layer
 // drawing its own, the panels showing the selected layer's, the video controls following the
 // selection, stopping one leaving the other, and a clip's content.
-import { open, loadTrack, grab, stats, pickLayer, FIXTURES } from './lib.mjs'
+import { open, loadTrack, grab, stats, pickLayer, useSource, sourceBox, FIXTURES } from './lib.mjs'
 import { join } from 'node:path'
 
 const kind = process.argv[2] ?? 'firefox'
 const log = (...a) => console.log(`[${kind}]`, ...a)
 const { browser, page, errors } = await open(kind, {})
-const panel = page.locator('.panel.visual-input')
-const br = page.locator('.panel.browser')
+const panel = sourceBox(page)
 const status = () => panel.getByRole('status').textContent()
-const title = () => panel.locator('h2').textContent()
+const title = () => page.locator('#insp-tab-layer').textContent()
 const videoFold = page.locator('.insp-fold, .fold').filter({ hasText: 'Vídeo de la entrada visual' })
 const motion = async () => {
   const a = await grab(page)
@@ -32,7 +31,7 @@ log('playing:', await loadTrack(page))
 // Both layers show the input, and the crossfader lets both through.
 for (const n of [1, 2]) {
   await pickLayer(page, n)
-  await br.getByRole('button', { name: `Poner Entrada visual en la capa ${n}` }).click()
+  await useSource(page)
 }
 await page.locator('.panel.visuals input[type=range]').last().fill('0.5')
 await page.waitForTimeout(500)
@@ -80,13 +79,13 @@ await solo(2).click()
 await page.locator('.panel.clips tbody tr').last().locator('.clip').first().click({ button: 'right' })
 await page.locator('.knob-menu, .clip-menu').getByRole('menuitem', { name: 'Guardar la capa aquí' }).click()
 await page.locator('.panel.clips tbody tr').last().locator('.clip').first().click()
-const content = page.getByRole('group', { name: 'Contenido' })
+const content = page.locator('#insp-clip').getByRole('group', { name: 'Contenido' })
 const pressed = async (name) => content.getByRole('button', { name, exact: true }).getAttribute('aria-pressed')
-log('clip of the input layer: input', await pressed('Entrada visual'), '| visualization', await pressed('Visualización'))
+log('clip of the input layer: input', await pressed('Fuente'), '| visualization', await pressed('Visualización'))
 await content.getByRole('button', { name: 'Visualización', exact: true }).click()
-log('clip as a visualization: input', await pressed('Entrada visual'), '| visualization', await pressed('Visualización'))
-await content.getByRole('button', { name: 'Entrada visual', exact: true }).click()
-log('clip back to the input: input', await pressed('Entrada visual'))
+log('clip as a visualization: input', await pressed('Fuente'), '| visualization', await pressed('Visualización'))
+await content.getByRole('button', { name: 'Fuente', exact: true }).click()
+log('clip back to the input: input', await pressed('Fuente'))
 
 log('errors:', errors.length ? '\n  ' + errors.join('\n  ') : 'none')
 await browser.close()
