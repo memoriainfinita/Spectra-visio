@@ -100,7 +100,7 @@ Las revisiones y pruebas manuales pendientes se harán todas juntas en una sola 
 - [x] Rediseño de la interfaz: fase 5 (buscador Ctrl K y deshacer), con Mi panel y aprender MIDI con clic derecho sobre cualquier control
 - [ ] Revisión de la fase 5 del rediseño por mykl en su Firefox
 - [x] Entrada visual por capa
-- [ ] Revisión por mykl de la entrada visual por capa
+- [x] Revisión por mykl de la entrada visual por capa (2026-11-02, todo bien en su Firefox)
 - [ ] Decidir con mykl qué hacer con los presets de Milkdrop antes de publicar
 - [ ] Al terminar la app: repo público, activar Pages con origen GitHub Actions (`gh api -X POST repos/memoriainfinita/Spectra-visio/pages -f build_type=workflow`) y push
 - [ ] Probar la captura de pestaña en Chrome o Edge
