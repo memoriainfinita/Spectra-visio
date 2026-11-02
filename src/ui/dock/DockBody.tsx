@@ -11,7 +11,7 @@ const CONTENT: Record<Exclude<DockId, 'library'>, PanelId[]> = {
   layers: ['visuals'],
   inspector: ['inspector'],
   clips: ['clips'],
-  audio: ['player', 'analysis'],
+  audio: ['player', 'queue', 'analysis'],
   live: ['live'],
   perform: ['perform'],
   knobs: ['knobs'],
@@ -43,7 +43,6 @@ const SHELVES: { id: PanelId; title: MessageKey }[] = [
   { id: 'browser', title: 'dock.visuals' },
   { id: 'presets', title: 'presets.title' },
   { id: 'shaders', title: 'shaders.title' },
-  { id: 'queue', title: 'queue.title' },
   { id: 'vinput', title: 'vinput.title' },
 ]
 const SHELF_KEY = 'spectra.library'

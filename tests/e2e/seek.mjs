@@ -5,7 +5,7 @@ const kind = process.argv[2] ?? 'firefox'
 const { browser, page, errors } = await open(kind, { reveal: false })
 const log = (...a) => console.log(`[${kind}]`, ...a)
 await page.getByRole('tab', { name: 'Bibliotecas' }).click()
-await page.getByRole('tab', { name: 'Lista' }).click()
+await page.getByRole('tab', { name: 'Audio', exact: true }).click()
 await loadTrack(page)
 await page.getByRole('tab', { name: 'Audio' }).click()
 const seek = page.locator('input.seek')

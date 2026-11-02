@@ -52,7 +52,7 @@ Lista de funciones confirmada por mykl el 2026-10-10. Es el contrato del redise�
 - Familias nuevas: barras de espectro (lineales, circulares, en espejo), espectrograma en cascada, variantes de onda, partículas, 3D (túnel, terreno), geometría, fractales
 - Motor WebGL2 para efectos en GPU
 - Milkdrop mediante Butterchurn
-- Shaders importados: ISF como formato principal; pegar código al estilo Shadertoy con sus variables habituales. No se incluyen shaders de Shadertoy en la app. Sí cuatro de ejemplo escritos para ella, con la licencia del proyecto (dos Shadertoy y dos ISF), que se copian a la lista con un clic en Bibliotecas › Shaders
+- Shaders importados: ISF como formato principal; pegar código al estilo Shadertoy con sus variables habituales. No se incluyen shaders de Shadertoy en la app. Sí cuatro de ejemplo escritos para ella, con la licencia del proyecto (dos Shadertoy y dos ISF), que se copian a la lista y se ponen en la capa con un clic en Bibliotecas › Shaders. La lista dice cuáles leen la fuente visual de la capa y un aviso salta si se ponen en una capa que no tiene ninguna
 - Parámetros por visualización (paleta, velocidad, sensibilidad, intensidad) con panel
 - Paletas de color globales
 - Cadena de efectos global sobre cualquier visualización: brillo difuso, realimentación, espejo o caleidoscopio, corrección de color, estelas
@@ -61,7 +61,7 @@ Lista de funciones confirmada por mykl el 2026-10-10. Es el contrato del redise�
 - Modo automático: cambio por tiempo, por golpe o al cambiar de canción
 - Navegador de visualizaciones: miniaturas, categorías, búsqueda y favoritos
 - Presets guardados, con exportación e importación
-- Escenas de ejemplo en Bibliotecas › Presets (Primeros pasos, Moduladores y mandos, Clips y directo): reemplazan la escena, se mueven solas con osciladores y Ctrl Z las deshace
+- Escenas en Bibliotecas › Escenas y presets: tres de ejemplo (Primeros pasos, Moduladores y mandos, Clips y directo) y las que guarda el usuario con su nombre (toda la composición: capas, clips, efectos, mandos y moduladores). Cargar una reemplaza la escena y Ctrl Z la devuelve; entran en la copia de seguridad. Los presets de la capa están debajo, aparte
 - Capas superpuestas: título de la canción, letras sincronizadas (LRC), logo o imagen, texto
 
 ## F. Directo / VJ
@@ -75,7 +75,7 @@ Lista de funciones confirmada por mykl el 2026-10-10. Es el contrato del redise�
 - Columnas de clips con nombre y lanzables con una nota MIDI, además de las teclas numéricas
 - Mi panel: los controles de la app se arrastran a sus celdas desde el modo Editar
 - El aviso de deshacer dice qué se deshizo cuando fue una sola cosa
-- Fuente por capa: cada capa tiene su cámara, archivo, TV o vídeo en línea. El contenido de una capa y el de un clip es Visualización o Fuente, y se elige y se configura en el Inspector (Contenido y Fuente, con su vista previa y los controles del vídeo). La fuente sigue en la capa cuando esta muestra una visualización, y la leen los shaders y el efecto Mezcla con entrada. «Entrada visual» no sale como una visualización más en el navegador. Bibliotecas › Fuentes solo tiene los catálogos de TV y de vídeo e imagen libres, que cargan en la capa seleccionada. Al abrir una fuente, la capa pasa a mostrarla (salvo que ya corra un shader), y un aviso dice si el crossfader oculta el lado de esa capa
+- Fuente visual por capa: cada capa tiene su cámara, archivo, TV o vídeo en línea. El contenido de una capa y el de un clip es Visualización o Fuente visual, y se elige y se configura en el Inspector (Contenido y Fuente, con su vista previa y los controles del vídeo). La fuente sigue en la capa cuando esta muestra una visualización, y la leen los shaders y el efecto Mezcla con la fuente. «Entrada visual» no sale como una visualización más en el navegador. Bibliotecas › Fuentes visuales solo tiene los catálogos de TV y de vídeo e imagen libres, que cargan en la capa seleccionada. Al abrir una fuente, la capa pasa a mostrarla (salvo que ya corra un shader), y un aviso dice si el crossfader oculta el lado de esa capa
 - Salida en segunda ventana para proyector, controlada desde la principal
 - Apagón, congelar imagen y estrobo con límite fotosensible global
 

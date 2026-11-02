@@ -1,15 +1,20 @@
 import { ClipboardPaste, Play, Plus, Trash2, Upload } from 'lucide-react'
 import { useRef, useState } from 'react'
+import { notify } from '../app/notices'
 import { sceneStore, setVisual } from '../app/scene'
+import { visualInputStore } from '../app/visualInput'
 import { SHADER_NAME_MAX, addShader, deleteShader, importShaderFiles, shadersStore } from '../app/shaders'
 import { settingsStore } from '../app/settings'
 import { getVisual } from '../engine/render/registry'
 import { SHADER_EXAMPLES, type ShaderExample } from '../engine/shaders/examples'
-import { USER_PREFIX } from '../engine/shaders/userVisual'
+import { readsSource } from '../engine/shaders/readsSource'
+import { USER_PREFIX, type ShaderFormat } from '../engine/shaders/userVisual'
 import { useStore } from './useStore'
 import { useT } from './useT'
 import { Hint } from './Hint'
 
+
+const FORMAT: Record<ShaderFormat, string> = { isf: 'ISF', shadertoy: 'Shadertoy' }
 
 export function Shaders() {
   const t = useT()
@@ -29,9 +34,19 @@ export function Shaders() {
     setMessage({ text: lines.join('\n'), error: r.errors.length > 0 })
   }
 
+  // A shader in use on the selected layer; one that reads the visual source says so when the layer has none.
+  const put = (id: string, reads: boolean) => {
+    setVisual(selected, id)
+    if (reads && visualInputStore.get().kind === 'none') notify(t('shaders.needsSource', { n: selected + 1 }))
+  }
+  const sub = (format: ShaderFormat, source: string) => [FORMAT[format], ...(readsSource(format, source) ? [t('shaders.usesSource')] : [])].join(' · ')
+
+  // The example goes to the list and onto the selected layer in one step.
   const onAddExample = (ex: ShaderExample) => {
     const error = addShader(ex.name, ex.source, lang)
     setMessage(error ? { text: error, error: true } : { text: t('shaders.added', { n: 1 }), error: false })
+    const added = shadersStore.get().find((s) => s.name === ex.name)
+    if (!error && added && getVisual(USER_PREFIX + added.id)) put(USER_PREFIX + added.id, readsSource(ex.format, ex.source))
   }
 
   const onAdd = () => {
@@ -106,7 +121,7 @@ export function Shaders() {
             <li key={ex.id} className="preset">
               <div className="preset-main static">
                 <span className="preset-name">{ex.name}</span>
-                <span className="preset-sub">{ex.format === 'isf' ? 'ISF' : 'Shadertoy'}</span>
+                <span className="preset-sub">{sub(ex.format, ex.source)}</span>
               </div>
               <button className="icon-btn small" disabled={added} title={t('shaders.addExample', { name: ex.name })} aria-label={t('shaders.addExample', { name: ex.name })} onClick={() => onAddExample(ex)}>
                 <Plus size={15} />
@@ -126,14 +141,14 @@ export function Shaders() {
               <li key={s.id} className="preset">
                 <div className="preset-main static">
                   <span className="preset-name">{s.name}</span>
-                  <span className="preset-sub">{s.format === 'isf' ? 'ISF' : 'Shadertoy'}</span>
+                  <span className="preset-sub">{sub(s.format, s.source)}</span>
                 </div>
                 <button
                   className="icon-btn small"
                   disabled={!usable}
                   title={t('shaders.use', { name: s.name, n: selected + 1 })}
                   aria-label={t('shaders.use', { name: s.name, n: selected + 1 })}
-                  onClick={() => setVisual(selected, USER_PREFIX + s.id)}
+                  onClick={() => put(USER_PREFIX + s.id, readsSource(s.format, s.source))}
                 >
                   <Play size={15} />
                 </button>

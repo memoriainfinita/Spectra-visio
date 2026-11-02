@@ -7,7 +7,7 @@ const widths = (process.argv[3] ?? '1920,1440,1280,1024').split(',').map(Number)
 for (const w of widths) {
   const { browser, page, errors } = await open(kind, { reveal: false, viewport: { width: w, height: w >= 1900 ? 1080 : w >= 1280 ? 900 : 768 } })
   await page.getByRole('tab', { name: 'Bibliotecas' }).click()
-  await page.getByRole('tab', { name: 'Lista' }).click()
+  await page.getByRole('tab', { name: 'Audio', exact: true }).click()
   await loadTrack(page)
   await page.getByRole('tab', { name: 'Visualizaciones' }).click()
   await page.waitForTimeout(800)

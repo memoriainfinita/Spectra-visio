@@ -14,6 +14,7 @@ import { initOutput } from './app/output'
 import { initOverlays } from './app/overlays'
 import { initPower } from './app/power'
 import { initPresets } from './app/presets'
+import { initScenes } from './app/scenes'
 import { initRadio } from './app/radio'
 import { initTransport } from './app/transport'
 import { initTv } from './app/tv'
@@ -37,6 +38,7 @@ await initShaders()
 await initScene()
 initHistory()
 await initPresets()
+await initScenes()
 await initLibrary()
 await initEngine()
 initLive()

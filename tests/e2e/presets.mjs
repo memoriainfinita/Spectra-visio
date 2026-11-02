@@ -24,9 +24,9 @@ await visual.selectOption('tunnel')
 await vis.getByRole('slider', { name: 'Velocidad' }).fill('1.5')
 await fx.getByLabel('Añadir efecto').selectOption({ label: 'Brillo difuso' })
 await fx.getByLabel('Añadir efecto').selectOption({ label: 'Paleta' })
-log('save disabled with empty name:', await pr.getByRole('button', { name: 'Guardar' }).isDisabled())
+log('save disabled with empty name:', await pr.getByRole('button', { name: 'Guardar', exact: true }).isDisabled())
 await pr.getByLabel('Nombre del preset').fill('Túnel   rápido')
-await pr.getByRole('button', { name: 'Guardar' }).click()
+await pr.getByRole('button', { name: 'Guardar', exact: true }).click()
 log('presets', await presetNames(), '|', await pr.locator('.preset-sub').allTextContents())
 
 // Change everything, then load on layer B.

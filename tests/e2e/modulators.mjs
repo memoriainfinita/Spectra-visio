@@ -21,7 +21,7 @@ const spread = async (param) => {
 }
 
 await tab('Bibliotecas').click()
-await tab('Lista').click()
+await tab('Audio').click()
 log('playing:', await loadTrack(page))
 await tab('Inspector').click()
 await page.locator('#insp-layer .effect-add').selectOption({ index: 1 })
