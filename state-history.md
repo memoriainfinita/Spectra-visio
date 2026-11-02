@@ -144,3 +144,9 @@ El CDN de images-assets.nasa.gov guarda copias sin la cabecera CORS y las sirve 
 - Había una sola entrada visual para toda la app, leída por la visualización, el efecto y los shaders importados. El diseño aprobado el 2026-10-13 pedía una por capa y quedó fuera del orden hasta ahora.
 - Cada capa guarda su fuente y el renderizador fija la capa que dibuja, así que la visualización y los efectos de esa capa leen la suya. `visualInputStore` y `previewStore` se conservan como vista de la capa seleccionada para no tocar los paneles.
 - El control del vídeo vigilaba solo el vídeo seleccionado: un vídeo en otra capa se habría parado al llegar al final de su tramo. Ahora vigila todos, cada uno con sus ajustes.
+
+### 2026-11-02 — Publicada antes de terminar la revisión
+
+- Decisión del 2026-10-10 («se publicará al terminar la app») revertida por mykl: quiere ir probándola ya
+- Hecho: push de 91 commits, repo pasado a público, Pages activado con origen GitHub Actions, CI en verde
+- Con el repo público, los presets de Milkdrop sin licencia conocida (R8 de `a-estudiar.md`) quedan expuestos hasta que se decida qué hacer con ellos
