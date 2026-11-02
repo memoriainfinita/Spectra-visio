@@ -475,6 +475,8 @@ export const es = {
   'shaders.cancel': 'Cancelar',
   'shaders.hint': 'ISF (.fs) con su cabecera JSON, o código de Shadertoy con mainImage. En Shadertoy, iChannel0 es el audio e iChannel1 la entrada visual; sin buffers. Los eventos de ISF saltan con el bombo.',
   'shaders.empty': 'Sin shaders importados.',
+  'shaders.examples': 'Shaders de ejemplo',
+  'shaders.addExample': 'Copiar {name} a tus shaders',
   'shaders.use': 'Poner {name} en la capa {n}',
   'shaders.delete': 'Borrar {name}',
   'shaders.added': 'Añadidos: {n}.',

@@ -52,7 +52,7 @@ Lista de funciones confirmada por mykl el 2026-10-10. Es el contrato del redise�
 - Familias nuevas: barras de espectro (lineales, circulares, en espejo), espectrograma en cascada, variantes de onda, partículas, 3D (túnel, terreno), geometría, fractales
 - Motor WebGL2 para efectos en GPU
 - Milkdrop mediante Butterchurn
-- Shaders importados: ISF como formato principal; pegar código al estilo Shadertoy con sus variables habituales. No se incluyen shaders de Shadertoy en la app
+- Shaders importados: ISF como formato principal; pegar código al estilo Shadertoy con sus variables habituales. No se incluyen shaders de Shadertoy en la app. Sí cuatro de ejemplo escritos para ella, con la licencia del proyecto (dos Shadertoy y dos ISF), que se copian a la lista con un clic en Bibliotecas › Shaders
 - Parámetros por visualización (paleta, velocidad, sensibilidad, intensidad) con panel
 - Paletas de color globales
 - Cadena de efectos global sobre cualquier visualización: brillo difuso, realimentación, espejo o caleidoscopio, corrección de color, estelas
