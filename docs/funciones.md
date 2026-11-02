@@ -61,7 +61,7 @@ Lista de funciones confirmada por mykl el 2026-10-10. Es el contrato del redise�
 - Modo automático: cambio por tiempo, por golpe o al cambiar de canción
 - Navegador de visualizaciones: miniaturas, categorías, búsqueda y favoritos
 - Presets guardados, con exportación e importación
-- Escenas en Bibliotecas › Escenas y presets: tres de ejemplo (Primeros pasos, Moduladores y mandos, Clips y directo) y las que guarda el usuario con su nombre (toda la composición: capas, clips, efectos, mandos y moduladores). Cargar una reemplaza la escena y Ctrl Z la devuelve; entran en la copia de seguridad. Los presets de la capa están debajo, aparte
+- Escenas en Bibliotecas › Escenas y presets: seis de ejemplo que enseñan todo lo que hace la app (Primeros pasos; Fuentes de modulación, con cada tipo de fuente y cada forma de oscilador; Moduladores y mandos; Todos los efectos, una columna por efecto; Clips y directo, con Mi panel; Todas las visualizaciones, como clips en tres capas) y las que guarda el usuario con su nombre (toda la composición: capas, clips, efectos, mandos y moduladores). Cargar una reemplaza la escena y Ctrl Z la devuelve; entran en la copia de seguridad. Los presets de la capa están debajo, aparte
 - Capas superpuestas: título de la canción, letras sincronizadas (LRC), logo o imagen, texto
 
 ## F. Directo / VJ

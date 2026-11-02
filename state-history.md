@@ -160,3 +160,6 @@ Antes: «Entrada visual» era una visualización más del navegador y su configu
 
 mykl pidió arreglar todo lo confuso del flujo. Se propuso un efecto «Shader» para filtrar cualquier capa; no se hizo: un shader que lee la fuente (ISF con imagen, Shadertoy con iChannel1) ya la filtra, y un efecto necesitaría parámetros dinámicos por shader, que las definiciones de efecto no admiten. Se avisa en la lista de shaders de cuáles leen la fuente. El muelle «Directo» pasa a «Efectos en vivo» porque chocaba con el diseño Directo, y la Lista de reproducción pasa al muelle Audio porque la música se manejaba en tres sitios. «Mando» (cuatro sitios) y el modo automático (botón en Actuación, ajustes en la composición) se dejan: el diseño de mandos está aprobado y no es una duplicación sino acceso rápido.
 
+### 2026-11-02 — Pruebas en paralelo descartadas como valor por defecto
+
+Se probó a correr en paralelo (3 a la vez) las comprobaciones que no miden tiempos para bajar de los 40 minutos. En el PC de mykl (4 núcleos) tardó 43 min en pared por 72 de ejecuciones sumadas: los renderizadores se frenan entre sí. Además fallaron presets, lookup, inspector y knobs, que pasan solos. Se dejó `--jobs N` como opción y el valor por defecto en serie. Lo que sí queda: el ejecutor marca como fallo las líneas `FAIL` de las comprobaciones.
