@@ -1,22 +1,43 @@
 import type { BandRef, BeatRef, Curve, LfoShape, ModSource, Modulation } from '../modulation/modulation'
 import type { ModDest, ModTarget, SharedModulator } from '../modulation/shared'
-import type { MessageKey } from '../../i18n'
+import type { Lang, MessageKey } from '../../i18n'
 import type { Params } from '../render/visual'
 import { COMP, LEVEL_KNOBS, PANEL_KNOBS, emptyKnobs, type Knob, type KnobDest, type KnobTarget, type Variation } from './knobs'
 import { CLIP_COLUMNS } from './limits'
 import { defaultScene, newLayer, normalizeScene, type BlendMode, type Clip, type EffectState, type LayerState, type SceneState, type Side, type VisualSettings } from './scene'
 
-// Scenes that show what the app does, loaded from the presets panel. Each one moves by itself
-// (oscillators), so it can be tried without music, and reacts to the sound when there is any.
-// Built from the same pieces as a saved scene and checked by the same normalization.
+// Scenes that show what the app does, loaded from the presets panel: layers and blend modes,
+// every kind of modulation source, shared modulators and knobs, every effect, clips, the
+// crossfader, my panel and every visualization. Each one moves by itself (oscillators), so it
+// can be tried without music, and reacts to the sound when there is any. Built from the same
+// pieces as a saved scene and checked by the same normalization. The names they carry (columns,
+// knobs, modulators) come in the language of the app.
 
 export const DEMOS = [
   { id: 'start', name: 'demo.start', hint: 'demo.start.hint' },
+  { id: 'sources', name: 'demo.sources', hint: 'demo.sources.hint' },
   { id: 'mods', name: 'demo.mods', hint: 'demo.mods.hint' },
+  { id: 'fx', name: 'demo.fx', hint: 'demo.fx.hint' },
   { id: 'live', name: 'demo.live', hint: 'demo.live.hint' },
+  { id: 'gallery', name: 'demo.gallery', hint: 'demo.gallery.hint' },
 ] as const satisfies readonly { id: string; name: MessageKey; hint: MessageKey }[]
 
 export type DemoId = (typeof DEMOS)[number]['id']
+
+// The names a demo gives to what it holds.
+const NAMES = {
+  es: {
+    calm: 'Calma', pulse: 'Pulso', chaos: 'Caos', end: 'Final', intense: 'Intenso',
+    breath: 'Respiración', bass: 'Graves', spin: 'Giro', color: 'Color', energy: 'Energía', mix: 'Mezcla', crossfader: 'Crossfader',
+    glow: 'Brillo', feedback: 'Realimentación', kaleido: 'Caleidoscopio', mirror: 'Espejo', palette: 'Paleta', tone: 'Color', trails: 'Estelas', all: 'Todo junto',
+  },
+  en: {
+    calm: 'Calm', pulse: 'Pulse', chaos: 'Chaos', end: 'End', intense: 'Intense',
+    breath: 'Breath', bass: 'Bass', spin: 'Spin', color: 'Color', energy: 'Energy', mix: 'Mix', crossfader: 'Crossfader',
+    glow: 'Glow', feedback: 'Feedback', kaleido: 'Kaleidoscope', mirror: 'Mirror', palette: 'Palette', tone: 'Color', trails: 'Trails', all: 'All together',
+  },
+} as const
+type Names = (typeof NAMES)[Lang]
 
 let seq = 0
 // Ids are unique in a scene; a counter keeps loading the same demo twice apart.
@@ -40,11 +61,13 @@ interface LayerSpec {
   settings?: VisualSettings
   effects?: EffectState[]
   clips?: (Clip | null)[]
+  // Column of the clip it starts on.
+  active?: number
 }
 
 function layer(id: string, s: LayerSpec): LayerState {
   const base = newLayer(id, s.visual, s.side ?? null)
-  return { ...base, blend: s.blend ?? 'normal', opacity: s.opacity ?? 1, effects: s.effects ?? [], perVisual: s.settings ? { [s.visual]: s.settings } : {}, clips: s.clips ?? base.clips }
+  return { ...base, blend: s.blend ?? 'normal', opacity: s.opacity ?? 1, effects: s.effects ?? [], perVisual: s.settings ? { [s.visual]: s.settings } : {}, clips: s.clips ?? base.clips, active: s.active ?? null }
 }
 
 const param = (layerId: string, visual: string, p: string): ModTarget => ({ kind: 'param', layer: layerId, visual, param: p })
@@ -83,18 +106,18 @@ function start(): SceneState {
 
 // Shared modulators mapped onto several parameters at once, and knobs that move a group of
 // them, with two variations to jump between.
-function mods(): SceneState {
+function mods(n: Names): SceneState {
   const [a, b, c] = [uid('l'), uid('l'), uid('l')]
   const warp = param(c, 'starfield', 'warp')
   const bloom = fx(COMP, 'bloom', 'strength')
   const panel = knobs(PANEL_KNOBS, [
-    knob('Color', 0.2, dest(param(a, 'plasma', 'hue')), dest(param(b, 'kaleido', 'hue'), 1, 0)),
-    knob('Energía', 0.3, dest(warp), dest(bloom, 0.2, 1)),
-    knob('Mezcla', 0.55, dest(opacity(b)), dest(opacity(c), 1, 0)),
+    knob(n.color, 0.2, dest(param(a, 'plasma', 'hue')), dest(param(b, 'kaleido', 'hue'), 1, 0)),
+    knob(n.energy, 0.3, dest(warp), dest(bloom, 0.2, 1)),
+    knob(n.mix, 0.55, dest(opacity(b)), dest(opacity(c), 1, 0)),
   ])
   const variations: Variation[] = [
-    { id: uid('v'), name: 'Calma', values: [0.2, 0.2, 0.8, 0, 0, 0, 0, 0], beats: 4 },
-    { id: uid('v'), name: 'Intenso', values: [0.8, 0.9, 0.2, 0, 0, 0, 0, 0], beats: 4 },
+    { id: uid('v'), name: n.calm, values: [0.2, 0.2, 0.8, 0, 0, 0, 0, 0], beats: 4 },
+    { id: uid('v'), name: n.intense, values: [0.8, 0.9, 0.2, 0, 0, 0, 0, 0], beats: 4 },
   ]
   return build({
     layers: [
@@ -105,10 +128,10 @@ function mods(): SceneState {
     selected: 1,
     effects: [effect('bloom', { threshold: 0.7, strength: 0.4 })],
     modulators: [
-      modulator('Respiración', lfo('sine', 0.25), [to(opacity(b), 0.3), to(param(a, 'plasma', 'scale'), 0.6)]),
-      modulator('Pulso', beat('kick'), [to(bloom, 0.3), to(warp, 0.5)], 'linear', 40),
-      modulator('Graves', band('bass'), [to(param(a, 'plasma', 'intensity'), 0.5), to(param(b, 'kaleido', 'sensitivity'), 0.2)], 'smooth'),
-      modulator('Giro', lfo('saw', 0.25), [to(param(a, 'plasma', 'hue'), 1), to(param(b, 'kaleido', 'hue'), -1)]),
+      modulator(n.breath, lfo('sine', 0.25), [to(opacity(b), 0.3), to(param(a, 'plasma', 'scale'), 0.6)]),
+      modulator(n.pulse, beat('kick'), [to(bloom, 0.3), to(warp, 0.5)], 'linear', 40),
+      modulator(n.bass, band('bass'), [to(param(a, 'plasma', 'intensity'), 0.5), to(param(b, 'kaleido', 'sensitivity'), 0.2)], 'smooth'),
+      modulator(n.spin, lfo('saw', 0.25), [to(param(a, 'plasma', 'hue'), 1), to(param(b, 'kaleido', 'hue'), -1)]),
     ],
     knobs: panel,
     compKnobs: knobs(LEVEL_KNOBS, []),
@@ -118,9 +141,9 @@ function mods(): SceneState {
 
 // Two sides of the crossfader, each with a row of clips in named columns, some that wait for
 // the beat, and a knob on the crossfader.
-function live(): SceneState {
+function live(n: Names): SceneState {
   const [a, b] = [uid('l'), uid('l')]
-  const columns = ['Calma', 'Pulso', 'Caos', 'Final', '', '', '', '', '']
+  const columns = [n.calm, n.pulse, n.chaos, n.end, '', '', '', '', '']
   const sideA = row(
     clip('tunnel', settings({ rings: 14 }, { twist: [mod(lfo('sine', 0.25), 0.8)] })),
     clip('kaleido', settings(), { launch: 'beat' }),
@@ -145,12 +168,92 @@ function live(): SceneState {
     selected: 0,
     columns,
     effects: [effect('bloom', { threshold: 0.6, strength: 0.7 })],
-    knobs: knobs(PANEL_KNOBS, [knob('Crossfader', 0.5, dest({ kind: 'crossfade' }))]),
+    knobs: knobs(PANEL_KNOBS, [knob(n.crossfader, 0.5, dest({ kind: 'crossfade' }))]),
+    transition: 1.5,
+    panel: [
+      { kind: 'action', id: 'blackout' },
+      { kind: 'action', id: 'freeze' },
+      { kind: 'action', id: 'strobe' },
+      { kind: 'action', id: 'crossA' },
+      { kind: 'action', id: 'crossSwap' },
+      { kind: 'action', id: 'crossB' },
+      { kind: 'knob', ref: { bank: 'panel', i: 0 } },
+      { kind: 'crossfade' },
+      ...Array.from({ length: 8 }, () => null),
+    ],
   })
 }
 
-export function demoScene(id: DemoId): SceneState {
-  if (id === 'mods') return mods()
-  if (id === 'live') return live()
+// One layer for each kind of modulation source and each oscillator shape, on its own
+// parameters: a band of the spectrum with a curve and smoothing, a beat of a band with its
+// decay, and oscillators that follow the tempo or run free.
+function sources(): SceneState {
+  const [a, b, c, d] = [uid('l'), uid('l'), uid('l'), uid('l')]
+  const freeSine: ModSource = { kind: 'lfo', shape: 'sine', rate: 0.2, sync: false }
+  return build({
+    layers: [
+      layer(a, { visual: 'plasma', opacity: 0.45, settings: settings({ scale: 1.4 }, { hue: [mod(lfo('saw', 0.25), 1)], scale: [mod(freeSine, 0.5)], intensity: [mod(band('bass'), 0.6, 'exp', 150)] }) }),
+      layer(b, { visual: 'tunnel', blend: 'add', opacity: 0.8, settings: settings({ rings: 16 }, { twist: [mod(lfo('triangle', 0.5), 0.6)], rings: [mod(beat('kick', 400), 0.4)] }) }),
+      layer(c, { visual: 'orbitals', blend: 'screen', opacity: 0.85, settings: settings({ particles: 200 }, { speed: [mod(band('presence'), 0.5, 'log')] }) }),
+      layer(d, { visual: 'polygons', blend: 'screen', opacity: 0.7, settings: settings({ sides: 5 }, { sides: [mod(lfo('square', 0.25), 0.3)], rings: [mod(beat('highMid', 200), 0.5)] }) }),
+    ],
+    selected: 0,
+    effects: [effect('bloom', { threshold: 0.6, strength: 0.6 })],
+  })
+}
+
+// Every effect on its own, one in each column, and three chained in the last: launch a
+// column to see it. Oscillators move some of their parameters.
+function effects(n: Names): SceneState {
+  const [a, b] = [uid('l'), uid('l')]
+  const base = () => settings({ rings: 18 }, { twist: [mod(lfo('sine', 0.25), 0.8)] })
+  const chains = (): EffectState[][] => [
+    [effect('bloom', { threshold: 0.4, strength: 1.4 }, { strength: [mod(beat('kick'), 0.5)] })],
+    [effect('feedback', { length: 1.2, zoom: 0.3, rotation: 20, hueShift: 30 })],
+    [effect('kaleido', { segments: 8 }, { rotation: [mod(lfo('saw', 0.25), 1)] })],
+    [effect('mirror', { mode: 2 })],
+    [effect('palette', { palette: 1, amount: 1 }, { offset: [mod(lfo('sine', 0.25), 1)] })],
+    [effect('color', { saturation: 1.6, contrast: 1.2 }, { hue: [mod(lfo('saw', 0.25), 1)] })],
+    [effect('trails', { length: 1.5 })],
+    [effect('kaleido', { segments: 6 }), effect('bloom', { threshold: 0.5, strength: 1 }), effect('color', { saturation: 1.3 })],
+  ]
+  const clips = row(...chains().map((fxs) => ({ ...clip('tunnel', base()), effects: fxs })))
+  return build({
+    layers: [
+      layer(a, { visual: 'plasma', opacity: 0.3 }),
+      layer(b, { visual: 'tunnel', blend: 'add', opacity: 0.9, settings: base(), clips, active: 0, effects: chains()[0] }),
+    ],
+    selected: 1,
+    columns: [n.glow, n.feedback, n.kaleido, n.mirror, n.palette, n.tone, n.trails, n.all, ''],
+  })
+}
+
+// All the visualizations as clips, in three layers by family: pick a layer and launch a
+// clip, or let the crossfader move between the two sides. Layers fade from one clip to the next.
+function gallery(): SceneState {
+  const [a, b, c] = [uid('l'), uid('l'), uid('l')]
+  const spectrum = ['bars', 'radialBars', 'oscilloscope', 'spectrogram', 'ribbons', 'lissajous', 'radialWave']
+  const shapes = ['kaleido', 'tunnel', 'polygons', 'cells', 'gridWarp', 'julia', 'kifs']
+  const space = ['starfield', 'orbitals', 'fireworks', 'strobeBloom', 'terrain', 'warpTunnel', 'plasma', 'milkdrop']
+  const rowOf = (ids: string[]) => row(...ids.map((id) => clip(id)))
+  return build({
+    layers: [
+      layer(a, { visual: spectrum[0], side: 'a', clips: rowOf(spectrum), active: 0 }),
+      layer(b, { visual: shapes[0], side: 'b', blend: 'add', opacity: 0.9, clips: rowOf(shapes), active: 0 }),
+      layer(c, { visual: space[0], blend: 'screen', opacity: 0.6, clips: rowOf(space), active: 0 }),
+    ],
+    crossfade: 0.5,
+    selected: 0,
+    transition: 1.5,
+  })
+}
+
+export function demoScene(id: DemoId, lang: Lang = 'es'): SceneState {
+  const n = NAMES[lang]
+  if (id === 'sources') return sources()
+  if (id === 'mods') return mods(n)
+  if (id === 'fx') return effects(n)
+  if (id === 'live') return live(n)
+  if (id === 'gallery') return gallery()
   return start()
 }
