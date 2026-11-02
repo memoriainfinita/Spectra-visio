@@ -12,8 +12,9 @@ const folds = (panel) => page.locator(`${panel} .fold-head button`).evaluateAll(
 const clips = page.locator('.panel.clips')
 
 await page.getByRole('tab', { name: 'Bibliotecas' }).click()
-await page.getByRole('tab', { name: 'Lista' }).click()
+await page.getByRole('tab', { name: 'Audio', exact: true }).click()
 log('playing:', await loadTrack(page))
+await page.getByRole('tab', { name: 'Inspector', exact: true }).click()
 log('inspector in', await page.evaluate(() => document.getElementById('dock-inspector')?.closest('.dock-zone')?.className.match(/zone-(\w+)/)?.[1]), '| level', await shown())
 log('layer sections:', await folds('#insp-layer'))
 
@@ -52,8 +53,9 @@ log('after reload: layers', await page.locator('.panel.visuals .layer').count(),
 await page.getByRole('tab', { name: 'Capas' }).click()
 await page.locator('.panel.visuals').getByRole('button', { name: 'Quitar la capa 3' }).click()
 await page.getByRole('tab', { name: 'Bibliotecas' }).click()
-await page.getByRole('tab', { name: 'Lista' }).click()
+await page.getByRole('tab', { name: 'Audio', exact: true }).click()
 log('playing again:', await loadTrack(page))
+await page.getByRole('tab', { name: 'Inspector', exact: true }).click()
 
 // Layer level: effects of the layer, parameter, preset.
 await page.getByRole('tab', { name: 'Capas' }).click()
@@ -111,7 +113,7 @@ log('composition row first:', await page.locator('.panel.visuals').evaluate((p) 
 
 // Desktop: a clip does not take the right stack away from what it shows.
 const shownTab = (zone) => page.locator(`.zone-${zone} [role=tab][aria-selected=true]`).first().textContent()
-await page.getByRole('tab', { name: 'Directo', exact: true }).click()
+await page.getByRole('tab', { name: 'Efectos en vivo', exact: true }).click()
 await clips.getByRole('button', { name: /^Lanzar .* en la capa 1$/ }).first().click()
 log('desktop, clip clicked: right shows', await shownTab('right'), '| level', await shown())
 await page.locator('.panel.visuals .layer-pick').filter({ hasText: /^1 / }).click()

@@ -28,6 +28,12 @@ for (const name of names) {
   const added = await panel.locator('.preset-list').nth(1).getByText(name, { exact: true }).count()
   check(`${name}: compiles and is added`, alert === 0 && added === 1)
   check(`${name}: button is disabled once added`, await panel.getByRole('button', { name: `Copiar ${name} a tus shaders` }).isDisabled())
+  if (name === 'Aberración sobre la entrada') {
+    const notice = await page.locator('.notices p').textContent().catch(() => '')
+    check('a shader that reads the source warns when the layer has none', /lee la fuente visual y la capa 1 no tiene ninguna/.test(notice))
+    check('its row says it uses the visual source', (await panel.locator('.preset', { hasText: name }).first().innerText()).includes('usa la fuente visual'))
+  }
+  check(`${name}: copying also puts it on the layer`, (await page.locator('.layer.selected .layer-pick').textContent()).includes(name))
 }
 
 // Drawn on layer 1: the ones that need no visual input must draw and move.

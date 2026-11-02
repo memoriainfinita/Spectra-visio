@@ -3,13 +3,14 @@ import { detectLang } from '../i18n'
 import { normalizePresets } from '../engine/scene/preset'
 import { defaultSettings, normalizeSettings } from '../storage/settings'
 import { presetsStore } from './presets'
+import { mergeScenes, scenesStore } from './scenes'
 import { mergeRadioFavorites, radioFavoritesStore } from './radio'
 import { reducedMotion, settingsStore } from './settings'
 import { normalizeShaders, shadersStore } from './shaders'
 import { mergeTvFavorites, tvFavoritesStore } from './tv'
 import { layoutsStore, mergeLayouts } from './layout'
 
-// A backup file carries the settings, the shortcuts with them, the presets, the imported
+// A backup file carries the settings, the shortcuts with them, the presets, the scenes, the imported
 // shaders, the favourite stations and channels and the saved layouts, to move them to another browser or computer. The
 // OBS password stays out of it, and so do the files of the list.
 
@@ -27,6 +28,7 @@ export function downloadBackup(): void {
     saved: new Date().toISOString(),
     settings: { ...s, obs: { ...s.obs, password: '' } },
     presets: presetsStore.get(),
+    scenes: scenesStore.get(),
     shaders: shadersStore.get(),
     radioFavorites: radioFavoritesStore.get(),
     tvFavorites: tvFavoritesStore.get(),
@@ -44,6 +46,7 @@ export interface RestoreResult {
   // The file is not a backup at all.
   invalid: boolean
   presets: number
+  scenes: number
   shaders: number
   favorites: number
   channels: number
@@ -54,7 +57,7 @@ export interface RestoreResult {
 // skipping those already present. What belongs to this browser stays: the OBS password,
 // whether files are kept, and the answered photosensitivity notice.
 export async function restoreBackup(file: File): Promise<RestoreResult> {
-  const none = { invalid: true, presets: 0, shaders: 0, favorites: 0, channels: 0, layouts: 0 }
+  const none = { invalid: true, presets: 0, scenes: 0, shaders: 0, favorites: 0, channels: 0, layouts: 0 }
   let raw: Record<string, unknown>
   try {
     const parsed: unknown = JSON.parse(await file.text())
@@ -81,6 +84,7 @@ export async function restoreBackup(file: File): Promise<RestoreResult> {
   return {
     invalid: false,
     presets: presets.length,
+    scenes: mergeScenes(raw.scenes),
     shaders: shaders.length,
     favorites: mergeRadioFavorites(raw.radioFavorites),
     channels: mergeTvFavorites(raw.tvFavorites),

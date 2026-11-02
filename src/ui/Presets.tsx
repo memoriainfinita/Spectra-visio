@@ -1,6 +1,7 @@
 import { Download, Trash2, Upload } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { loadDemo } from '../app/demos'
+import { deleteScene, loadSavedScene, saveScene, scenesStore } from '../app/scenes'
 import { deletePreset, downloadPresets, importPresets, loadPreset, presetsStore, savePreset } from '../app/presets'
 import { DEMOS } from '../engine/scene/demos'
 import { sceneStore } from '../app/scene'
@@ -15,8 +16,10 @@ import { useT } from './useT'
 export function Presets() {
   const t = useT()
   const presets = useStore(presetsStore)
+  const scenes = useStore(scenesStore)
   const layer = useStore(sceneStore, (s) => s.selected) + 1
   const [name, setName] = useState('')
+  const [sceneName, setSceneName] = useState('')
   const [message, setMessage] = useState<string | null>(null)
   const fileInput = useRef<HTMLInputElement>(null)
 
@@ -55,17 +58,43 @@ export function Presets() {
         </div>
       </header>
 
-      <h3 className="muted small">{t('demo.title')}</h3>
+      <h3 className="muted small">{t('scenes.title')}</h3>
+      <Hint text={t('scenes.hint')} />
       <ul className="preset-list">
         {DEMOS.map((d) => (
           <li key={d.id} className="preset">
             <button className="preset-main" title={`${t(d.hint)}. ${t('demo.load')}`} onClick={() => loadDemo(d.id)}>
               <span className="preset-name">{t(d.name)}</span>
+              <span className="preset-sub">{t('scenes.example')}</span>
+            </button>
+          </li>
+        ))}
+        {scenes.map((x) => (
+          <li key={x.id} className="preset">
+            <button className="preset-main" title={t('scenes.load', { name: x.name })} onClick={() => loadSavedScene(x.id)}>
+              <span className="preset-name">{x.name}</span>
+              <span className="preset-sub">{t('scenes.layers', { n: x.scene.layers.length })}</span>
+            </button>
+            <button className="icon-btn small" title={t('scenes.delete', { name: x.name })} aria-label={t('scenes.delete', { name: x.name })} onClick={() => deleteScene(x.id)}>
+              <Trash2 size={15} />
             </button>
           </li>
         ))}
       </ul>
+      <form
+        className="preset-form"
+        onSubmit={(e) => {
+          e.preventDefault()
+          if (saveScene(sceneName)) setSceneName('')
+        }}
+      >
+        <input type="text" aria-label={t('scenes.name')} placeholder={t('scenes.name')} maxLength={NAME_MAX} value={sceneName} onChange={(e) => setSceneName(e.target.value)} />
+        <button className="btn" type="submit" disabled={!sceneName.trim()}>
+          {t('scenes.save')}
+        </button>
+      </form>
 
+      <h3 className="muted small">{t('presets.section', { n: layer })}</h3>
       <form
         className="preset-form"
         onSubmit={(e) => {

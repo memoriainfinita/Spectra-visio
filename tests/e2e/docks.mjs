@@ -21,7 +21,7 @@ for (const d of ['layers', 'library', 'inspector', 'audio', 'clips', 'perform'])
 
 // Tabs: click, then the arrow keys.
 await tab('Bibliotecas').click()
-await tab('Lista').click()
+await tab('Audio').click()
 await loadTrack(page)
 await tab('Inspector').click()
 await tab('Inspector').press('ArrowRight')
@@ -33,14 +33,14 @@ await page.waitForSelector('.stage canvas')
 log('after reload: live', await where('live'), '| shelf', await page.evaluate(() => document.querySelector('.chip.on')?.textContent))
 
 // The perform bar and the Live panel share their state.
-await tab('Directo').click()
+await tab('Efectos en vivo').click()
 const bar = page.locator('.perform-bar')
 await bar.getByRole('button', { name: 'Apagón' }).click()
 log('blackout from bar -> live panel pressed:', await page.locator('.panel.live').getByRole('button', { name: 'Apagón' }).getAttribute('aria-pressed'))
 await bar.getByRole('button', { name: 'Apagón' }).click()
 
 // Pop-ups and the settings window.
-await page.getByRole('button', { name: /^Fuente:/ }).click()
+await page.getByRole('button', { name: /^Audio:/ }).click()
 log('source pop-up:', await page.locator('.panel.sources').isVisible())
 await page.screenshot({ path: `${OUT}/docks-source-${kind}.png` })
 await page.keyboard.press('Escape')
@@ -64,7 +64,7 @@ await page.keyboard.press('Escape')
 
 // Moving by the dock menu, keeping what is typed in a panel.
 await tab('Bibliotecas').click()
-await tab('Presets').click()
+await tab('Escenas y presets').click()
 await page.getByLabel('Nombre del preset', { exact: true }).fill('a medias')
 await page.getByRole('button', { name: 'Opciones de Bibliotecas' }).click()
 await page.getByRole('menuitem', { name: 'A la derecha, debajo' }).click()
@@ -92,7 +92,7 @@ log('audio dragged under the stage:', await where('audio'))
 await drag('Audio', '.zone-left .dock-stack .drop-area >> nth=0')
 log('audio dragged as a tab on the left:', await where('audio'))
 // Escape drops nothing.
-const from = await tab('Directo').boundingBox()
+const from = await tab('Efectos en vivo').boundingBox()
 await page.mouse.move(from.x + 5, from.y + 5)
 await page.mouse.down()
 await page.mouse.move(from.x + 200, from.y + 200, { steps: 5 })

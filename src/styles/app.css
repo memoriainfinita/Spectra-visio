@@ -520,6 +520,8 @@ input[type='range'] { accent-color: var(--accent); }
 .layer { border: 1px solid var(--border); border-radius: 10px; padding: 6px; }
 .layer.selected { border-color: rgba(110, 247, 255, 0.5); background: rgba(110, 247, 255, 0.05); }
 .layer.off .layer-pick { color: var(--muted); }
+.layer.unseen .layer-row > :not(.layer-pick) { opacity: 0.55; }
+.layer.unseen .layer-pick { color: var(--muted); }
 .layer-row { display: flex; align-items: center; gap: 4px; }
 .layer-row + .layer-row { margin-top: 4px; }
 .layer-pick { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; padding: 4px 6px; border: none; border-radius: 6px; background: none; cursor: pointer; text-align: left; white-space: nowrap; }

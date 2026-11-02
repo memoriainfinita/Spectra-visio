@@ -34,7 +34,7 @@ await search('anadir archivos')
 log('without the accent:', (await options.first().innerText()).replace(/\s+/g, ' '))
 await page.keyboard.press('Enter')
 await page.waitForTimeout(300)
-log('añadir archivos: shelf Lista', await page.locator('#shelf-queue').getAttribute('aria-selected'), '| focus', JSON.stringify(await focused()))
+log('añadir archivos: tab Audio', await selected('Audio'), '| focus', JSON.stringify(await focused()))
 
 // A control in the settings window, closed.
 await search('reducir destellos')

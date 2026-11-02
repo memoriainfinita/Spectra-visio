@@ -13,8 +13,9 @@ const opacity2 = page.locator('.panel.visuals').getByLabel('Opacidad de la capa 
 const num = async (loc) => Number(await loc.inputValue())
 
 await page.getByRole('tab', { name: 'Bibliotecas' }).click()
-await page.getByRole('tab', { name: 'Lista' }).click()
+await page.getByRole('tab', { name: 'Audio', exact: true }).click()
 log('playing:', await loadTrack(page))
+await page.getByRole('tab', { name: 'Inspector', exact: true }).click()
 await page.getByRole('tab', { name: 'Capas' }).click()
 await page.getByRole('tab', { name: 'Mandos' }).click()
 log('panel knobs', await knobs.getByRole('slider').count(), '| comp knobs', await page.locator('#insp-comp .knob-dial').count(), '| layer knobs', await page.locator('#insp-layer .knob-dial').count())

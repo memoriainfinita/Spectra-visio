@@ -109,6 +109,7 @@ export function VisualInput() {
         <h2>{t('vinput.titleLayer', { n: selected + 1 })}</h2>
       </header>
       <Hint text={t('vinput.hint')} />
+      <p className="small">{t('vinput.loadsIn', { n: selected + 1 })}</p>
       <Source catalog />
     </section>
   )

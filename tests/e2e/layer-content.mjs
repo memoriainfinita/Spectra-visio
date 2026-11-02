@@ -20,12 +20,12 @@ log('layer 1 starts as:', before)
 check('starts as a visualization', (await pressed('Visualización')) === 'true' && (await insp.getByLabel('Visualización de la capa 1').count()) === 1)
 
 // The browser lists visualizations only: no source among them.
-check('browser has no source card', (await page.locator('.panel.browser').getByRole('button', { name: /^Poner Entrada visual/ }).count()) === 0)
-check('browser has no media filter', (await page.locator('.panel.browser .segmented').getByRole('button', { name: 'Entrada visual', exact: true }).count()) === 0)
+check('browser has no source card', (await page.locator('.panel.browser').getByRole('button', { name: /^Poner Fuente visual/ }).count()) === 0)
+check('browser has no media filter', (await page.locator('.panel.browser .segmented').getByRole('button', { name: 'Fuente visual', exact: true }).count()) === 0)
 
 // Source: set up there, in the Inspector.
 await useSource(page)
-check('content is the source', (await pressed('Fuente')) === 'true')
+check('content is the source', (await pressed('Fuente visual')) === 'true')
 check('no visualization selector while it is the source', (await insp.getByLabel('Visualización de la capa 1').count()) === 0)
 const chooser = page.waitForEvent('filechooser')
 await sourceBox(page).getByRole('button', { name: 'Imagen o vídeo' }).click()

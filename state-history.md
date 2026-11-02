@@ -155,3 +155,8 @@ El CDN de images-assets.nasa.gov guarda copias sin la cabecera CORS y las sirve 
 ### 2026-11-02 — La fuente se configura en el Inspector, no en Bibliotecas
 
 Antes: «Entrada visual» era una visualización más del navegador y su configuración (cámara, archivo, TV, en línea) vivía en Bibliotecas, con solo cámara y archivo en una sección plegada del Inspector. mykl no entendía qué eran las fuentes ni cómo llegaban a una capa, y tenía que ir y venir entre sitios. Ahora el contenido de la capa es Visualización o Fuente y todo se configura en el Inspector; Bibliotecas queda como catálogo de TV y en línea. Se revierte la decisión de que TV y en línea fueran solo de Bibliotecas.
+
+### 2026-11-02 — Shader como efecto descartado; Directo renombrado
+
+mykl pidió arreglar todo lo confuso del flujo. Se propuso un efecto «Shader» para filtrar cualquier capa; no se hizo: un shader que lee la fuente (ISF con imagen, Shadertoy con iChannel1) ya la filtra, y un efecto necesitaría parámetros dinámicos por shader, que las definiciones de efecto no admiten. Se avisa en la lista de shaders de cuáles leen la fuente. El muelle «Directo» pasa a «Efectos en vivo» porque chocaba con el diseño Directo, y la Lista de reproducción pasa al muelle Audio porque la música se manejaba en tres sitios. «Mando» (cuatro sitios) y el modo automático (botón en Actuación, ajustes en la composición) se dejan: el diseño de mandos está aprobado y no es una duplicación sino acceso rápido.
+

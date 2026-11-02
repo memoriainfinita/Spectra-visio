@@ -76,7 +76,7 @@ const r = await row.boundingBox()
 await drag({ x: r.x + 30, y: r.y + r.height / 2 }, await cell(10))
 log('parameter dropped: cells', start, '->', await filled(), '| slider unmoved', before === (await slider.inputValue()))
 
-await tab('Directo').click()
+await tab('Efectos en vivo').click()
 const blackout = page.locator('.panel.live button[data-control]').first()
 await drag(await centre(blackout), await cell(11))
 log('blackout dropped: cells', await filled(), '| it did not act:', await blackout.getAttribute('aria-pressed'))

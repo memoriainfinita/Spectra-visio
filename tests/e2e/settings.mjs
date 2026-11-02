@@ -12,7 +12,7 @@ const dialog = page.getByRole('dialog', { name: 'Ajustes' })
 const openSettings = async () => { if (!(await dialog.isVisible())) await page.getByRole('button', { name: 'Ajustes', exact: true }).click() }
 const openSource = async () => {
   if (await dialog.isVisible()) await page.keyboard.press('Escape')
-  if (!(await page.locator('.panel.sources').isVisible())) await page.getByRole('button', { name: /^Fuente:/ }).click()
+  if (!(await page.locator('.panel.sources').isVisible())) await page.getByRole('button', { name: /^Audio:/ }).click()
 }
 const keys = page.locator('.panel.settings-keys')
 const blackoutKey = () => keys.locator('button[aria-label="Tecla de Apagón"], button[aria-label="Key for Blackout"]').textContent()

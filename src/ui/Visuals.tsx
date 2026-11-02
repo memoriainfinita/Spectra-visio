@@ -4,7 +4,7 @@ import { inspectComposition, inspectLayer, inspectorStore } from '../app/inspect
 import { addLayer, moveLayer, removeLayer, sceneStore, setCrossfade, setLayerBlend, setLayerBypass, setLayerOpacity, setLayerSide, setLayerSolo } from '../app/scene'
 import { getVisual } from '../engine/render/registry'
 import { nameOf } from '../engine/render/visual'
-import { BLEND_MODES, MAX_LAYERS, SIDES, type BlendMode, type Side } from '../engine/scene/scene'
+import { BLEND_MODES, MAX_LAYERS, layerAmount, SIDES, type BlendMode, type Side } from '../engine/scene/scene'
 import type { MessageKey } from '../i18n'
 import { useStore } from './useStore'
 import { useT } from './useT'
@@ -49,8 +49,11 @@ export function Visuals() {
           const l = scene.layers[i]
           const n = i + 1
           const v = getVisual(l.visual)
+          // A layer the crossfader hides is dimmed and says so, as the TV that was not seen.
+          const hiddenByFader = (l.side === 'a' && scene.crossfade >= 1) || (l.side === 'b' && scene.crossfade <= 0)
+          const unseen = !l.bypass && layerAmount(scene, i) === 0
           return (
-            <li key={l.id} className={`layer${i === sel ? ' selected' : ''}${l.bypass ? ' off' : ''}`}>
+            <li key={l.id} className={`layer${i === sel ? ' selected' : ''}${l.bypass ? ' off' : ''}${unseen ? ' unseen' : ''}`} title={hiddenByFader ? t('vinput.hidden', { n, side: (l.side ?? '').toUpperCase() }) : undefined}>
               <div className="layer-row">
                 <button className="layer-pick" aria-pressed={i === sel} title={t('visuals.select', { n })} onClick={() => inspectLayer(i)}>
                   <strong>{n}</strong> <span>{v ? nameOf(v, t) : ''}</span>

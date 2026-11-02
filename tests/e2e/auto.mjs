@@ -84,7 +84,7 @@ await pickLayer(page, 1)
 for (const [n, v] of [['uno', 'Barras de espectro'], ['dos', 'Conjunto de Julia']]) {
   await page.locator('.panel.browser').getByRole('button', { name: `Poner ${v} en la capa 1` }).click()
   await presets.getByLabel('Nombre del preset').fill(n)
-  await presets.getByRole('button', { name: 'Guardar' }).click()
+  await presets.getByRole('button', { name: 'Guardar', exact: true }).click()
 }
 await page.locator('.panel.browser').getByRole('button', { name: 'Poner Plasma en la capa 1' }).click()
 await field('Elegir de').selectOption('presets')
