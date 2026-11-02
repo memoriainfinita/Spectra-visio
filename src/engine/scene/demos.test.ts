@@ -80,6 +80,27 @@ describe('demo scenes', () => {
     expect(s.transition).toBeGreaterThan(0)
   })
 
+  it('show has all the visualizations in named columns, with the rest of the app on them', () => {
+    const s = demoScene('show')
+    const shown = new Set(s.layers.flatMap((l) => l.clips.flatMap((c) => (c ? [c.visual] : []))))
+    const builtin = visualsStore.get().filter((v) => v.id !== INPUT_VISUAL && !v.id.startsWith('user:'))
+    for (const v of builtin) expect(shown.has(v.id), v.id).toBe(true)
+    expect(s.columns.filter(Boolean)).toHaveLength(8)
+    expect(demoScene('show', 'en').columns[0]).toBe('Intro')
+    expect(s.layers.map((l) => l.side)).toEqual(['a', 'b', null])
+    const clips = s.layers.flatMap((l) => l.clips.filter((c) => c !== null))
+    const types = new Set(clips.flatMap((c) => c!.effects.map((e) => e.type)))
+    for (const t of ['bloom', 'feedback', 'trails', 'mirror', 'kaleido', 'color', 'palette']) expect(types.has(t), t).toBe(true)
+    expect(clips.some((c) => c!.launch === 'beat')).toBe(true)
+    expect(allMods(s).some((m) => m.source.kind === 'lfo')).toBe(true)
+    expect(s.modulators.length).toBeGreaterThan(0)
+    expect(s.knobs.filter((k) => k.dests.length > 0).length).toBeGreaterThan(0)
+    expect(s.variations).toHaveLength(2)
+    expect(s.panel.filter(Boolean)).toHaveLength(11)
+    expect(s.transition).toBeGreaterThan(0)
+    expect(s.effects.length).toBeGreaterThan(0)
+  })
+
   it('gallery has every visualization as a clip', () => {
     const s = demoScene('gallery')
     const shown = new Set(s.layers.flatMap((l) => l.clips.flatMap((c) => (c ? [c.visual] : []))))

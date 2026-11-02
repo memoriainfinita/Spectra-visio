@@ -526,6 +526,8 @@ export const en: Messages = {
   'demo.fx.hint': 'A column for each effect (glow, feedback, kaleidoscope, mirror, palette, color and trails) and one with three chained: launch the columns',
   'demo.gallery': 'Every visualization',
   'demo.gallery.hint': 'All 22 visualizations as clips in three layers by family, fading from one to the next: launch clips or move the crossfader',
+  'demo.show': 'Full show',
+  'demo.show.hint': 'Everything together: the 22 visualizations in eight columns that launch one from each layer, with effects and oscillators on the clips, beats, modulators, knobs, variations, crossfader and My panel',
   'demo.mods': 'Modulators and knobs',
   'demo.mods.hint': 'Shared modulators on several parameters, knobs with several destinations and two variations',
   'demo.live': 'Clips and live',

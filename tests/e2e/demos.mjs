@@ -21,7 +21,7 @@ log('playing:', await loadTrack(page))
 const before = await layers()
 log('layers before:', before)
 
-const expected = { 'Primeros pasos': 3, 'Fuentes de modulación': 4, 'Moduladores y mandos': 3, 'Todos los efectos': 2, 'Clips y directo': 2, 'Todas las visualizaciones': 3 }
+const expected = { 'Primeros pasos': 3, 'Fuentes de modulación': 4, 'Moduladores y mandos': 3, 'Todos los efectos': 2, 'Clips y directo': 2, 'Todas las visualizaciones': 3, 'Espectáculo completo': 3 }
 for (const [name, n] of Object.entries(expected)) {
   await panel.getByRole('button', { name }).click()
   await page.waitForTimeout(1500)
@@ -43,18 +43,21 @@ for (const [name, n] of Object.entries(expected)) {
   }
 }
 
-// Undo goes back to the scene before the last demo: Todas las visualizaciones -> Clips y directo.
+// Undo goes back to the scene before the last demo: Espectáculo completo -> Todas las visualizaciones.
 await page.keyboard.press('Control+z')
 await page.waitForTimeout(500)
-check('Ctrl Z brings the previous scene back', (await layers()) === expected['Clips y directo'])
+check('Ctrl Z brings the previous scene back', (await layers()) === expected['Todas las visualizaciones'] && (await page.locator('.panel.clips').getByText('Intro', { exact: true }).count()) === 0)
 
-// The gallery again, now to launch its clips (a launch is one more step to undo, so after the undo check).
-await panel.getByRole('button', { name: 'Todas las visualizaciones' }).click()
-for (const key of ['2', '4', '7']) {
-  await page.keyboard.press(key)
-  await page.waitForTimeout(1800)
-  const after = await motion()
-  check(`Todas las visualizaciones: column ${key} draws`, after.mean > 2 && after.motion > 0.3)
+// The two scenes of clips again, now to launch columns (a launch is one more step to undo, so after the undo check).
+for (const name of ['Todas las visualizaciones', 'Espectáculo completo']) {
+  await panel.getByRole('button', { name }).click()
+  await page.waitForTimeout(1200)
+  for (const key of ['2', '4', '7']) {
+    await page.keyboard.press(key)
+    await page.waitForTimeout(1800)
+    const after = await motion()
+    check(`${name}: column ${key} draws`, after.mean > 2 && after.motion > 0.3)
+  }
 }
 
 log('page errors:', errors.length ? errors.join(' | ') : 'none')
