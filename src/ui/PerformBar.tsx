@@ -1,9 +1,10 @@
 import { autoStore, toggleAuto } from '../app/auto'
-import { liveStore, toggleLive } from '../app/live'
+import { liveStore, runAction, toggleLive } from '../app/live'
 import { launchColumn, sceneStore, setCrossfade } from '../app/scene'
 import { settingsStore } from '../app/settings'
-import type { ActionId } from '../engine/live/live'
+import { STROBE_RATES, type ActionId, type StrobeRate } from '../engine/live/live'
 import { CLIP_COLUMNS } from '../engine/scene/scene'
+import { actionLabel } from './actionLabel'
 import { columnLabel } from './ClipMenu'
 import { knobMenu } from './KnobMenu'
 import { useStore } from './useStore'
@@ -16,6 +17,7 @@ export function PerformBar() {
   const t = useT()
   const live = useStore(liveStore)
   const reduceFlashes = useStore(settingsStore, (s) => s.reduceFlashes)
+  const strobeRate = useStore(settingsStore, (s) => s.live.strobe)
   const crossfade = useStore(sceneStore, (s) => s.crossfade)
   const columns = useStore(sceneStore, (s) => s.columns)
   const auto = useStore(autoStore, (s) => s.enabled)
@@ -32,11 +34,30 @@ export function PerformBar() {
         {toggle('blackout')}
         {toggle('freeze')}
         {toggle('strobe')}
+        <select
+          aria-label={t('live.strobeRate')}
+          title={`${t('live.strobeRate')}. ${t('live.strobeHint')}`}
+          value={String(strobeRate)}
+          onChange={(e) => {
+            const v = e.target.value === 'beat' ? 'beat' : (Number(e.target.value) as StrobeRate)
+            settingsStore.set((s) => ({ ...s, live: { ...s.live, strobe: v } }))
+          }}
+        >
+          {STROBE_RATES.map((r) => (
+            <option key={r} value={String(r)}>
+              {r === 'beat' ? t('live.rate.beat') : t('live.rate.n', { n: r })}
+            </option>
+          ))}
+        </select>
       </div>
       <div className="crossfade-row perform-cross">
-        <span className="mono">A</span>
+        <button className="cross-end mono" title={actionLabel('crossA', t)} aria-label={actionLabel('crossA', t)} onClick={() => runAction('crossA')} {...knobMenu({ kind: 'action', id: 'crossA' })}>
+          A
+        </button>
         <input type="range" aria-label={t('visuals.crossfade')} {...knobMenu({ kind: 'crossfade' })} min={0} max={1} step={0.01} value={crossfade} onChange={(e) => setCrossfade(Number(e.target.value))} />
-        <span className="mono">B</span>
+        <button className="cross-end mono" title={actionLabel('crossB', t)} aria-label={actionLabel('crossB', t)} onClick={() => runAction('crossB')} {...knobMenu({ kind: 'action', id: 'crossB' })}>
+          B
+        </button>
       </div>
       <div className="perform-group">
         {COLUMNS.map((c) => (

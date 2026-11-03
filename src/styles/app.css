@@ -625,6 +625,8 @@ input[type='range'] { accent-color: var(--accent); }
 .perform-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; padding: 12px; }
 .perform-group { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .perform-cross { flex: 1; min-width: 200px; margin: 0; }
+.cross-end { padding: 2px 8px; border: 1px solid transparent; border-radius: 6px; background: none; color: inherit; cursor: pointer; }
+.cross-end:hover { background: rgba(255, 255, 255, 0.07); }
 .perform-bar .clip-col { width: 32px; }
 
 /* Top bar */

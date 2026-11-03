@@ -39,13 +39,13 @@ await out.waitForTimeout(600)
 log('output after solo plasma:', JSON.stringify(await st(out)))
 
 // Blackout from the main window; then the B key pressed in the output window.
-await page.locator('.panel.live').getByRole('button', { name: 'Apagón', exact: true }).click()
+await page.locator('.perform-bar').getByRole('button', { name: 'Apagón', exact: true }).click()
 await out.waitForTimeout(500)
 log('output in blackout mean:', (await st(out)).mean)
 await out.locator('canvas').click()
 await out.keyboard.press('b')
 await page.waitForTimeout(300)
-log('B in the output turns it off in main:', await page.locator('.panel.live').getByRole('button', { name: 'Apagón', exact: true }).getAttribute('aria-pressed'))
+log('B in the output turns it off in main:', await page.locator('.perform-bar').getByRole('button', { name: 'Apagón', exact: true }).getAttribute('aria-pressed'))
 
 // Preview off: main stops drawing, the output goes on.
 await live.getByLabel('Vista previa aquí también').uncheck()

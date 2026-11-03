@@ -14,7 +14,7 @@ import { knobAt, setTarget } from '../engine/scene/turn'
 import { Hint } from './Hint'
 import { KnobDial, describeTarget, knobName } from './Knob'
 import { knobMenu } from './KnobMenu'
-import { actionLabel } from './Live'
+import { actionLabel } from './actionLabel'
 import { useStore } from './useStore'
 import { useT } from './useT'
 

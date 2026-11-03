@@ -26,10 +26,10 @@ const trace = (p, ms) => p.evaluate((ms) => new Promise((resolve) => {
   requestAnimationFrame(step)
 }), ms)
 log('output, normal:', JSON.stringify(await trace(out, 1200)))
-await page.locator('.panel.live').getByLabel('Reducir destellos').check()
+await page.locator('#settingspanel-access').getByLabel('Reducir destellos').check()
 await out.waitForTimeout(800)
 log('output, reduced:', JSON.stringify(await trace(out, 1200)))
-await page.locator('.panel.live').getByLabel('Reducir destellos').uncheck()
+await page.locator('#settingspanel-access').getByLabel('Reducir destellos').uncheck()
 
 // Frame cap: count the output window's frames by its canvas changing.
 await page.locator('.panel.settings-perf').getByLabel('Límite de fps').selectOption('30')

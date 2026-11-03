@@ -163,3 +163,8 @@ mykl pidió arreglar todo lo confuso del flujo. Se propuso un efecto «Shader» 
 ### 2026-11-02 — Pruebas en paralelo descartadas como valor por defecto
 
 Se probó a correr en paralelo (3 a la vez) las comprobaciones que no miden tiempos para bajar de los 40 minutos. En el PC de mykl (4 núcleos) tardó 43 min en pared por 72 de ejecuciones sumadas: los renderizadores se frenan entre sí. Además fallaron presets, lookup, inspector y knobs, que pasan solos. Se dejó `--jobs N` como opción y el valor por defecto en serie. Lo que sí queda: el ejecutor marca como fallo las líneas `FAIL` de las comprobaciones.
+
+### 2026-11-02 — El muelle Directo desaparece, entra en Actuación
+
+El muelle «Directo» (luego «Efectos en vivo») repetía Apagón, Congelar, Estrobo y el crossfader de la barra Actuación. Lo propio —ritmo del estrobo, saltos del crossfader a A y B— pasó a la barra; «Reducir destellos» ya estaba en Ajustes. Se revierte la decisión previa de mantener los duplicados «a propósito» porque el segundo muelle solo añadía dos controles pequeños.
+

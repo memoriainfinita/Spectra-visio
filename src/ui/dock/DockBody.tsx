@@ -12,7 +12,6 @@ const CONTENT: Record<Exclude<DockId, 'library'>, PanelId[]> = {
   inspector: ['inspector'],
   clips: ['clips'],
   audio: ['player', 'queue', 'analysis'],
-  live: ['live'],
   perform: ['perform'],
   knobs: ['knobs'],
   modulators: ['modulators'],

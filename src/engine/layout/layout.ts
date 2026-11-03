@@ -2,7 +2,7 @@
 // Each zone holds stacks one above the other; a stack shows one of its docks at a time,
 // with tabs. The stage itself is never part of a layout, so nothing can cover it.
 
-export const DOCKS = ['layers', 'inspector', 'library', 'clips', 'audio', 'live', 'perform', 'knobs', 'modulators', 'mypanel'] as const
+export const DOCKS = ['layers', 'inspector', 'library', 'clips', 'audio', 'perform', 'knobs', 'modulators', 'mypanel'] as const
 export type DockId = (typeof DOCKS)[number]
 
 export const ZONES = ['left', 'right', 'strip'] as const
@@ -17,7 +17,8 @@ export const BUILT_IN = ['live', 'prepare', 'two', 'laptop'] as const
 export type BuiltInId = (typeof BUILT_IN)[number]
 
 // 2 put the Inspector in place of the docks Effects, Overlays and Auto; 3 added Knobs, 4
-// Modulators, 5 My panel.
+// Modulators, 5 My panel. The Live dock went into Performance without a new version: a stored
+// layout that still has it loses the tab.
 export const LAYOUTS_VERSION = 5
 export const WIDTH_MIN = 220
 export const WIDTH_MAX = 640
@@ -68,22 +69,22 @@ const FACTORY: Record<BuiltInId, Omit<Layout, 'id' | 'name' | 'strip'>> = {
   // Everything for a show at hand: layers on the left, the rest on the right, clips and
   // the perform controls under the stage.
   live: {
-    zones: { left: [stack('layers', 'library')], right: [stack('inspector', 'audio', 'modulators', 'live')], strip: [stack('clips'), stack('perform', 'knobs', 'mypanel')] },
+    zones: { left: [stack('layers', 'library')], right: [stack('inspector', 'audio', 'modulators')], strip: [stack('clips'), stack('perform', 'knobs', 'mypanel')] },
     widths: { left: 320, right: 360 },
   },
   // Building a set: the libraries first, two stacks on the right.
   prepare: {
-    zones: { left: [stack('library', 'layers')], right: [stack('inspector'), stack('audio', 'modulators', 'live')], strip: [stack('clips', 'perform', 'knobs', 'mypanel')] },
+    zones: { left: [stack('library', 'layers')], right: [stack('inspector'), stack('audio', 'modulators')], strip: [stack('clips', 'perform', 'knobs', 'mypanel')] },
     widths: { left: 380, right: 360 },
   },
   // The image on the projector: the clips get the room.
   two: {
-    zones: { left: [stack('layers', 'audio', 'modulators', 'library')], right: [stack('inspector', 'live')], strip: [stack('clips'), stack('perform', 'knobs', 'mypanel')] },
+    zones: { left: [stack('layers', 'audio', 'modulators', 'library')], right: [stack('inspector')], strip: [stack('clips'), stack('perform', 'knobs', 'mypanel')] },
     widths: { left: 300, right: 340 },
   },
   // One zone with every dock, for narrower screens.
   laptop: {
-    zones: { left: [stack('layers', 'inspector', 'audio', 'modulators', 'library', 'live')], right: [], strip: [stack('clips'), stack('perform', 'knobs', 'mypanel')] },
+    zones: { left: [stack('layers', 'inspector', 'audio', 'modulators', 'library')], right: [], strip: [stack('clips'), stack('perform', 'knobs', 'mypanel')] },
     widths: { left: 340, right: 340 },
   },
 }

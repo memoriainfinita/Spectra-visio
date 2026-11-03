@@ -4,7 +4,7 @@ import { setActionKey } from '../app/live'
 import { settingsStore } from '../app/settings'
 import { ACTIONS, DEFAULT_KEYS, keyCombo, type ActionId } from '../engine/live/live'
 import { Row } from './SettingRow'
-import { actionLabel } from './Live'
+import { actionLabel } from './actionLabel'
 import { useStore } from './useStore'
 import { useT } from './useT'
 
