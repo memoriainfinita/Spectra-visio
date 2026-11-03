@@ -16,7 +16,7 @@ const button = (name) => page.getByRole('button', { name, exact: true })
 const layoutMenu = () => page.getByRole('button', { name: /^Diseño:/ })
 
 log('layout:', await layoutMenu().textContent(), '| page scroll', await page.evaluate(() => document.documentElement.scrollHeight - innerHeight))
-log('docks:', ['layers', 'inspector', 'library', 'clips', 'audio', 'live', 'perform'].join(','))
+log('docks:', ['layers', 'inspector', 'library', 'clips', 'audio', 'perform'].join(','))
 for (const d of ['layers', 'library', 'inspector', 'audio', 'clips', 'perform']) log(' ', d, await where(d))
 
 // Tabs: click, then the arrow keys.
@@ -27,16 +27,15 @@ await tab('Inspector').click()
 await tab('Inspector').press('ArrowRight')
 log('right of Inspector:', await page.evaluate(() => document.activeElement?.textContent), await where('audio'))
 await page.keyboard.press('End')
-log('End:', await where('live'))
+log('End:', await where('perform'))
 await page.reload()
 await page.waitForSelector('.stage canvas')
-log('after reload: live', await where('live'), '| shelf', await page.evaluate(() => document.querySelector('.chip.on')?.textContent))
+log('after reload: perform', await where('perform'), '| shelf', await page.evaluate(() => document.querySelector('.chip.on')?.textContent))
 
-// The perform bar and the Live panel share their state.
-await tab('Efectos en vivo').click()
+// The perform bar has the live switches, the strobe rate and the crossfader ends.
 const bar = page.locator('.perform-bar')
 await bar.getByRole('button', { name: 'Apagón' }).click()
-log('blackout from bar -> live panel pressed:', await page.locator('.panel.live').getByRole('button', { name: 'Apagón' }).getAttribute('aria-pressed'))
+log('blackout from the bar pressed:', await bar.getByRole('button', { name: 'Apagón' }).getAttribute('aria-pressed'), '| strobe rate', await bar.getByLabel('Ritmo del estrobo').count(), '| A and B', await bar.getByRole('button', { name: /^Crossfader a [AB]$/ }).count())
 await bar.getByRole('button', { name: 'Apagón' }).click()
 
 // Pop-ups and the settings window.
@@ -92,13 +91,13 @@ log('audio dragged under the stage:', await where('audio'))
 await drag('Audio', '.zone-left .dock-stack .drop-area >> nth=0')
 log('audio dragged as a tab on the left:', await where('audio'))
 // Escape drops nothing.
-const from = await tab('Efectos en vivo').boundingBox()
+const from = await tab('Moduladores').boundingBox()
 await page.mouse.move(from.x + 5, from.y + 5)
 await page.mouse.down()
 await page.mouse.move(from.x + 200, from.y + 200, { steps: 5 })
 await page.keyboard.press('Escape')
 await page.mouse.up()
-log('escape: live stays', await where('live'), '| ghost left', await page.locator('.dock-ghost').count())
+log('escape: modulators stay', await where('modulators'), '| ghost left', await page.locator('.dock-ghost').count())
 await button('Hecho').click()
 
 // Widths, by keyboard.

@@ -22,7 +22,7 @@ const go = (name) => page.getByRole('tab', { name, exact: true }).click()
 
 await openSettings()
 log('panels:', (await page.locator('#settings-body .panel h2').allTextContents()).join(' | '))
-log('language in the top bar:', await page.locator('.topbar').getByLabel('Idioma').count(), '| keys left in Directo:', await page.locator('.panel.live .key-list').count())
+log('language in the top bar:', await page.locator('.topbar').getByLabel('Idioma').count(), '| keys left in Directo:', await page.locator('.perform-bar .key-list').count())
 
 // Long help in a bubble: over it with the mouse, pinned with a click, from the keyboard.
 await go('Copia de seguridad')

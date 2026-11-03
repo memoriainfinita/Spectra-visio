@@ -6,7 +6,6 @@ import { Browser } from '../Browser'
 import { Clips } from '../Clips'
 import { Inspector } from '../Inspector'
 import { Knobs } from '../Knobs'
-import { Live } from '../Live'
 import { Midi } from '../Midi'
 import { Modulators } from '../Modulators'
 import { MyPanel } from '../MyPanel'
@@ -43,7 +42,6 @@ const PANELS = {
   shaders: <Shaders />,
   vinput: <VisualInput />,
   overlays: <Overlays />,
-  live: <Live />,
   clips: <Clips />,
   auto: <Auto />,
   midi: <Midi />,

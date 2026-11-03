@@ -12,7 +12,7 @@ const { browser, page, errors } = await open(kind, {
 })
 const log = (...a) => console.log(`[${kind}]`, ...a)
 const midi = page.locator('.panel.midi')
-const live = page.locator('.panel.live')
+const live = page.locator('.perform-bar')
 const vis = page.locator('.panel.visuals, .panel.inspector')
 const send = (bytes) => page.evaluate((b) => window.__midi(b), bytes)
 

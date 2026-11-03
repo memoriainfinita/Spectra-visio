@@ -76,8 +76,11 @@ const r = await row.boundingBox()
 await drag({ x: r.x + 30, y: r.y + r.height / 2 }, await cell(10))
 log('parameter dropped: cells', start, '->', await filled(), '| slider unmoved', before === (await slider.inputValue()))
 
-await tab('Efectos en vivo').click()
-const blackout = page.locator('.panel.live button[data-control]').first()
+// The perform bar shares its stack with My panel: My panel goes to the right to have both in view.
+await page.getByRole('button', { name: 'Opciones de Mi panel' }).click()
+await page.getByRole('menuitem', { name: 'A la derecha, como pestaña' }).click()
+await tab('Actuación').click()
+const blackout = page.locator('.perform-bar button[data-control]').first()
 await drag(await centre(blackout), await cell(11))
 log('blackout dropped: cells', await filled(), '| it did not act:', await blackout.getAttribute('aria-pressed'))
 

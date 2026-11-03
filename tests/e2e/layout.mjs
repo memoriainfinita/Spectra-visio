@@ -9,6 +9,7 @@ for (const w of widths) {
   await page.getByRole('tab', { name: 'Bibliotecas' }).click()
   await page.getByRole('tab', { name: 'Audio', exact: true }).click()
   await loadTrack(page)
+  await page.getByRole('tab', { name: 'Bibliotecas' }).click()
   await page.getByRole('tab', { name: 'Visualizaciones' }).click()
   await page.waitForTimeout(800)
   await page.screenshot({ path: `${OUT}/layout-${kind}-${w}.png` })

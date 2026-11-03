@@ -113,7 +113,7 @@ log('composition row first:', await page.locator('.panel.visuals').evaluate((p) 
 
 // Desktop: a clip does not take the right stack away from what it shows.
 const shownTab = (zone) => page.locator(`.zone-${zone} [role=tab][aria-selected=true]`).first().textContent()
-await page.getByRole('tab', { name: 'Efectos en vivo', exact: true }).click()
+await page.getByRole('tab', { name: 'Moduladores', exact: true }).click()
 await clips.getByRole('button', { name: /^Lanzar .* en la capa 1$/ }).first().click()
 log('desktop, clip clicked: right shows', await shownTab('right'), '| level', await shown())
 await page.locator('.panel.visuals .layer-pick').filter({ hasText: /^1 / }).click()

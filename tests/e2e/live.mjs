@@ -4,7 +4,7 @@ import { open, loadTrack, grab, stats } from './lib.mjs'
 const kind = process.argv[2] ?? 'firefox'
 const { browser, page, errors } = await open(kind)
 const log = (...a) => console.log(`[${kind}]`, ...a)
-const live = page.locator('.panel.live')
+const live = page.locator('.perform-bar')
 const keys = page.locator('.panel.settings-keys')
 const vis = page.locator('.panel.visuals, .panel.inspector')
 const mean = async () => stats(await grab(page)).mean

@@ -11,7 +11,7 @@ const dialog = page.locator('.notice-dialog')
 log('notice shown', await dialog.isVisible(), '| focus on', await page.evaluate(() => document.activeElement?.textContent))
 await page.keyboard.press('Escape')
 await page.waitForTimeout(300)
-log('after Escape: shown', await dialog.isVisible(), '| reduce', await page.locator('.panel.live').getByLabel('Reducir destellos').isChecked())
+log('after Escape: shown', await dialog.isVisible(), '| reduce', await page.locator('#settingspanel-access').getByLabel('Reducir destellos').isChecked())
 await page.reload()
 await page.waitForSelector('.stage canvas')
 await reveal(page)
@@ -51,8 +51,8 @@ await sh.getByRole('button', { name: /^Poner Blink en la capa/ }).first().click(
 await page.waitForTimeout(2500)
 log('blink, normal:', JSON.stringify(summary(await trace(1500))))
 
-const live = page.locator('.panel.live')
-await live.getByLabel('Reducir destellos').check()
+const live = page.locator('.perform-bar')
+await page.locator('#settingspanel-access').getByLabel('Reducir destellos').check()
 await page.waitForTimeout(500)
 log('blink, reduced:', JSON.stringify(summary(await trace(1500))), '| strobe disabled', await live.getByRole('button', { name: 'Estrobo', exact: true }).isDisabled())
 
@@ -66,7 +66,7 @@ await sh.getByRole('button', { name: /^Poner White en la capa/ }).first().click(
 const rise = await trace(2500)
 // The layer fades in over the transition too; report when it gets near white.
 log('white, reduced: frames to 240+', rise.findIndex((x) => x >= 240), 'of', rise.length, '| first 10', rise.slice(0, 10).join(','))
-await live.getByLabel('Reducir destellos').uncheck()
+await page.locator('#settingspanel-access').getByLabel('Reducir destellos').uncheck()
 
 // Fps cap and low power.
 const out = page.locator('.panel.settings-perf')
@@ -85,7 +85,7 @@ await out.getByLabel('Mostrar los fps sobre la imagen').check()
 await page.reload()
 await page.waitForSelector('.stage canvas')
 await reveal(page)
-log('after reload: cap', await out.getByLabel('Límite de fps').inputValue(), '| reduce', await page.locator('.panel.live').getByLabel('Reducir destellos').isChecked())
+log('after reload: cap', await out.getByLabel('Límite de fps').inputValue(), '| reduce', await page.locator('#settingspanel-access').getByLabel('Reducir destellos').isChecked())
 
 await sh.getByRole('button', { name: 'Borrar Blink' }).click()
 await sh.getByRole('button', { name: 'Borrar White' }).click()
