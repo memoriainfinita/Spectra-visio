@@ -124,6 +124,6 @@ Las revisiones y pruebas manuales pendientes se harán todas juntas en una sola 
 - [ ] Revisión por mykl de los shaders de ejemplo, en su Firefox
 - [ ] Revisión por mykl del repaso de duplicados (2026-11-04): crossfader, tempo, automático, fuentes, presets, Clips; probar en móvil real
 - [x] Terminar el inventario de duplicados (2026-11-04): sin más duplicados; se deja la barra del escenario (reproducir y siguiente al pasar el ratón o tocar) como excepción del reproductor
-- [ ] Decidir con mykl: en el ancho portátil (1024×700) la barra Actuación ocupa dos filas y «Automático» queda cortado abajo, alcanzable con scroll; ya pasaba antes del repaso
+- [x] Barra Actuación en portátil (2026-11-04, aprobado por mykl): el botón dice «Auto» (estado en el color, el tooltip y el aria-label) y el crossfader baja su mínimo a 120 px; cabe en una fila a 1024 px. A 900 y 820 px vuelve a dos filas y la segunda puede quedar cortada
 - [x] Batería e2e completa tras el repaso de duplicados (2026-11-04): 90 de 91 en verde; `pwa` en Firefox falló una vez en la batería y pasó sola
 - [ ] Comprobar la conexión a OBS desde GitHub Pages (permiso de red local); Pages ya está activo

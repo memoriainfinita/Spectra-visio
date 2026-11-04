@@ -252,6 +252,7 @@ export const en: Messages = {
   'clips.columnMidi': 'MIDI note',
   'perform.title': 'Performance',
   'perform.auto': 'Auto: {state}',
+  'perform.autoShort': 'Auto',
   'live.blackout': 'Blackout',
   'live.freeze': 'Freeze',
   'live.strobe': 'Strobe',

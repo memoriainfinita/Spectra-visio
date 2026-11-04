@@ -251,6 +251,7 @@ export const es = {
   'clips.columnMidi': 'Nota MIDI',
   'perform.title': 'Actuación',
   'perform.auto': 'Automático: {state}',
+  'perform.autoShort': 'Auto',
   'live.blackout': 'Apagón',
   'live.freeze': 'Congelar',
   'live.strobe': 'Estrobo',

@@ -54,8 +54,8 @@ export function PerformBar() {
           B
         </button>
       </div>
-      <button className={`btn${auto ? ' on' : ''}`} aria-pressed={auto} title={t('auto.toggleHint')} onClick={() => toggleAuto()} {...knobMenu({ kind: 'action', id: 'auto' })}>
-        {t('perform.auto', { state: auto ? t('auto.on') : t('auto.off') })}
+      <button className={`btn${auto ? ' on' : ''}`} aria-pressed={auto} aria-label={t('perform.auto', { state: auto ? t('auto.on') : t('auto.off') })} title={`${t('perform.auto', { state: auto ? t('auto.on') : t('auto.off') })}. ${t('auto.toggleHint')}`} onClick={() => toggleAuto()} {...knobMenu({ kind: 'action', id: 'auto' })}>
+        {t('perform.autoShort')}
       </button>
     </section>
   )
