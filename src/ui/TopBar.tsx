@@ -8,6 +8,7 @@ import { isBuiltIn, type Layout, type WidthClass } from '../engine/layout/layout
 import { activeLayout } from '../engine/layout/layout'
 import { PanelSlot } from './dock/panels'
 import { Popover } from './dock/Popover'
+import { tempoModeLabel } from './Analysis'
 import { SearchButton } from './Search'
 import logo from './logo.svg'
 import { MiniTransport } from './Transport'
@@ -61,10 +62,11 @@ export function TopBar({ width, onSettings }: { width: WidthClass; onSettings: (
 
 function Tempo() {
   const t = useT()
-  const bpm = useStore(analysis.tempo, (s) => s.bpm)
+  const tempo = useStore(analysis.tempo)
+  const bpm = tempo.bpm
   return (
     <div className="bar-tempo">
-      <span className="mono">{bpm === null ? t('analysis.bpmUnknown') : t('analysis.bpm', { n: bpm.toFixed(1) })}</span>
+      <span className="mono" title={bpm === null ? undefined : tempoModeLabel(t, tempo)}>{bpm === null ? t('analysis.bpmUnknown') : t('analysis.bpm', { n: bpm.toFixed(1) })}</span>
       {/* pointerdown: a click fires on release and would lag every tap. */}
       <button
         className="btn"
@@ -79,6 +81,11 @@ function Tempo() {
       >
         {t('analysis.tap')}
       </button>
+      {tempo.mode === 'tap' && (
+        <button className="btn" title={t('analysis.auto')} onClick={() => analysis.useAutoTempo()}>
+          {t('bar.tempoAuto')}
+        </button>
+      )}
     </div>
   )
 }

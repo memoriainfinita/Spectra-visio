@@ -4,7 +4,7 @@
 // real searches follow.
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { open, reveal, loadTrack, grab, stats, useSource, FIXTURES } from './lib.mjs'
+import { open, reveal, loadTrack, grab, stats, useSource, sourceBox, FIXTURES } from './lib.mjs'
 
 const kind = process.argv[2] ?? 'firefox'
 const log = (...a) => console.log(`[${kind}]`, ...a)
@@ -26,7 +26,7 @@ await page.route('https://images-assets.nasa.gov/video/N1/collection.json', (r) 
 await page.route(/(upload\.wikimedia\.org\/v\/.*\.webm|images-assets\.nasa\.gov\/video\/N1\/N1~medium\.mp4)/, (r) => r.fulfill({ body: video, contentType: 'video/webm', headers: cors }))
 await page.route(/(upload\.wikimedia\.org\/(i|v)\/.*\.png|images-assets\.nasa\.gov\/.*\.jpg)/, (r) => r.fulfill({ body: image, contentType: 'image/png', headers: cors }))
 
-const panel = page.locator('.panel.visual-input')
+const panel = sourceBox(page)
 const status = () => panel.getByRole('status').textContent()
 await loadTrack(page)
 await useSource(page)
@@ -39,7 +39,7 @@ await panel.getByRole('button', { name: 'Buscar', exact: true }).click()
 await panel.locator('.media-item').first().waitFor()
 log('commons video results:', (await panel.locator('.media-item span').allTextContents()).join(' | '))
 await panel.locator('.media-item').first().click()
-await page.waitForFunction(() => document.querySelector('.panel.visual-input [role=status]')?.textContent.startsWith('Vídeo'), null, { timeout: 15000 })
+await page.waitForFunction(() => document.querySelector('#insp-layer .source [role=status]')?.textContent.startsWith('Vídeo'), null, { timeout: 15000 })
 await page.waitForTimeout(800)
 log('opened:', await status(), '| page link', await panel.getByRole('link', { name: /Página del archivo/ }).getAttribute('href'), '| stage', dark.toFixed(1), '->', stats(await grab(page)).mean.toFixed(1))
 
@@ -47,7 +47,7 @@ await panel.getByRole('button', { name: 'Imagen', exact: true }).click()
 await panel.getByRole('button', { name: 'Buscar', exact: true }).click()
 await panel.locator('.media-item span', { hasText: 'Nebulosa' }).waitFor()
 await panel.locator('.media-item').first().click()
-await page.waitForFunction(() => document.querySelector('.panel.visual-input [role=status]')?.textContent.startsWith('Imagen'), null, { timeout: 15000 })
+await page.waitForFunction(() => document.querySelector('#insp-layer .source [role=status]')?.textContent.startsWith('Imagen'), null, { timeout: 15000 })
 log('commons image:', await status())
 
 await panel.getByRole('button', { name: 'NASA' }).click()
@@ -55,7 +55,7 @@ log('NASA image button disabled:', await panel.getByRole('button', { name: 'Imag
 await panel.getByRole('button', { name: 'Buscar', exact: true }).click()
 await panel.locator('.media-item span', { hasText: 'Galaxia' }).waitFor()
 await panel.locator('.media-item').first().click()
-await page.waitForFunction(() => document.querySelector('.panel.visual-input [role=status]')?.textContent.includes('Galaxia'), null, { timeout: 15000 })
+await page.waitForFunction(() => document.querySelector('#insp-layer .source [role=status]')?.textContent.includes('Galaxia'), null, { timeout: 15000 })
 log('nasa video:', await status(), '| thumb', await panel.locator('.media-item img').first().getAttribute('src'))
 
 if (process.env.SPECTRA_REAL_MEDIA) {
@@ -69,7 +69,7 @@ if (process.env.SPECTRA_REAL_MEDIA) {
     const n = await panel.locator('.media-item').count()
     const was = await status()
     await panel.locator('.media-item').first().click()
-    await page.waitForFunction((was) => { const s = document.querySelector('.panel.visual-input [role=status]')?.textContent ?? ''; return s !== was || document.querySelector('.panel.visual-input .error') }, was, { timeout: 60000 }).catch(() => {})
+    await page.waitForFunction((was) => { const s = document.querySelector('#insp-layer .source [role=status]')?.textContent ?? ''; return s !== was || document.querySelector('#insp-layer .source .error') }, was, { timeout: 60000 }).catch(() => {})
     await page.waitForTimeout(1000)
     log(`real ${source} ${type} "${q}": ${n} results ->`, await status(), '| stage', stats(await grab(page)).mean.toFixed(1), '|', (await panel.locator('.error').allTextContents()).join(' '))
   }

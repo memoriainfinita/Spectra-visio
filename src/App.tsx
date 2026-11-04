@@ -45,7 +45,7 @@ function useWidth(): Width {
 }
 
 // The narrow column, in the order the panels were always shown.
-const COLUMN: PanelId[] = ['player', 'queue', 'browser', 'clips', 'mypanel', 'knobs', 'modulators', 'midi', 'output', 'visuals', 'inspector', 'presets', 'shaders', 'vinput', 'sources', 'analysis', 'settings']
+const COLUMN: PanelId[] = ['player', 'queue', 'browser', 'clips', 'mypanel', 'knobs', 'modulators', 'midi', 'output', 'visuals', 'inspector', 'presets', 'shaders', 'sources', 'analysis', 'settings']
 
 export function App() {
   const t = useT()

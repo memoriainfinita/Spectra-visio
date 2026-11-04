@@ -1,16 +1,12 @@
 import { autoStore, toggleAuto } from '../app/auto'
 import { liveStore, runAction, toggleLive } from '../app/live'
-import { launchColumn, sceneStore, setCrossfade } from '../app/scene'
+import { sceneStore, setCrossfade } from '../app/scene'
 import { settingsStore } from '../app/settings'
-import { STROBE_RATES, type ActionId, type StrobeRate } from '../engine/live/live'
-import { CLIP_COLUMNS } from '../engine/scene/scene'
+import { STROBE_RATES, type StrobeRate } from '../engine/live/live'
 import { actionLabel } from './actionLabel'
-import { columnLabel } from './ClipMenu'
 import { knobMenu } from './KnobMenu'
 import { useStore } from './useStore'
 import { useT } from './useT'
-
-const COLUMNS = Array.from({ length: CLIP_COLUMNS }, (_, c) => c)
 
 // Under the stage on wide screens: what a show needs at hand, whatever tab is open.
 export function PerformBar() {
@@ -19,7 +15,6 @@ export function PerformBar() {
   const reduceFlashes = useStore(settingsStore, (s) => s.reduceFlashes)
   const strobeRate = useStore(settingsStore, (s) => s.live.strobe)
   const crossfade = useStore(sceneStore, (s) => s.crossfade)
-  const columns = useStore(sceneStore, (s) => s.columns)
   const auto = useStore(autoStore, (s) => s.enabled)
 
   const toggle = (key: 'blackout' | 'freeze' | 'strobe') => (
@@ -58,13 +53,6 @@ export function PerformBar() {
         <button className="cross-end mono" title={actionLabel('crossB', t)} aria-label={actionLabel('crossB', t)} onClick={() => runAction('crossB')} {...knobMenu({ kind: 'action', id: 'crossB' })}>
           B
         </button>
-      </div>
-      <div className="perform-group">
-        {COLUMNS.map((c) => (
-          <button key={c} className="clip-col" title={columnLabel(columns, c, t)} aria-label={columnLabel(columns, c, t)} onClick={() => launchColumn(c)} {...knobMenu({ kind: 'action', id: `column${c + 1}` as ActionId })}>
-            {c + 1}
-          </button>
-        ))}
       </div>
       <button className={`btn${auto ? ' on' : ''}`} aria-pressed={auto} title={t('auto.toggleHint')} onClick={() => toggleAuto()} {...knobMenu({ kind: 'action', id: 'auto' })}>
         {t('perform.auto', { state: auto ? t('auto.on') : t('auto.off') })}

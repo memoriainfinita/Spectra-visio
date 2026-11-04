@@ -168,3 +168,6 @@ Se probó a correr en paralelo (3 a la vez) las comprobaciones que no miden tiem
 
 El muelle «Directo» (luego «Efectos en vivo») repetía Apagón, Congelar, Estrobo y el crossfader de la barra Actuación. Lo propio —ritmo del estrobo, saltos del crossfader a A y B— pasó a la barra; «Reducir destellos» ya estaba en Ajustes. Se revierte la decisión previa de mantener los duplicados «a propósito» porque el segundo muelle solo añadía dos controles pequeños.
 
+### 2026-11-04 — Repaso de duplicados: un control, un sitio
+
+mykl vio varias veces flujos sin sentido y cosas repetidas. Se hizo el inventario y se aprobaron una a una diez decisiones. Quitado: el crossfader de Capas, los botones 1 a 9 de Actuación, el BPM y «Marcar tempo» de Análisis en pantalla ancha (el modo y «Auto» pasan a la barra superior), la pestaña Bibliotecas › Fuentes, el interruptor de Automático en pantalla ancha, el botón del número de fila en Clips y «Preset de la capa» del Inspector. Se dejó el reproductor en dos sitios y Visualizaciones en dos sitios por diseño aprobado. Por qué: había tres sitios para cambiar de capa, dos para guardar presets y dos o tres para cada interruptor; mykl no sabía cuál usar. Se mantuvo la tira de capas del Inspector porque el Inspector puede estar en otra zona o ventana sin Capas a la vista.

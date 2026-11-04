@@ -1,9 +1,8 @@
 import { ChevronDown, ChevronRight, Play, RotateCcw, Save } from 'lucide-react'
-import { useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
+import { useRef, type KeyboardEvent, type ReactNode } from 'react'
 import { autoStore } from '../app/auto'
 import { renderer } from '../app/engine'
 import { LEVELS, inspectLayer, inspectedColumn, inspectorStore, isFolded, setFolded, setLevel, type Level } from '../app/inspector'
-import { loadPreset, presetsStore, savePreset } from '../app/presets'
 import {
   addClipModulation,
   addModulation,
@@ -29,7 +28,6 @@ import { visualInputStore } from '../app/visualInput'
 import { getEffect } from '../engine/effects/registry'
 import { getVisual, paramsOf, visualsStore } from '../engine/render/registry'
 import { nameOf } from '../engine/render/visual'
-import { NAME_MAX } from '../engine/scene/preset'
 import { INPUT_VISUAL, LAUNCH_MODES, TRANSITION_MAX, visualSettings, type EffectState, type VisualSettings } from '../engine/scene/scene'
 import type { MessageKey } from '../i18n'
 import { PanelSlot } from './dock/panels'
@@ -257,48 +255,6 @@ function LayerLevel() {
           <VideoControls />
         </Fold>
       )}
-      <Fold id="layer.preset" title={t('inspector.preset')} folded>
-        <LayerPreset n={n} />
-      </Fold>
-    </>
-  )
-}
-
-function LayerPreset({ n }: { n: number }) {
-  const t = useT()
-  const presets = useStore(presetsStore)
-  const [name, setName] = useState('')
-  return (
-    <>
-      <form
-        className="preset-form"
-        onSubmit={(e) => {
-          e.preventDefault()
-          if (savePreset(name)) setName('')
-        }}
-      >
-        <input type="text" aria-label={t('inspector.presetName', { n })} placeholder={t('presets.name')} maxLength={NAME_MAX} value={name} onChange={(e) => setName(e.target.value)} />
-        <button className="btn" type="submit" disabled={!name.trim()}>
-          <Save size={15} /> {t('inspector.presetSave')}
-        </button>
-      </form>
-      <label className="field">
-        <span>{t('inspector.presetLoad')}</span>
-        <select
-          value=""
-          disabled={!presets.length}
-          onChange={(e) => {
-            if (e.target.value) loadPreset(e.target.value)
-          }}
-        >
-          <option value="">{presets.length ? t('inspector.presetPick') : t('inspector.presetNone')}</option>
-          {presets.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
-            </option>
-          ))}
-        </select>
-      </label>
     </>
   )
 }

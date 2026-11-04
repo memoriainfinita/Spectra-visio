@@ -18,7 +18,6 @@ import { Settings } from '../Settings'
 import { Shaders } from '../Shaders'
 import { Sources } from '../Sources'
 import { NowPlaying, Transport } from '../Transport'
-import { VisualInput } from '../VisualInput'
 import { Visuals } from '../Visuals'
 
 // Every panel is mounted once, into a node of its own, and the layouts only move that node
@@ -40,7 +39,6 @@ const PANELS = {
   browser: <Browser />,
   presets: <Presets />,
   shaders: <Shaders />,
-  vinput: <VisualInput />,
   overlays: <Overlays />,
   clips: <Clips />,
   auto: <Auto />,

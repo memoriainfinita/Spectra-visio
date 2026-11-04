@@ -45,11 +45,11 @@ log('composition effects:', await compFx.locator('.empty').textContent())
 await vis.getByRole('button', { name: 'Anular la capa 3' }).click()
 await page.waitForTimeout(300)
 const a = await s()
-await vis.getByLabel('Crossfader', { exact: true }).fill('1')
+await page.locator('.perform-bar').getByLabel('Crossfader', { exact: true }).fill('1')
 await page.waitForTimeout(300)
 const b = await s()
 log('crossfader A -> B (layer 3 bypassed): mean', a.mean, '->', b.mean)
-await vis.getByLabel('Crossfader', { exact: true }).fill('0')
+await page.locator('.perform-bar').getByLabel('Crossfader', { exact: true }).fill('0')
 await vis.getByRole('button', { name: 'Anular la capa 3' }).click()
 
 // Clips: save layer 1 in cell 1, change it, launch the cell; key 2 for a column.

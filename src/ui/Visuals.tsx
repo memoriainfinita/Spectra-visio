@@ -1,7 +1,7 @@
 import { ChevronDown, ChevronUp, Plus, X } from 'lucide-react'
 import { autoStore } from '../app/auto'
 import { inspectComposition, inspectLayer, inspectorStore } from '../app/inspector'
-import { addLayer, moveLayer, removeLayer, sceneStore, setCrossfade, setLayerBlend, setLayerBypass, setLayerOpacity, setLayerSide, setLayerSolo } from '../app/scene'
+import { addLayer, moveLayer, removeLayer, sceneStore, setLayerBlend, setLayerBypass, setLayerOpacity, setLayerSide, setLayerSolo } from '../app/scene'
 import { getVisual } from '../engine/render/registry'
 import { nameOf } from '../engine/render/visual'
 import { BLEND_MODES, MAX_LAYERS, layerAmount, SIDES, type BlendMode, type Side } from '../engine/scene/scene'
@@ -17,7 +17,7 @@ import { reach } from './ParamList'
 import { effectNames } from './Inspector'
 import { knobMenu } from './KnobMenu'
 
-// The layer stack, top first as it is seen, and the crossfader. Picking a layer, or the
+// The layer stack, top first as it is seen. The crossfader is in the Performance dock. Picking a layer, or the
 // composition above them, shows it in the Inspector.
 export function Visuals() {
   const t = useT()
@@ -97,11 +97,6 @@ export function Visuals() {
         })}
       </ul>
 
-      <div className="crossfade-row">
-        <span className="mono">A</span>
-        <input type="range" aria-label={t('visuals.crossfade')} {...knobMenu({ kind: 'crossfade' })} min={0} max={1} step={0.01} value={scene.crossfade} onChange={(e) => setCrossfade(Number(e.target.value))} />
-        <span className="mono">B</span>
-      </div>
       <Hint text={t('visuals.hint')} />
     </section>
   )

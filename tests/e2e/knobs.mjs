@@ -130,13 +130,15 @@ await page.keyboard.press('End')
 await page.getByRole('tab', { name: 'Capa 1', exact: true }).click()
 log('comp knob 1 at 100: mirror mode', await fxSelect.inputValue())
 
-// A layer knob on the crossfader.
-await page.locator('.panel.visuals').getByLabel('Crossfader', { exact: true }).click({ button: 'right' })
+// A layer knob on the crossfader, which is in the Performance tab.
+await page.getByRole('tab', { name: 'Actuación', exact: true }).click()
+await page.locator('.perform-bar').getByLabel('Crossfader', { exact: true }).click({ button: 'right' })
 await menu.getByRole('group', { name: 'Capa 1' }).getByRole('menuitemcheckbox', { name: 'Mando 1' }).click()
 await dial('Mando 1', page.locator('#insp-layer')).focus()
 await page.keyboard.press('End')
-log('layer 1 knob 1 at 100: crossfader', await num(page.locator('.panel.visuals').getByLabel('Crossfader', { exact: true })))
+log('layer 1 knob 1 at 100: crossfader', await num(page.locator('.perform-bar').getByLabel('Crossfader', { exact: true })))
 await page.keyboard.press('Home')
+await page.getByRole('tab', { name: 'Mandos' }).click()
 await page.screenshot({ path: `${OUT}/knobs-${kind}.png` })
 
 // Removing layer 2 takes its destination off the knob; all of it survives a reload.

@@ -50,10 +50,10 @@ await page.waitForTimeout(1500)
 check('shader keeps the content as a visualization', (await pressed('Visualización')) === 'true')
 check('shader draws the source', stats(await grab(page)).mean > 2)
 
-// The Libraries panel is the catalog: TV and online, no camera or file there.
-const lib = page.locator('.panel.visual-input')
-check('Libraries has TV and online', (await lib.getByRole('button', { name: 'TV' }).count()) === 1 && (await lib.getByRole('button', { name: 'Vídeo e imagen libres' }).count()) === 1)
-check('Libraries has no camera, file or remove', (await lib.getByRole('button', { name: /Cámara|Imagen o vídeo|Quitar/ }).count()) === 0)
+// The source lives in the Inspector only: all its buttons there, no source tab in Libraries.
+const src = page.locator('#insp-layer .source')
+check('Inspector has every source button', (await src.getByRole('button', { name: /^(Cámara|Imagen o vídeo|TV|Vídeo e imagen libres|Quitar)$/ }).count()) === 5)
+check('Libraries has no sources tab', (await page.getByRole('tab', { name: 'Fuentes visuales' }).count()) === 0)
 
 log('page errors:', errors.length ? errors.join(' | ') : 'none')
 await browser.close()

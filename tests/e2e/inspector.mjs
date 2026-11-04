@@ -17,6 +17,7 @@ log('playing:', await loadTrack(page))
 await page.getByRole('tab', { name: 'Inspector', exact: true }).click()
 log('inspector in', await page.evaluate(() => document.getElementById('dock-inspector')?.closest('.dock-zone')?.className.match(/zone-(\w+)/)?.[1]), '| level', await shown())
 log('layer sections:', await folds('#insp-layer'))
+log('layer has no preset section:', !(await folds('#insp-layer')).includes('Preset de la capa'))
 
 // Levels by click and by arrow keys.
 await level('Composición').click()
@@ -57,7 +58,7 @@ await page.getByRole('tab', { name: 'Audio', exact: true }).click()
 log('playing again:', await loadTrack(page))
 await page.getByRole('tab', { name: 'Inspector', exact: true }).click()
 
-// Layer level: effects of the layer, parameter, preset.
+// Layer level: effects of the layer, parameter.
 await page.getByRole('tab', { name: 'Capas' }).click()
 await page.locator('.panel.visuals .layer-pick').filter({ hasText: /^1 / }).click()
 await insp.getByLabel('Añadir efecto a la capa 1').selectOption({ label: 'Brillo difuso' })

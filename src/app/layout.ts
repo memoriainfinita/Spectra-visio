@@ -61,8 +61,6 @@ export function setWidthClass(w: WidthClass | null): void {
   if (w) width = w
 }
 
-export const currentLayout = (s: Layouts = layoutsStore.get()): Layout => activeLayout(s, width)
-
 function edit(change: (l: Layout) => Layout, evenLocked = false): void {
   layoutsStore.set((s) => {
     if (s.locked && !evenLocked) return s

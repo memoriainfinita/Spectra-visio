@@ -69,7 +69,6 @@ const selectedLayer = (): string => {
 
 export const inputOf = (layer: string): VisualInputState => inputsStore.get()[layer] ?? EMPTY
 export const layerHasInput = (layer: string): boolean => inputOf(layer).kind !== 'none'
-export const hasAnyInput = (): boolean => Object.values(inputsStore.get()).some((s) => s.kind !== 'none')
 
 function setState(layer: string, state: VisualInputState): void {
   if (state.kind === 'none' && !state.error) {

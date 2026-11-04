@@ -9,7 +9,7 @@ const visual = page.locator('#insp-layer select[aria-label^="Visualización de l
 const transition = panel.getByRole('slider', { name: 'Transición' })
 
 log('playing:', await loadTrack(page))
-await panel.getByRole('slider', { name: 'Crossfader' }).fill('0')
+await page.locator('.perform-bar').getByRole('slider', { name: 'Crossfader' }).fill('0')
 await visual.selectOption('kaleido')
 await page.waitForTimeout(800)
 
@@ -48,7 +48,7 @@ await transition.fill('2')
 await pickLayer(page, 2)
 await visual.selectOption('plasma')
 await page.waitForTimeout(300)
-await panel.getByRole('slider', { name: 'Crossfader' }).fill('1')
+await page.locator('.perform-bar').getByRole('slider', { name: 'Crossfader' }).fill('1')
 log('B revealed (plasma, no fade):', await series(600))
 
 await page.reload()

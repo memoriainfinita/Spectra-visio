@@ -1,7 +1,7 @@
 import { Plus } from 'lucide-react'
 import { useEffect } from 'react'
 import { loadThumbnails, thumbsStore } from '../app/library'
-import { inspectClip, inspectLayer } from '../app/inspector'
+import { inspectClip } from '../app/inspector'
 import { clearClip, launchClip, launchColumn, queuedStore, saveClip, sceneStore } from '../app/scene'
 import { CLIP_COLUMNS } from '../engine/scene/scene'
 import { clipMenu, clipName, columnLabel } from './ClipMenu'
@@ -56,9 +56,7 @@ export function Clips() {
               return (
                 <tr key={l.id} className={l.bypass ? 'off' : undefined}>
                   <th scope="row">
-                    <button className={`clip-layer${i === selected ? ' on' : ''}`} aria-pressed={i === selected} title={t('visuals.select', { n })} onClick={() => inspectLayer(i)}>
-                      {n}
-                    </button>
+                    <span className={`clip-layer${i === selected ? ' on' : ''}`}>{n}</span>
                   </th>
                   {COLUMNS.map((c) => {
                     const clip = l.clips[c]

@@ -54,7 +54,7 @@ let asked = 0
 await page.route('https://raw.githubusercontent.com/iptv-org/iptv/master/PLAYLISTS.md', (r) => (asked++, r.fulfill({ body: MD, contentType: 'text/plain' })))
 await page.route('https://iptv-org.github.io/iptv/categories/music.m3u', (r) => (asked++, r.fulfill({ body: M3U, contentType: 'audio/x-mpegurl' })))
 
-const panel = page.locator('.panel.visual-input')
+const panel = sourceBox(page)
 const status = () => panel.getByRole('status').textContent()
 log('playing:', await loadTrack(page))
 await useSource(page)
@@ -152,7 +152,7 @@ if (process.env.SPECTRA_REAL_TV) {
   const firstOk = panel.locator('.radio-row:not(.unusable) .radio-main').first()
   const name = await firstOk.locator('.radio-name').textContent()
   await firstOk.click()
-  await page.waitForFunction(() => document.querySelector('.panel.visual-input [role=status]')?.textContent.startsWith('TV') || document.querySelector('.panel.visual-input .error'), null, { timeout: 40000 }).catch(() => {})
+  await page.waitForFunction(() => document.querySelector('#insp-layer .source [role=status]')?.textContent.startsWith('TV') || document.querySelector('#insp-layer .source .error'), null, { timeout: 40000 }).catch(() => {})
   log('real channel', name, '->', await status(), '|', await panel.locator('.error').allTextContents())
 }
 

@@ -47,7 +47,7 @@ check('layer 1 shows the input', /Fuente visual/.test(after1) && (await content(
 check('notice only says layer 1 shows it', /La capa 1 muestra ahora/.test(n1) && !/crossfader/.test(n1))
 
 // The crossfader was not moved.
-const fader = await page.locator('.panel.visuals input[type=range]').last().inputValue()
+const fader = await page.locator('.perform-bar input[type=range]').inputValue()
 check('crossfader untouched (A)', Number(fader) === 0)
 
 log('page errors:', errors.length ? errors.join(' | ') : 'none')

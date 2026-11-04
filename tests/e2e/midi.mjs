@@ -40,7 +40,7 @@ await send([0xb0, 8, 10])
 await send([0xb0, 7, 127])
 await send([0xb0, 8, 64])
 await page.waitForTimeout(100)
-log('CC 7 -> crossfader', await vis.getByLabel('Crossfader', { exact: true }).inputValue(), '| CC 8 -> layer 2 opacity', await vis.getByLabel('Opacidad de la capa 2').inputValue())
+log('CC 7 -> crossfader', await page.locator('.perform-bar').getByLabel('Crossfader', { exact: true }).inputValue(), '| CC 8 -> layer 2 opacity', await vis.getByLabel('Opacidad de la capa 2').inputValue())
 log('last control:', await midi.locator('[role=status]').textContent())
 
 // A modulation following CC 20 on the selected layer's intensity; layer 1 is on side A.

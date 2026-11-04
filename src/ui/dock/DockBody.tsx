@@ -42,7 +42,6 @@ const SHELVES: { id: PanelId; title: MessageKey }[] = [
   { id: 'browser', title: 'dock.visuals' },
   { id: 'presets', title: 'presets.title' },
   { id: 'shaders', title: 'shaders.title' },
-  { id: 'vinput', title: 'vinput.title' },
 ]
 const SHELF_KEY = 'spectra.library'
 

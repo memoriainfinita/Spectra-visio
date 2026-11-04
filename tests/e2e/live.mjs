@@ -9,7 +9,7 @@ const keys = page.locator('.panel.settings-keys')
 const vis = page.locator('.panel.visuals, .panel.inspector')
 const mean = async () => stats(await grab(page)).mean
 const body = () => page.locator('body').click({ position: { x: 5, y: 5 } })
-const cross = () => vis.getByLabel('Crossfader', { exact: true }).inputValue()
+const cross = () => page.locator('.perform-bar').getByLabel('Crossfader', { exact: true }).inputValue()
 
 log('playing:', await loadTrack(page))
 await body()

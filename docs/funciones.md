@@ -58,7 +58,7 @@ Lista de funciones confirmada por mykl el 2026-10-10. Es el contrato del redise�
 - Cadena de efectos global sobre cualquier visualización: brillo difuso, realimentación, espejo o caleidoscopio, corrección de color, estelas
 - Entradas visuales: webcam, vídeo, imagen, canal de TV en directo (iptv-org) o vídeo e imagen libres de Wikimedia Commons y la NASA, para shaders y efectos; los vídeos con pausa, posición, recorte, sentido (adelante o atrás), bucle, ida y vuelta o una vez, y velocidad
 - Transiciones con fundido entre visualizaciones
-- Modo automático: cambio por tiempo, por golpe o al cambiar de canción
+- Modo automático: cambio por tiempo, por golpe o al cambiar de canción. En pantalla ancha se enciende en Actuación (o con A, Mi panel, MIDI) y los ajustes están en Inspector › Composición; en móvil el interruptor está en ese panel
 - Navegador de visualizaciones: miniaturas, categorías, búsqueda y favoritos
 - Presets guardados, con exportación e importación
 - Escenas en Bibliotecas › Escenas y presets: siete de ejemplo que enseñan todo lo que hace la app (Primeros pasos; Fuentes de modulación, con cada tipo de fuente y cada forma de oscilador; Moduladores y mandos; Todos los efectos, una columna por efecto; Clips y directo, con Mi panel; Todas las visualizaciones, como clips en tres capas; Espectáculo completo, con todo junto en ocho columnas) y las que guarda el usuario con su nombre (toda la composición: capas, clips, efectos, mandos y moduladores). Cargar una reemplaza la escena y Ctrl Z la devuelve; entran en la copia de seguridad. Los presets de la capa están debajo, aparte
@@ -69,13 +69,14 @@ Lista de funciones confirmada por mykl el 2026-10-10. Es el contrato del redise�
 - Aprendizaje de controles MIDI, mediante la modulación
 - Sincronía con reloj MIDI externo (caja de ritmos, DAW)
 - Atajos configurables; teclas numéricas para lanzar columnas de clips
+- Cada control de la interfaz tiene un solo sitio; solo se repite en Mi panel, el buscador Ctrl K, los atajos y MIDI. Excepciones: el reproductor (barra superior y Audio) y Visualizaciones (navegador e Inspector)
 - Composición por capas al estilo Resolume Arena: capas apiladas con opacidad y modo de fusión, crossfader entre lados A y B, efectos por capa y de composición, rejilla de clips
 - Lanzar clips al pulsar o al siguiente golpe
 - Menú de clip con clic derecho: lanzar, guardar la capa aquí, copiar, pegar, renombrar y vaciar; el nombre por defecto es el de la visualización
-- Columnas de clips con nombre y lanzables con una nota MIDI, además de las teclas numéricas
+- Columnas de clips con nombre y lanzables con una nota MIDI, además de las teclas numéricas; las columnas se lanzan también desde la cabecera de la rejilla de Clips, no desde Actuación
 - Mi panel: los controles de la app se arrastran a sus celdas desde el modo Editar
 - El aviso de deshacer dice qué se deshizo cuando fue una sola cosa
-- Fuente visual por capa: cada capa tiene su cámara, archivo, TV o vídeo en línea. El contenido de una capa y el de un clip es Visualización o Fuente visual, y se elige y se configura en el Inspector (Contenido y Fuente, con su vista previa y los controles del vídeo). La fuente sigue en la capa cuando esta muestra una visualización, y la leen los shaders y el efecto Mezcla con la fuente. «Entrada visual» no sale como una visualización más en el navegador. Bibliotecas › Fuentes visuales solo tiene los catálogos de TV y de vídeo e imagen libres, que cargan en la capa seleccionada. Al abrir una fuente, la capa pasa a mostrarla (salvo que ya corra un shader), y un aviso dice si el crossfader oculta el lado de esa capa
+- Fuente visual por capa: cada capa tiene su cámara, archivo, TV o vídeo en línea. El contenido de una capa y el de un clip es Visualización o Fuente visual, y se elige y se configura en el Inspector (Contenido y Fuente, con su vista previa y los controles del vídeo). La fuente sigue en la capa cuando esta muestra una visualización, y la leen los shaders y el efecto Mezcla con la fuente. «Entrada visual» no sale como una visualización más en el navegador. La fuente se configura solo en el Inspector, también los catálogos de TV y de vídeo e imagen libres, que cargan en la capa seleccionada; Bibliotecas no tiene pestaña de fuentes. Al abrir una fuente, la capa pasa a mostrarla (salvo que ya corra un shader), y un aviso dice si el crossfader oculta el lado de esa capa
 - Salida en segunda ventana para proyector, controlada desde la principal
 - Apagón, congelar imagen y estrobo con límite fotosensible global
 

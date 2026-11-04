@@ -16,6 +16,14 @@ function setAnalysis(patch: Partial<AnalysisSettings>): void {
   settingsStore.set((s) => ({ ...s, analysis: { ...s.analysis, ...patch } }))
 }
 
+// Where the tempo comes from, as the panel and the top bar say it.
+export function tempoModeLabel(t: ReturnType<typeof useT>, tempo: ReturnType<typeof analysis.tempo.get>): string {
+  if (tempo.mode === 'tap') return t('analysis.mode.tap')
+  if (tempo.mode === 'track') return t('analysis.mode.track')
+  if (tempo.mode === 'midi') return t('analysis.mode.midi')
+  return t('analysis.mode.auto', { n: Math.round(tempo.confidence * 100) })
+}
+
 export function AnalysisPanel() {
   const t = useT()
   const opts = useStore(settingsStore, (s) => s.analysis)
@@ -33,9 +41,7 @@ export function AnalysisPanel() {
         <div>
           <div className="bpm">{tempo.bpm === null ? t('analysis.bpmUnknown') : t('analysis.bpm', { n: tempo.bpm.toFixed(1) })}</div>
           {tempo.bpm !== null && (
-            <div className="muted small">
-              {tempo.mode === 'tap' ? t('analysis.mode.tap') : tempo.mode === 'track' ? t('analysis.mode.track') : tempo.mode === 'midi' ? t('analysis.mode.midi') : t('analysis.mode.auto', { n: Math.round(tempo.confidence * 100) })}
-            </div>
+            <div className="muted small">{tempoModeLabel(t, tempo)}</div>
           )}
         </div>
         <div className="head-actions">

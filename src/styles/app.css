@@ -267,6 +267,9 @@ input[type='range'] { accent-color: var(--accent); }
 
 .tempo-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
 .bpm { font-family: var(--font-mono); font-size: 22px; }
+/* Wide screens have the tempo in the top bar. */
+.app.wide .analysis .tempo-row { display: none; }
+.app.wide .panel.auto .panel-head .btn { display: none; }
 
 /* Stage */
 
@@ -537,7 +540,8 @@ input[type='range'] { accent-color: var(--accent); }
 .clip-grid th { font-weight: normal; padding: 0; }
 .clip-grid td { padding: 0; }
 .clip-col, .clip-layer { width: 100%; min-width: 28px; height: 24px; border: 1px solid var(--border); border-radius: 6px; background: none; color: var(--muted); cursor: pointer; font-family: var(--font-mono); font-size: 12px; }
-.clip-col:hover, .clip-layer:hover { color: var(--text); }
+.clip-col:hover { color: var(--text); }
+.clip-layer { display: flex; align-items: center; justify-content: center; box-sizing: border-box; cursor: default; }
 .clip-layer.on { border-color: var(--accent); color: var(--accent); }
 .clip { display: flex; align-items: center; justify-content: center; width: 64px; height: 36px; padding: 0; border: 1px solid var(--border); border-radius: 6px; background: #000; color: var(--muted); cursor: pointer; overflow: hidden; }
 .clip img { display: block; width: 100%; height: 100%; object-fit: cover; }
@@ -627,7 +631,6 @@ input[type='range'] { accent-color: var(--accent); }
 .perform-cross { flex: 1; min-width: 200px; margin: 0; }
 .cross-end { padding: 2px 8px; border: 1px solid transparent; border-radius: 6px; background: none; color: inherit; cursor: pointer; }
 .cross-end:hover { background: rgba(255, 255, 255, 0.07); }
-.perform-bar .clip-col { width: 32px; }
 
 /* Top bar */
 
@@ -895,7 +898,6 @@ input[type='range'] { accent-color: var(--accent); }
 .live-keys { margin-top: 12px; }
 .live-keys summary { cursor: pointer; }
 .key-list { list-style: none; margin: 8px 0; padding: 0; }
-.key-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 2px 0; }
 .btn.key { min-width: 96px; justify-content: center; font-family: var(--font-mono); font-size: 12px; }
 .midi-learn { display: inline-flex; align-items: center; gap: 2px; }
 @media (prefers-reduced-motion: reduce) {
