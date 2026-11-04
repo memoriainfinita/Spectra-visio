@@ -259,7 +259,7 @@ export const es = {
   'live.rate.n': '{n} por segundo',
   'live.strobeHint': 'El estrobo da destellos blancos, nunca más de 3 por segundo (límite para la fotosensibilidad). El apagón también oscurece los textos.',
   'safety.title': 'Aviso de fotosensibilidad',
-  'safety.text': 'Las visualizaciones pueden tener destellos y cambios rápidos de luz, que en personas con epilepsia fotosensible pueden provocar crisis. Con «Reducir destellos» el estrobo no funciona y el brillo de la imagen sube despacio. Se cambia en Directo o en Ajustes.',
+  'safety.text': 'Las visualizaciones pueden tener destellos y cambios rápidos de luz, que en personas con epilepsia fotosensible pueden provocar crisis. Con «Reducir destellos» el estrobo no funciona y el brillo de la imagen sube despacio. Se cambia en Ajustes.',
   'safety.reduce': 'Reducir destellos',
   'safety.reduceHint': 'Sin estrobo, y el brillo medio de la imagen solo sube de forma gradual: un destello se convierte en un fundido corto, venga de donde venga. Viene activado si el sistema pide movimiento reducido. Se aplica también a la ventana de salida, a OBS y a las grabaciones.',
   'safety.continue': 'Continuar sin reducir',

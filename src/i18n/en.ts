@@ -260,7 +260,7 @@ export const en: Messages = {
   'live.rate.n': '{n} per second',
   'live.strobeHint': 'The strobe flashes white, never more than 3 times a second (a limit for photosensitivity). The blackout darkens the text overlays too.',
   'safety.title': 'Photosensitivity warning',
-  'safety.text': 'The visuals can flash and change brightness fast, which may trigger seizures in people with photosensitive epilepsy. With "Reduce flashes" the strobe does not work and the image\'s brightness rises slowly. It can be changed in Live or in Settings.',
+  'safety.text': 'The visuals can flash and change brightness fast, which may trigger seizures in people with photosensitive epilepsy. With "Reduce flashes" the strobe does not work and the image\'s brightness rises slowly. It can be changed in Settings.',
   'safety.reduce': 'Reduce flashes',
   'safety.reduceHint': 'No strobe, and the image\'s mean brightness only rises gradually: a flash becomes a short fade, wherever it comes from. On by default when the system asks for reduced motion. It applies to the output window, OBS and recordings too.',
   'safety.continue': 'Continue without reducing',
