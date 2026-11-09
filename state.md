@@ -1,6 +1,6 @@
 ---
 created: 2026-09-29
-last_updated: 2026-11-04
+last_updated: 2026-11-10
 ---
 
 
@@ -14,6 +14,31 @@ Visualizador de audio en tiempo real para navegador, reconstruido desde cero en 
 
 ## Status
 
+- Revisión de proyecto del 2026-11-10 (Claude, a petición de mykl; documentos, git y código contrastados, y la app local ejecutada en Chromium a 1440, 1280, 900, 820 y 375 px, sin audio, MIDI, OBS ni Firefox). Conclusión: construida, no terminada. No entra ninguna función nueva hasta cerrar la ronda de revisión de mykl
+- Publicada por detrás de local: `main` va 4 commits por delante de `origin/main` (desde `163c1b5`, «one place per control»); la app de Pages conserva los duplicados
+- Defectos vistos el 2026-11-10:
+  - A 1280 × 800 (diseño Directo) la barra Actuación se corta: el crossfader a medias y Auto fuera, tras un scroll. A 900 y 820 px, igual en Portátil
+  - En Directo, Actuación comparte pila con Mandos y Mi panel y se oculta al abrirlos; lo aprobado el 2026-10-13 es «lo de directo siempre a la vista»
+  - La escena «Espectáculo completo», en silencio, se quema a blanco en pocos segundos
+  - A 820 px la barra superior se pisa: el transporte queda bajo «Audio: Reproductor» y el BPM no se ve
+  - Clips necesita scroll horizontal a 1280 px o menos (columnas 8 y 9) y vertical con dos capas
+  - Móvil (375 px): una columna de 16 pantallas de scroll con 444 controles y el escenario fuera de la vista; lo aprobado el 2026-10-13 (pestañas abajo, Inspector como hoja) no está hecho
+  - Por comprobar: la app abre con dos capas y la 2 oculta por el crossfader (puede ser estado guardado); «Importar» y «Exportar todos» en Escenas y presets no dicen a qué se aplican
+- Decisiones abiertas, de mykl:
+  - Móvil: hacer el diseño aprobado o dejar la columna
+  - Qué guarda una escena: hoy no guarda rótulos, shaders importados, fuente visual ni MIDI, y la fuente visual se pierde al recargar
+  - Safari: soportarlo o declararlo fuera; `funciones.md` lo incluye y el README dice «untested»
+  - La fuente visual no llega a OBS
+  - Papel de Visio en el ecosistema (`0_draft/spectra-ecosystem/vision.md`, 2026-10-23): la visión dice «no es un motor de reproducción» y la app es también reproductor, con Audius, radios, TV, clips de vídeo y grabadora; `funciones.md` deja fuera OSC y control remoto y la visión prevé que Cue, Core y Remote la manejen; identidad (Roboto, `#1C2932`, verde) sin aplicar; nombre «Spectra-visio» o «SpectraVisio»
+  - Decisiones de Claude sin revisar: los efectos de composición leen la fuente de la capa más alta; el sonido de TV es el del último canal; el Inspector no sigue a los clips lanzados por teclas o MIDI
+  - De `a-estudiar.md`, dos que son calidad y no ideas: H6 (el limitador de destellos no cumple WCAG 2.3.1) y H1 (aviso de silencio)
+- Documentación desalineada:
+  - `state.md`: Status es un registro fechado y TODO guarda las tareas hechas; se contradice («ronda sin resultados aún» seguido de resultados; «batería antes de publicar» abierta con la app publicada)
+  - `funciones.md`: se presenta como confirmada el 2026-10-10 y lleva añadidos posteriores sin revisar y líneas caducadas («gestos para cambiar de modo», «cadena de efectos global», «MIDI mediante la modulación», Safari)
+  - `arquitectura.md`: dice 38 guiones e2e y hay 47; lista «envolvente» como fuente de modulación y el código tiene banda, golpe, oscilador y MIDI; mezcla «entrada visual» y «fuente visual»; «Universal y proyecto» es especificación de interfaz; quedan dos `[PENDIENTE]` con las fases cerradas
+  - Visualizaciones: README 21, `state.md` y `funciones.md` 22, `vision.md` 23; el registro tiene 23 entradas (21 propias, Milkdrop y la fuente visual)
+  - «En verde» en e2e significa que el guion no se colgó ni imprimió `FAIL` (`tests/e2e/README.md`: no son aserciones)
+  - El botón «Copiar … a tus shaders» se llama así porque cinco guiones buscan «Añadir»
 - App completa: las 10 fases de `docs/arquitectura.md`. Desde el 2026-10-14, disposición con muelles (fase 1 del rediseño) en lugar de las pestañas laterales. Base: TypeScript 7, React 19, Vite 8, Vitest 5, store propio, español e inglés, ajustes en IndexedDB, CI con despliegue a Pages
 - Todas las funciones de `docs/funciones.md` están hechas. Las dos últimas, del 2026-10-12: «Igualar volumen» entre pistas (A) y el directorio de radios en la fuente Stream (B, diseño aprobado por mykl ese día)
 - Marca «sin análisis» en las emisoras encontradas: aprobada por mykl el 2026-10-12
@@ -89,6 +114,16 @@ Visualizador de audio en tiempo real para navegador, reconstruido desde cero en 
 ## TODO
 
 Las revisiones y pruebas manuales pendientes se harán todas juntas en una sola ronda, cuando mykl lo diga (2026-10-12).
+
+Orden acordado tras la revisión del 2026-11-10:
+
+- [ ] Decidir qué se publica: subir los 4 commits o anotar que Pages va por detrás
+- [ ] Arreglar la barra Actuación a 1280 × 800 y su pila en Directo
+- [ ] Arreglar la escena «Espectáculo completo» (blanco en silencio)
+- [ ] Arreglar la barra superior a 820 px
+- [ ] Ronda de revisión de mykl, partida por uso y con música real: reproductor; directo con MIDI y dos pantallas; OBS y grabación
+- [ ] Cerrar las decisiones abiertas de Status
+- [ ] Limpiar la documentación: `state.md` a estado actual, `funciones.md` reconfirmada por mykl, especificación de interfaz fuera de `arquitectura.md`
 
 - [x] Pasar a `docs/funciones.md` las funciones nuevas del lienzo, con revisión de mykl
 - [x] Fase 3 del rediseño: decidir si las variaciones pasan de una a otra en golpes o compases (golpes, aprobado por mykl el 2026-10-15)
