@@ -24,12 +24,12 @@ Visualizador de audio en tiempo real para navegador, reconstruido desde cero en 
   - Clips necesita scroll horizontal a 1280 px o menos (columnas 8 y 9) y vertical con dos capas
   - Móvil (375 px): una columna de 16 pantallas de scroll con 444 controles y el escenario fuera de la vista; lo aprobado el 2026-10-13 (pestañas abajo, Inspector como hoja) no está hecho
   - Por comprobar: la app abre con dos capas y la 2 oculta por el crossfader (puede ser estado guardado); «Importar» y «Exportar todos» en Escenas y presets no dicen a qué se aplican
+- Rumbo decidido por mykl el 2026-11-10: app completa (reproductor con visuales, directo y fuente para OBS al mismo nivel; se corrige `0_draft/spectra-ecosystem/vision.md`, que dice «no es un motor de reproducción»); una sola ronda de revisión con los tres usos; el show lo guarda todo (hoy una escena no guarda rótulos, shaders importados, fuente visual ni MIDI) y se exporta como `.spectra`; móvil con el diseño aprobado el 2026-10-13; Safari fuera, así que el móvil es Android
 - Decisiones abiertas, de mykl:
-  - Móvil: hacer el diseño aprobado o dejar la columna
-  - Qué guarda una escena: hoy no guarda rótulos, shaders importados, fuente visual ni MIDI, y la fuente visual se pierde al recargar
-  - Safari: soportarlo o declararlo fuera; `funciones.md` lo incluye y el README dice «untested»
   - La fuente visual no llega a OBS
-  - Papel de Visio en el ecosistema (`0_draft/spectra-ecosystem/vision.md`, 2026-10-23): la visión dice «no es un motor de reproducción» y la app es también reproductor, con Audius, radios, TV, clips de vídeo y grabadora; `funciones.md` deja fuera OSC y control remoto y la visión prevé que Cue, Core y Remote la manejen; identidad (Roboto, `#1C2932`, verde) sin aplicar; nombre «Spectra-visio» o «SpectraVisio»
+  - Identidad del ecosistema (Roboto, `#1C2932`, verde) sin aplicar en la app
+  - Nombre: «Spectra-visio» o «SpectraVisio»
+  - Control externo: `funciones.md` deja fuera OSC y control remoto y la visión del ecosistema prevé que Cue, Core y Remote manejen Visio
   - Decisiones de Claude sin revisar: los efectos de composición leen la fuente de la capa más alta; el sonido de TV es el del último canal; el Inspector no sigue a los clips lanzados por teclas o MIDI
   - De `a-estudiar.md`, dos que son calidad y no ideas: H6 (el limitador de destellos no cumple WCAG 2.3.1) y H1 (aviso de silencio)
 - Documentación desalineada:
@@ -115,15 +115,43 @@ Visualizador de audio en tiempo real para navegador, reconstruido desde cero en 
 
 Las revisiones y pruebas manuales pendientes se harán todas juntas en una sola ronda, cuando mykl lo diga (2026-10-12).
 
-Orden acordado tras la revisión del 2026-11-10:
+Orden acordado el 2026-11-10. Lo de abajo de esta lista es anterior.
 
-- [ ] Decidir qué se publica: subir los 4 commits o anotar que Pages va por detrás
-- [ ] Arreglar la barra Actuación a 1280 × 800 y su pila en Directo
-- [ ] Arreglar la escena «Espectáculo completo» (blanco en silencio)
-- [ ] Arreglar la barra superior a 820 px
-- [ ] Ronda de revisión de mykl, partida por uso y con música real: reproductor; directo con MIDI y dos pantallas; OBS y grabación
-- [ ] Cerrar las decisiones abiertas de Status
-- [ ] Limpiar la documentación: `state.md` a estado actual, `funciones.md` reconfirmada por mykl, especificación de interfaz fuera de `arquitectura.md`
+Antes de la ronda:
+- [ ] Barra Actuación: que quepa a 1280 × 800 y no se oculte tras Mandos y Mi panel en Directo
+- [ ] Escena «Espectáculo completo»: no quemarse a blanco en silencio
+- [ ] Barra superior a 820 px: transporte y BPM sin pisarse
+- [ ] Clips: columnas 8 y 9 a la vista a 1280 px
+- [ ] Comprobar la escena de arranque (capa 2 oculta por el crossfader) y a qué se aplican «Importar» y «Exportar todos»
+- [ ] Subir a GitHub los commits pendientes
+
+Ronda de revisión de mykl, los tres usos a la vez, con música real:
+- [ ] Reproductor: lista, gapless, radios, Audius, letras
+- [ ] Directo: MIDI con controlador, dos pantallas, clips, mandos, moduladores, Mi panel
+- [ ] OBS y grabación, también desde Pages
+- [ ] Durante la ronda, anotar qué controles se usan y cuáles no
+- [ ] Revisar las decisiones de Claude pendientes (fuente que leen los efectos de composición, sonido de TV, Inspector y clips lanzados por teclas o MIDI)
+
+Después de la ronda:
+- [ ] Decidir qué controles sobran, con lo anotado
+- [ ] Show completo: diseño de qué guarda (rótulos, shaders importados, fuentes visuales, MIDI) y de la carpeta `visio/` de `.spectra`; aprobación de mykl antes de implementar
+- [ ] Móvil: pestañas abajo e Inspector como hoja, escenario siempre a la vista; probar en Android real
+- [ ] Limitador de destellos según WCAG 2.3.1 (H6) y aviso de silencio (H1)
+
+Documentación:
+- [ ] `vision.md` del ecosistema: Visio es app completa, no solo instrumento
+- [ ] `funciones.md`: Safari fuera, móvil, show `.spectra`, líneas caducadas; reconfirmar con mykl
+- [ ] `arquitectura.md`: cifras y nombres al día; especificación de interfaz aparte
+- [ ] `state.md` a estado actual; lo pasado, a `state-history.md`
+- [ ] README: número de visualizaciones y navegadores soportados
+
+Sin decidir:
+- [ ] La fuente visual no llega a OBS
+- [ ] Identidad del ecosistema (Roboto, `#1C2932`, verde) en la app
+- [ ] Nombre: «Spectra-visio» o «SpectraVisio»
+- [ ] Control externo (OSC, remoto): `funciones.md` lo deja fuera y el ecosistema lo prevé
+
+Anterior al 2026-11-10:
 
 - [x] Pasar a `docs/funciones.md` las funciones nuevas del lienzo, con revisión de mykl
 - [x] Fase 3 del rediseño: decidir si las variaciones pasan de una a otra en golpes o compases (golpes, aprobado por mykl el 2026-10-15)
