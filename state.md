@@ -18,7 +18,7 @@ Visualizador de audio en tiempo real para navegador, reconstruido desde cero en 
 **Fase:** en progreso (la carpeta es `1_in-progress`; Claude lo anota así el 2026-11-16 y mykl no lo ha confirmado. La app está publicada en Pages para ir probándola, y eso no cambia la fase).
 
 - Construida, no terminada (revisión del 2026-11-10). No entra ninguna función nueva hasta cerrar la ronda de revisión de mykl. Las 10 fases de `docs/arquitectura.md`, el rediseño de la interfaz (5 fases) y todas las funciones de `docs/funciones.md` están hechos. Base: TypeScript 7, React 19, Vite 8, Vitest 5, store propio, español e inglés, ajustes en IndexedDB, disposición con muelles, CI con despliegue a Pages
-- Repo público `memoriainfinita/Spectra-visio`; Pages en https://memoriainfinita.github.io/Spectra-visio/. La referencia local `origin/main` está en `ce706d0` (el `git ls-remote` del 2026-11-16 lo confirmó antes de los commits de la auditoría); `main` lleva tres commits por delante, sin subir: los arreglos de la auditoría, los de sus cuatro riesgos y una nota del TODO
+- Repo público `memoriainfinita/Spectra-visio`; Pages en https://memoriainfinita.github.io/Spectra-visio/. Subido el 2026-11-17 a petición de mykl: `origin/main` y `main` coinciden (hasta la decisión de la escena de arranque); los arreglos de la auditoría, de los defectos de diseño y el estado ya están en GitHub y Pages los despliega por CI
 - Comprobaciones del 2026-11-16: typecheck, 260 tests unitarios, build y `pnpm audit --prod` (sin vulnerabilidades conocidas) en verde; guiones e2e de lo tocado en Firefox y Chrome, 30 de 30. «En verde» significa que el guion no se colgó ni imprimió `FAIL` (`tests/e2e/README.md`: no son aserciones). Tras los arreglos de diseño del mismo día: typecheck, 260 tests unitarios, build y e2e de `docks`, `clips`, `live`, `mypanel`, `knobs`, `demos`, `presets`, `scenes`, `settings`, `inspector` y `layers` en Firefox y Chrome: 21 de 22 a la primera; `demos` en Chrome imprimió un `FAIL` que no se identificó (la salida se perdió) y pasó entero al repetirlo solo. Última batería completa: 2026-11-04, 90 de 91 (`pwa` en Firefox falló una vez y pasó sola)
 - Auditoría del 2026-11-16 (Claude, a petición de mykl): arreglados tres fallos y cuatro riesgos, cada uno reproducido antes en Chrome silenciado. Sin leer: `src/ui`, visualizaciones, efectos, lectores de shaders, análisis previo y muelles (solo barrido automático de claves de traducción, clases CSS y exportaciones). Firefox con la ventana principal oculta no se pudo medir (sin CDP en el Playwright de Firefox). Detalle en `state-history.md`
 
@@ -78,7 +78,6 @@ Orden acordado el 2026-11-10.
 Antes de la ronda:
 - [ ] Que mykl mire en su Firefox los arreglos del 2026-11-16 y diga «bien» o qué cambiar (barra Actuación a 1280 y 820 px, Mandos y Mi panel en la zona izquierda, barra superior, Clips, «Espectáculo completo» en silencio, textos de Importar y Exportar presets)
 - [ ] Firefox con la ventana principal minimizada y la ventana de salida abierta: comprobar a mano que la salida sigue reaccionando al audio (no medible con Playwright)
-- [ ] Subir a GitHub los commits pendientes (decidido por mykl el 2026-11-10; subir es cosa suya)
 - [ ] Batería e2e completa justo antes de la ronda (la última, 2026-11-04)
 
 Ronda de revisión de mykl, los tres usos a la vez, con música real:
