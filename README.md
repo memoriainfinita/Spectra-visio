@@ -21,7 +21,7 @@ Real-time audio visualizer for the browser: a music player with visuals, a VJ to
 - **Layout:** docks around the stage that move by dragging or from their menu, built-in layouts for a show, for preparing, for two screens and for laptops, saved layouts, a lock, and any dock in a window of its own
 - **Everywhere:** installable and offline, touch gestures, keyboard access, photosensitivity notice with a flash limiter, adaptive quality, frame cap and low power mode, Spanish and English, and a backup file to move settings, presets, shaders, favourite stations and channels and saved layouts to another browser
 
-Built and tested on Firefox and Chrome. Safari is untested.
+Built and tested on Firefox and Chrome. Safari is not supported.
 
 Feature list and technical design, in Spanish: [docs/funciones.md](docs/funciones.md), [docs/arquitectura.md](docs/arquitectura.md).
 

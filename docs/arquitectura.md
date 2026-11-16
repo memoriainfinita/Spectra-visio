@@ -23,7 +23,7 @@ Diseño técnico confirmado por mykl el 2026-10-10. Implementa la lista de `docs
 - Essentia.js descartado: AGPL v3
 - Bandas logarítmicas configurables calculadas desde la FFT
 - Reloj de fotogramas (`src/core/frames.ts`, `tickWorker.ts`): el análisis, el envío a OBS, el crossfader, los mandos, el modo automático y el control de vídeo piden su siguiente vuelta con `requestFrame`. Con la ventana visible es `requestAnimationFrame`; oculta o minimizada, que el navegador no lo llama, sigue con un temporizador de un Web Worker (cada 16 ms, sin ralentizar con la página; si el Worker falla, `setInterval`). El renderer y la interfaz siguen con `requestAnimationFrame`: el escenario solo se dibuja oculto mientras se graba (`renderer.background`). Medido en Chrome con la ventana minimizada de verdad (CDP): análisis, OBS, crossfader, variaciones, vídeo y grabación avanzan; en Firefox, sin medir
-- Compensación de latencia: latencia que informa el navegador más ajuste manual en ms, aplicada retrasando los datos de análisis que llegan al render. [PENDIENTE: soporte en Safari]
+- Compensación de latencia: latencia que informa el navegador más ajuste manual en ms, aplicada retrasando los datos de análisis que llegan al render. Safari queda fuera del alcance (decidido el 2026-11-10)
 
 ## Render
 
@@ -41,7 +41,7 @@ Diseño técnico confirmado por mykl el 2026-10-10. Implementa la lista de `docs
 ## Parámetros y modulación
 
 - Cada visualización y cada efecto declara sus parámetros: tipo, rango y valor por defecto, como las entradas de ISF
-- Modulación (D): fuente (banda, golpe, oscilador lento, control MIDI, envolvente) → transformación (rango, curva, suavizado) → parámetro. Evaluación en cada fotograma
+- Modulación (D): fuente (banda, golpe, oscilador lento, control MIDI) → transformación (rango, curva, suavizado) → parámetro. Evaluación en cada fotograma
 - Moduladores compartidos, como Bitwig (`src/engine/modulation/shared.ts`, `src/app/modulators.ts`, `src/ui/Modulators.tsx`), en el muelle Moduladores: hasta 8, cada uno con una fuente (banda, golpe, oscilador o control MIDI), curva y suavizado, y hasta 32 destinos con su cantidad (−100 % a +100 % del rango). Destinos: un parámetro de una visualización en una capa, de un efecto por su cadena y su lugar entre los de su tipo, como los mandos, o la opacidad de una capa (no el crossfader); la opacidad modulada se acota entre 0 y 1 al dibujar la capa. Cada modulador se calcula una vez por fotograma, así que todos sus destinos llevan la misma fase y el mismo golpe; se suma a las modulaciones propias del parámetro, que siguen igual. «Mapear» (también al crear uno) marca en toda la app los parámetros que admite, visibles en ese momento: un clic lo pone o lo quita y arrastrar de lado sobre él fija su cantidad (todo el ancho es el rango entero, a la izquierda es negativa; con el teclado, las flechas; `src/ui/MapTarget.tsx`); Esc o «Hecho» termina. Los parámetros de un clip no se mapean. La lista de asignaciones ajusta y quita cada destino. Cada parámetro modulado lleva una banda rosa bajo el deslizador con hasta dónde lo llevan sus modulaciones, propias y compartidas, y el resumen del Inspector cuenta los dos tipos. Se guardan con la escena sin cambiar su versión; quitar una capa quita sus destinos. Diseños versión 4: los de la 3 reciben Moduladores como pestaña tras Audio
 - Preset: visualización, valores, modulaciones y efectos, en JSON versionado para exportar (E)
 
@@ -106,7 +106,7 @@ Diseño técnico confirmado por mykl el 2026-10-10. Implementa la lista de `docs
 9. OBS y grabación
 10. PWA, móvil, accesibilidad, calidad adaptativa, ahorro de energía
 
-Los `[PENDIENTE]` se resuelven con pruebas cortas al llegar a su fase.
+El `[PENDIENTE]` que queda (OBS desde GitHub Pages) se resuelve a mano, en la ronda de revisión.
 
 ## Fuentes
 
