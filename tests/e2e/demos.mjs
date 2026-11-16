@@ -24,10 +24,11 @@ log('layers before:', before)
 const expected = { 'Primeros pasos': 3, 'Fuentes de modulación': 4, 'Moduladores y mandos': 3, 'Todos los efectos': 2, 'Clips y directo': 2, 'Todas las visualizaciones': 3, 'Espectáculo completo': 3 }
 for (const [name, n] of Object.entries(expected)) {
   await panel.getByRole('button', { name }).click()
+  // Read the toast right away: it is gone by the time the frames are measured.
+  const notice = (await page.locator('.notices p', { hasText: 'Escena cargada' }).first().textContent({ timeout: 4000 }).catch(() => '')) ?? ''
   await page.waitForTimeout(1500)
   const got = await layers()
   const m = await motion()
-  const notice = (await page.locator('.notices p', { hasText: 'Escena cargada' }).first().textContent().catch(() => '')) ?? ''
   log(name, '| layers', got, '|', JSON.stringify(m), '|', notice)
   check(`${name}: ${n} layers`, got === n)
   check(`${name}: draws something`, m.mean > 2 && m.motion > 0.3)

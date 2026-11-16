@@ -545,7 +545,7 @@ input[type='range'] { accent-color: var(--accent); }
 .clip-col:hover { color: var(--text); }
 .clip-layer { display: flex; align-items: center; justify-content: center; box-sizing: border-box; cursor: default; }
 .clip-layer.on { border-color: var(--accent); color: var(--accent); }
-.clip { display: flex; align-items: center; justify-content: center; width: 100%; height: 36px; padding: 0; border: 1px solid var(--border); border-radius: 6px; background: #000; color: var(--muted); cursor: pointer; overflow: hidden; }
+.clip { display: flex; align-items: center; justify-content: center; width: 100%; height: 30px; padding: 0; border: 1px solid var(--border); border-radius: 6px; background: #000; color: var(--muted); cursor: pointer; overflow: hidden; }
 .clip img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .clip.empty { background: rgba(255, 255, 255, 0.03); border-style: dashed; }
 .clip.empty:hover { color: var(--text); }

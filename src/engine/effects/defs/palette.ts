@@ -4,6 +4,7 @@ import { PALETTES, PALETTE_WIDTH, paletteData } from '../palettes'
 
 // Recolours the image by brightness. The offset shifts the lookup and bounces at the ends,
 // so modulating it cycles the colours without a jump.
+// Black stays black whatever the offset, so a moving offset never lights the background.
 const FS = `#version 300 es
 precision highp float;
 in vec2 vUv;
@@ -13,10 +14,12 @@ out vec4 outColor;
 ${LUMA_GLSL}
 void main() {
   vec3 c = texture(uSrc, vUv).rgb;
-  float t = luma(c) + uOffset;
+  float l = luma(c);
+  float t = l + uOffset;
   t = 1.0 - abs(1.0 - mod(t, 2.0));
   float x = (t * ${PALETTE_WIDTH - 1}.0 + 0.5) / ${PALETTE_WIDTH}.0;
   vec3 p = texture(uPalettes, vec2(x, (uRow + 0.5) / ${PALETTES.length}.0)).rgb;
+  p *= smoothstep(0.0, 0.03, l);
   outColor = vec4(mix(c, p, uAmount), 1.0);
 }`
 

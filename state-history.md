@@ -240,3 +240,10 @@ Status se había vuelto un diario fechado. Se copia aquí tal cual (revisión y 
 - Barra superior pisada a 820 px: no cabía en una fila y no envolvía. Por debajo de 1100 px pasa a dos filas y vuelve a mostrar la lectura del BPM, que ocultaba para ganar sitio; entre 1100 y 1279 px sigue en una fila sin ella
 - Escena «Espectáculo completo» quemada: la paleta de la capa A modulaba su desplazamiento con un oscilador de cantidad 1, y el desplazamiento suma al brillo incluso del negro, así que todo el fondo recorría la paleta hasta su blanco. Se bajó la cantidad a 0,25 en esa escena y en la columna Paleta de «Todos los efectos» (fondo morado oscuro en silencio, estable a los 18 s). La causa está en el efecto, no en las escenas: con cualquier desplazamiento el negro deja de serlo, aunque `palettes.ts` dice que las paletas empiezan en negro «para que lo oscuro siga oscuro». Cambiar el efecto es decisión de mykl
 - «Importar» y «Exportar todos» de Escenas y presets solo tocan presets de capa, no escenas: pasan a «Importar presets» y «Exportar todos los presets»
+
+### 2026-11-17 — Efecto Paleta, Clips y guion de demos
+
+- Efecto Paleta: el desplazamiento se suma al brillo incluso del negro, así que modular `offset` encendía el fondo. El shader multiplica ahora el color de la paleta por `smoothstep(0, 0.03, brillo)`: el negro sigue negro con cualquier desplazamiento y el resto no cambia. Las escenas conservan la cantidad 0,25 del arreglo anterior.
+- Clips: a 1280 × 800 el cuerpo de la pila medía 182 px y el panel pedía 198 con tres capas. Celdas de 36 a 30 px de alto; ya no hay scroll vertical con tres capas.
+- Textos de las demos: «22 visualizaciones» es correcto (siete, siete y ocho por familia; `media` es una fuente, no una visualización).
+- `demos.mjs`: leía el aviso «Escena cargada» tras 1,5 s y la medición de fotogramas; en la primera escena ya se había retirado y daba un `FAIL` intermitente. Ahora lo lee nada más pulsar.
