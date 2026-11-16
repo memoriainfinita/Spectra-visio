@@ -129,6 +129,7 @@ Antes de la ronda:
 - [ ] Barra superior a 820 px: transporte y BPM sin pisarse
 - [ ] Clips: columnas 8 y 9 a la vista a 1280 px
 - [ ] Comprobar la escena de arranque (capa 2 oculta por el crossfader) y a qué se aplican «Importar» y «Exportar todos»
+- [ ] Firefox con la ventana principal minimizada y la ventana de salida abierta: comprobar a mano que la salida sigue reaccionando al audio (no medible con Playwright)
 - [ ] Subir a GitHub los commits pendientes
 
 Ronda de revisión de mykl, los tres usos a la vez, con música real:
