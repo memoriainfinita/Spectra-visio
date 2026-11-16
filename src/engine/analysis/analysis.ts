@@ -3,6 +3,7 @@ import type { AnalysisSettings } from '../../storage/settings'
 import { peekGraph } from '../audio/graph'
 import { Analyzer, FFT_SIZE, createFrame, type AnalysisFrame, type ExternalClock, type TempoMode, type TrackClock } from './analyzer'
 import { DelayLine } from './delay'
+import { requestFrame, cancelFrame } from '../../core/frames'
 
 // 256 frames hold over a second at 240 fps, more than the longest delay.
 const RING_SIZE = 256
@@ -53,13 +54,13 @@ export class Analysis {
     if (this.raf) return
     const loop = (now: number) => {
       this.tick(now)
-      this.raf = requestAnimationFrame(loop)
+      this.raf = requestFrame(loop)
     }
-    this.raf = requestAnimationFrame(loop)
+    this.raf = requestFrame(loop)
   }
 
   stop(): void {
-    cancelAnimationFrame(this.raf)
+    cancelFrame(this.raf)
     this.raf = 0
   }
 

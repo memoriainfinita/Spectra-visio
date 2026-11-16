@@ -1,5 +1,6 @@
 import { withoutHistory } from './history'
 import { sceneStore, setCrossfade } from './scene'
+import { requestFrame, cancelFrame } from '../core/frames'
 
 // Crossfader moves over time, for the automatic mode and the live actions. Moving the
 // crossfader by hand during a move stops it there.
@@ -22,7 +23,7 @@ function step(now: number): void {
   else set()
   move.set = sceneStore.get().crossfade
   if (x >= 1) move = null
-  else raf = requestAnimationFrame(step)
+  else raf = requestFrame(step)
 }
 
 // Moves to `to` along a smooth curve in `ms`; at once when `ms` is 0.
@@ -35,11 +36,11 @@ export function moveCrossfader(to: number, ms: number, quiet = false): void {
     return
   }
   move = { from, to, start: performance.now(), ms, set: from, quiet }
-  raf = requestAnimationFrame(step)
+  raf = requestFrame(step)
 }
 
 export function stopCrossfader(): void {
-  cancelAnimationFrame(raf)
+  cancelFrame(raf)
   raf = 0
   move = null
 }

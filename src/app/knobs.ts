@@ -16,6 +16,7 @@ import { newId } from '../engine/scene/scene'
 import { knobAt, turnKnob, turnPanel, withKnob } from '../engine/scene/turn'
 import { analysis } from './engine'
 import { sceneStore } from './scene'
+import { requestFrame, cancelFrame } from '../core/frames'
 
 // The knobs of the panel, of the composition and of each layer, and the variations of the
 // panel. All of it lives in the scene and is stored with it.
@@ -32,7 +33,7 @@ let run = 0
 
 function stopRun(): void {
   if (!run) return
-  cancelAnimationFrame(run)
+  cancelFrame(run)
   run = 0
   variationStore.set((s) => ({ ...s, moving: false }))
 }
@@ -123,13 +124,13 @@ export function launchVariation(id: string): void {
   const step = (now: number) => {
     const p = Math.min(1, (now - start) / ms)
     sceneStore.set((s) => turnPanel(s, blend(from, v.values, p)))
-    if (p < 1) run = requestAnimationFrame(step)
+    if (p < 1) run = requestFrame(step)
     else {
       run = 0
       variationStore.set((s) => ({ ...s, moving: false }))
     }
   }
-  run = requestAnimationFrame(step)
+  run = requestFrame(step)
 }
 
 // For keys and MIDI: the nth variation in the list.

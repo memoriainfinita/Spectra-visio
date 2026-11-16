@@ -9,6 +9,7 @@ import { logoStore, overlayData } from './overlays'
 import { sceneStore } from './scene'
 import { settingsStore } from './settings'
 import { shadersStore } from './shaders'
+import { requestFrame, cancelFrame } from '../core/frames'
 
 // The link to OBS: this window sends the analysis, the scene and the live switches to the
 // OBS source through obs-websocket, frame by frame.
@@ -114,14 +115,14 @@ function disconnect(): void {
 function startSending(): void {
   if (raf) return
   const loop = (now: number) => {
-    raf = requestAnimationFrame(loop)
+    raf = requestFrame(loop)
     send(now)
   }
-  raf = requestAnimationFrame(loop)
+  raf = requestFrame(loop)
 }
 
 function stopSending(): void {
-  cancelAnimationFrame(raf)
+  cancelFrame(raf)
   raf = 0
 }
 

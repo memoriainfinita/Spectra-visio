@@ -1,5 +1,6 @@
 import { createStore } from '../core/store'
 import { elementsStore, inputsStore, previewStore, visualInputStore } from './visualInput'
+import { requestFrame, cancelFrame } from '../core/frames'
 
 // Playback of a video in a layer's visual input (a file or one found online; not the camera
 // or a live channel): play and pause, position, a trimmed span, direction, what happens at the
@@ -79,7 +80,7 @@ function edge(v: HTMLVideoElement, c: Control): void {
 // Every frame, for every video: timeupdate comes too seldom for a short span, and going
 // backwards needs a step per frame.
 function watch(now: number): void {
-  frame = requestAnimationFrame(watch)
+  frame = requestFrame(watch)
   for (const [v, c] of controls) {
     const s = c.s
     const a = s.start
@@ -130,9 +131,9 @@ function update(): void {
   const el = previewStore.get()
   shown = visualInputStore.get().kind === 'video' && el instanceof HTMLVideoElement && controls.has(el) ? el : null
   videoControlStore.set(shown ? controls.get(shown)!.s : initial)
-  if (controls.size && !frame) frame = requestAnimationFrame(watch)
+  if (controls.size && !frame) frame = requestFrame(watch)
   else if (!controls.size && frame) {
-    cancelAnimationFrame(frame)
+    cancelFrame(frame)
     frame = 0
   }
 }

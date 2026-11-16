@@ -56,6 +56,8 @@ export async function startRecording(): Promise<void> {
   const mime = mimeSupported
   if (!canvas || !mime || recordStore.get().status !== 'idle') return
   recordStore.set((s) => ({ ...s, status: 'starting', error: null, bytes: 0 }))
+  // The recording takes what this canvas draws, so it goes on drawing in a hidden window.
+  renderer.background = true
   const { fps, quality } = settingsStore.get().record
   // An encoder wants one size from start to end: a window-sized composition stays at its
   // current size (made even) while recording.
@@ -117,7 +119,17 @@ export async function stopRecording(): Promise<void> {
 
 function cleanUp(): void {
   recorder = null
-  delay?.disconnect()
+  renderer.background = false
+  if (delay) {
+    // The tap from `mix` is the connection that keeps the node alive. It is not there yet
+    // when the start failed before connecting it.
+    try {
+      getGraph().mix.disconnect(delay)
+    } catch {
+      // Never connected.
+    }
+    delay.disconnect()
+  }
   audioOut?.stream.getTracks().forEach((t) => t.stop())
   delay = null
   audioOut = null

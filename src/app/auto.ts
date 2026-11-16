@@ -10,6 +10,7 @@ import { presetsStore } from './presets'
 import { sceneStore, setVisual } from './scene'
 import { settingsStore } from './settings'
 import { layerHasInput } from './visualInput'
+import { requestFrame, cancelFrame } from '../core/frames'
 
 // Automatic mode. Off on every visit; its settings are kept with the app's.
 
@@ -28,11 +29,11 @@ const lastPreset = new Map<string, string>()
 
 export function setAuto(on: boolean): void {
   if (on === autoStore.get().enabled) return
-  cancelAnimationFrame(raf)
+  cancelFrame(raf)
   stopCrossfader()
   if (on) {
     clock.reset(performance.now())
-    raf = requestAnimationFrame(loop)
+    raf = requestFrame(loop)
   }
   autoStore.set({ enabled: on, last: null })
 }
@@ -42,7 +43,7 @@ export function toggleAuto(): void {
 }
 
 function loop(now: number): void {
-  raf = requestAnimationFrame(loop)
+  raf = requestFrame(loop)
   const p = player.state.get()
   const trackId = p.status === 'playing' && inputs.state.get().kind === 'player' ? p.currentId : null
   const why = clock.tick({ now, settings: settingsStore.get().auto, frame: analysis.frame(now), trackId })

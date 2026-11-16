@@ -144,14 +144,19 @@ export class Inputs {
 
   async useStream(url: string, name = ''): Promise<void> {
     this.state.set((s) => ({ ...s, streamUrl: url, streamName: name || hostOf(url), tv: false }))
-    await this.connect('stream', async (stale) => {
+    await this.connect('stream', async () => {
       const graph = getGraph()
       const el = new Audio()
       // Without CORS headers the load fails here instead of feeding silence to the analysers.
       el.crossOrigin = 'anonymous'
       el.src = url
-      // Kept so a failed or slow start can still be released.
+      // Joined to the graph before it plays: an element that plays on its own goes to the
+      // speakers without the volume or the mute, for as long as the start takes.
+      const node = graph.ctx.createMediaElementSource(el)
+      node.connect(graph.playerBus)
+      // Kept so a failed, slow or replaced start can still be released.
       this.element = el
+      this.elementNode = node
       let timer: ReturnType<typeof setTimeout> | undefined
       const late = new Promise<never>((_, reject) => {
         timer = setTimeout(() => reject(new DOMException('No sound yet', 'StreamTimeout')), STREAM_START_TIMEOUT_MS)
@@ -161,17 +166,7 @@ export class Inputs {
       } finally {
         clearTimeout(timer)
       }
-      // Another source was chosen meanwhile and already let go of this element.
-      if (stale()) {
-        el.pause()
-        el.removeAttribute('src')
-        el.load()
-        return null
-      }
-      const node = graph.ctx.createMediaElementSource(el)
-      node.connect(graph.playerBus)
-      this.element = el
-      this.elementNode = node
+      // A source chosen meanwhile has already let go of this element; `connect` sees it.
       return null
     })
   }

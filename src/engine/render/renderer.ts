@@ -1,3 +1,4 @@
+import { cancelFrame, requestFrame } from '../../core/frames'
 import { createStore } from '../../core/store'
 import { BEAT_SLOTS, WAVE_SIZE, type AnalysisFrame } from '../analysis/analyzer'
 import { EffectChain, type ChainStep } from '../effects/chain'
@@ -68,6 +69,20 @@ export class Renderer {
   transparent = false
   // Frames a second at most; 0 every animation frame.
   fpsCap = 0
+  // Keeps drawing in a hidden window, which a recording of this canvas needs: the frames it
+  // takes are the ones drawn.
+  get background(): boolean {
+    return this.keepDrawing
+  }
+  set background(on: boolean) {
+    if (on === this.keepDrawing) return
+    this.keepDrawing = on
+    // A request made the other way would never fire in a hidden window: make it again.
+    if (this.raf) {
+      this.cancelNext()
+      this.start()
+    }
+  }
 
   private readonly scene: () => SceneState
   private readonly analysis: (now: number) => AnalysisFrame | null
@@ -105,6 +120,9 @@ export class Renderer {
   private seenValid = false
   private readonly frame: VisualFrame = { time: 0, dt: 0, analysis: null, wave: new Float32Array(WAVE_SIZE), hits: new Array(BEAT_SLOTS).fill(false) }
   private raf = 0
+  private keepDrawing = false
+  // The pending request is the frame clock's, not the browser's.
+  private rafIsFrame = false
   private last: number | null = null
   private fpsFrames = 0
   private fpsStart = 0
@@ -222,16 +240,25 @@ export class Renderer {
 
   private start(): void {
     if (this.raf) return
+    const next = () => {
+      this.rafIsFrame = this.keepDrawing
+      this.raf = this.rafIsFrame ? requestFrame(loop) : requestAnimationFrame(loop)
+    }
     const loop = (now: number) => {
-      this.raf = requestAnimationFrame(loop)
+      next()
       this.draw(now)
     }
-    this.raf = requestAnimationFrame(loop)
+    next()
+  }
+
+  private cancelNext(): void {
+    if (this.rafIsFrame) cancelFrame(this.raf)
+    else cancelAnimationFrame(this.raf)
+    this.raf = 0
   }
 
   private stop(): void {
-    cancelAnimationFrame(this.raf)
-    this.raf = 0
+    this.cancelNext()
     this.last = null
   }
 

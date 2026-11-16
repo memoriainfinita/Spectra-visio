@@ -2,7 +2,10 @@ import { createFrame, type AnalysisFrame } from '../engine/analysis/analyzer'
 import type { OutputState } from '../engine/live/live'
 import { decodeFrame } from '../engine/obs/codec'
 import { FRAME_EVENT, STATE_EVENT, unwrap, type FrameMessage, type StateMessage } from '../engine/obs/messages'
-import type { UserShader } from '../engine/shaders/userVisual'
+import { setUserVisuals } from '../engine/render/registry'
+import type { VisualDef } from '../engine/render/visual'
+import { normalizeScene } from '../engine/scene/scene'
+import { userVisual, type UserShader } from '../engine/shaders/userVisual'
 import type { VisualSource } from '../engine/render/visualInput'
 import { startView, type ViewBridge } from '../output/view'
 
@@ -45,14 +48,26 @@ window.addEventListener(FRAME_EVENT, (e) => {
 window.addEventListener(STATE_EVENT, (e) => {
   const m = unwrap<StateMessage>((e as CustomEvent).detail)
   if (!m) return
-  state = m
   stateAt = performance.now()
   // The same list keeps its identity, so the visuals are not rebuilt every few seconds.
   const json = JSON.stringify(m.shaders)
   if (json !== shadersJson) {
     shadersJson = json
     shaders = m.shaders
+    // The scene is checked against the visualizations that exist, so the imported ones
+    // have to be registered first, as the app does when it starts.
+    const defs: VisualDef[] = []
+    for (const u of shaders) {
+      try {
+        defs.push(userVisual(u))
+      } catch {
+        // Not offered in the app either.
+      }
+    }
+    setUserVisuals(defs)
   }
+  // Whatever build of the app sent it, the scene is read as the app reads a saved one.
+  state = { ...m, scene: normalizeScene(m.scene) }
   if (m.logo !== logoUrl) {
     logoUrl = m.logo
     logo = null
