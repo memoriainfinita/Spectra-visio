@@ -182,7 +182,7 @@ function DockStack({
   }
 
   return (
-    <section className={`dock-stack${ui.dragging ? ' dragging' : ''}`} style={size === null ? undefined : { flexGrow: size }} aria-label={dockName(t, shown)}>
+    <section className={`dock-stack${shown === 'perform' ? ' keep' : ''}${ui.dragging ? ' dragging' : ''}`} style={size === null ? undefined : { flexGrow: size }} aria-label={dockName(t, shown)}>
       <div className="dock-head">
         <div className="dock-tabs" role="tablist" aria-label={tabs.map((d) => dockName(t, d)).join(', ')} onKeyDown={onKey}>
           {tabs.map((d, i) => (

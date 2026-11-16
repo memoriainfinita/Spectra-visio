@@ -13,23 +13,19 @@ Visualizador de audio en tiempo real para navegador, reconstruido desde cero en 
 
 ## Status
 
-**Retomar por:** los defectos de «Antes de la ronda» del TODO, empezando por la barra Actuación (contradice lo aprobado el 2026-10-13: «lo de directo siempre a la vista»). Después, la ronda de revisión de mykl con música real.
+**Retomar por:** lo que queda de «Antes de la ronda» del TODO (decidir la escena de arranque, probar Firefox con la ventana minimizada, batería completa) y después la ronda de revisión de mykl con música real. Mykl mira en su Firefox los arreglos del 2026-11-16 (Actuación, barra superior, Clips, escena «Espectáculo completo») antes de la ronda.
 
 **Fase:** en progreso (la carpeta es `1_in-progress`; Claude lo anota así el 2026-11-16 y mykl no lo ha confirmado. La app está publicada en Pages para ir probándola, y eso no cambia la fase).
 
 - Construida, no terminada (revisión del 2026-11-10). No entra ninguna función nueva hasta cerrar la ronda de revisión de mykl. Las 10 fases de `docs/arquitectura.md`, el rediseño de la interfaz (5 fases) y todas las funciones de `docs/funciones.md` están hechos. Base: TypeScript 7, React 19, Vite 8, Vitest 5, store propio, español e inglés, ajustes en IndexedDB, disposición con muelles, CI con despliegue a Pages
 - Repo público `memoriainfinita/Spectra-visio`; Pages en https://memoriainfinita.github.io/Spectra-visio/. La referencia local `origin/main` está en `ce706d0` (el `git ls-remote` del 2026-11-16 lo confirmó antes de los commits de la auditoría); `main` lleva tres commits por delante, sin subir: los arreglos de la auditoría, los de sus cuatro riesgos y una nota del TODO
-- Comprobaciones del 2026-11-16: typecheck, 260 tests unitarios, build y `pnpm audit --prod` (sin vulnerabilidades conocidas) en verde; guiones e2e de lo tocado en Firefox y Chrome, 30 de 30. «En verde» significa que el guion no se colgó ni imprimió `FAIL` (`tests/e2e/README.md`: no son aserciones). Última batería completa: 2026-11-04, 90 de 91 (`pwa` en Firefox falló una vez y pasó sola)
+- Comprobaciones del 2026-11-16: typecheck, 260 tests unitarios, build y `pnpm audit --prod` (sin vulnerabilidades conocidas) en verde; guiones e2e de lo tocado en Firefox y Chrome, 30 de 30. «En verde» significa que el guion no se colgó ni imprimió `FAIL` (`tests/e2e/README.md`: no son aserciones). Tras los arreglos de diseño del mismo día: typecheck, 260 tests unitarios, build y e2e de `docks`, `clips`, `live`, `mypanel`, `knobs`, `demos`, `presets`, `scenes`, `settings`, `inspector` y `layers` en Firefox y Chrome: 21 de 22 a la primera; `demos` en Chrome imprimió un `FAIL` que no se identificó (la salida se perdió) y pasó entero al repetirlo solo. Última batería completa: 2026-11-04, 90 de 91 (`pwa` en Firefox falló una vez y pasó sola)
 - Auditoría del 2026-11-16 (Claude, a petición de mykl): arreglados tres fallos y cuatro riesgos, cada uno reproducido antes en Chrome silenciado. Sin leer: `src/ui`, visualizaciones, efectos, lectores de shaders, análisis previo y muelles (solo barrido automático de claves de traducción, clases CSS y exportaciones). Firefox con la ventana principal oculta no se pudo medir (sin CDP en el Playwright de Firefox). Detalle en `state-history.md`
 
-- Defectos vistos el 2026-11-10:
-  - A 1280 × 800 (diseño Directo) la barra Actuación se corta: el crossfader a medias y Auto fuera, tras un scroll. A 900 y 820 px, igual en Portátil
-  - En Directo, Actuación comparte pila con Mandos y Mi panel y se oculta al abrirlos; lo aprobado el 2026-10-13 es «lo de directo siempre a la vista»
-  - La escena «Espectáculo completo», en silencio, se quema a blanco en pocos segundos
-  - A 820 px la barra superior se pisa: el transporte queda bajo «Audio: Reproductor» y el BPM no se ve
-  - Clips necesita scroll horizontal a 1280 px o menos (columnas 8 y 9) y vertical con dos capas
+- Defectos vistos el 2026-11-10, arreglados el 2026-11-16 sin que mykl los haya visto en su Firefox (medidos en Chrome a 1280 × 800, 1000 y 820 px; el porqué en `state-history.md`): barra Actuación cortada y oculta tras Mandos y Mi panel; barra superior pisada a 820 px; Clips con scroll horizontal; escena «Espectáculo completo» quemada a blanco en silencio; «Importar» y «Exportar todos» sin decir que son de presets. Los diseños de fábrica nuevos solo los ve quien no ha tocado los diseños o pulsa Restablecer: el navegador guarda los cuatro de fábrica en cuanto cambia algo, y esos conservan la disposición antigua (mykl, que los tiene guardados, debe restablecer Directo y Portátil). Quedan vistos de esa lista:
+  - Clips tiene scroll vertical con tres capas o con una pantalla de menos de unos 780 px de alto; Actuación en dos filas a 1280 px
   - Móvil (375 px): una columna de 16 pantallas de scroll con 444 controles y el escenario fuera de la vista; lo aprobado el 2026-10-13 (pestañas abajo, Inspector como hoja) no está hecho
-  - Por comprobar: la app abre con dos capas y la 2 oculta por el crossfader (puede ser estado guardado); «Importar» y «Exportar todos» en Escenas y presets no dicen a qué se aplican
+  - La app abre con dos capas (Caleidoscopio en A, Túnel en B) y el crossfader en A, así que la 2 no se ve. Es el valor de `defaultScene()`, no estado guardado. El diseño aprobado el 2026-10-13 decía «app vacía con una capa de partida»: decide mykl cuál vale
 - Rumbo decidido por mykl el 2026-11-10: app completa (reproductor con visuales, directo y fuente para OBS al mismo nivel; se corrige `0_draft/spectra-ecosystem/vision.md`, que dice «no es un motor de reproducción»); una sola ronda de revisión con los tres usos; el show lo guarda todo (hoy una escena no guarda rótulos, shaders importados, fuente visual ni MIDI) y se exporta como `.spectra`; móvil con el diseño aprobado el 2026-10-13; Safari fuera, así que el móvil es Android
 - Decisiones abiertas, de mykl:
   - La fuente visual no llega a OBS
@@ -80,11 +76,8 @@ Visualizador de audio en tiempo real para navegador, reconstruido desde cero en 
 Orden acordado el 2026-11-10.
 
 Antes de la ronda:
-- [ ] Barra Actuación: que quepa a 1280 × 800 y no se oculte tras Mandos y Mi panel en Directo
-- [ ] Escena «Espectáculo completo»: no quemarse a blanco en silencio
-- [ ] Barra superior a 820 px: transporte y BPM sin pisarse
-- [ ] Clips: columnas 8 y 9 a la vista a 1280 px
-- [ ] Comprobar la escena de arranque (capa 2 oculta por el crossfader) y a qué se aplican «Importar» y «Exportar todos»
+- [ ] Que mykl mire en su Firefox los arreglos del 2026-11-16 y diga «bien» o qué cambiar (barra Actuación a 1280 y 820 px, Mandos y Mi panel en la zona izquierda, barra superior, Clips, «Espectáculo completo» en silencio, textos de Importar y Exportar presets)
+- [ ] Escena de arranque: dos capas con la 2 oculta, o una sola como decía el diseño aprobado; decide mykl
 - [ ] Firefox con la ventana principal minimizada y la ventana de salida abierta: comprobar a mano que la salida sigue reaccionando al audio (no medible con Playwright)
 - [ ] Subir a GitHub los commits pendientes (decidido por mykl el 2026-11-10; subir es cosa suya)
 - [ ] Batería e2e completa justo antes de la ronda (la última, 2026-11-04)

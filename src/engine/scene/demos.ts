@@ -215,7 +215,7 @@ function effects(n: Names): SceneState {
     [effect('feedback', { length: 1.2, zoom: 0.3, rotation: 20, hueShift: 30 })],
     [effect('kaleido', { segments: 8 }, { rotation: [mod(lfo('saw', 0.25), 1)] })],
     [effect('mirror', { mode: 2 })],
-    [effect('palette', { palette: 1, amount: 1 }, { offset: [mod(lfo('sine', 0.25), 1)] })],
+    [effect('palette', { palette: 1, amount: 1 }, { offset: [mod(lfo('sine', 0.25), 0.25)] })],
     [effect('color', { saturation: 1.6, contrast: 1.2 }, { hue: [mod(lfo('saw', 0.25), 1)] })],
     [effect('trails', { length: 1.5 })],
     [effect('kaleido', { segments: 6 }), effect('bloom', { threshold: 0.5, strength: 1 }), effect('color', { saturation: 1.3 })],
@@ -261,7 +261,7 @@ function show(n: Names): SceneState {
   const moments: { name: string; a: Clip; b: Clip; c: Clip }[] = [
     {
       name: n.intro,
-      a: { ...clip('oscilloscope'), effects: [effect('palette', { palette: 2, amount: 1 }, { offset: [mod(lfo('sine', 0.25), 1)] })] },
+      a: { ...clip('oscilloscope'), effects: [effect('palette', { palette: 2, amount: 1 }, { offset: [mod(lfo('sine', 0.25), 0.25)] })] },
       b: clip('kaleido', settings({}, { hue: [mod(lfo('saw', 0.25), 1)] })),
       c: clip('starfield', settings({ warp: 1.2 })),
     },

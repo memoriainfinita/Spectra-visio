@@ -66,10 +66,11 @@ export type DropTarget = { zone: ZoneId; stack: number; mode: 'tab' | 'below' } 
 const stack = (...tabs: DockId[]): Stack => ({ tabs, active: 0 })
 
 const FACTORY: Record<BuiltInId, Omit<Layout, 'id' | 'name' | 'strip'>> = {
-  // Everything for a show at hand: layers on the left, the rest on the right, clips and
-  // the perform controls under the stage.
+  // Everything for a show at hand: layers on the left with the knobs and My panel below them,
+  // the rest on the right, clips and the perform bar under the stage. The perform bar has a
+  // stack of its own: what a show needs is never behind a tab.
   live: {
-    zones: { left: [stack('layers', 'library')], right: [stack('inspector', 'audio', 'modulators')], strip: [stack('clips'), stack('perform', 'knobs', 'mypanel')] },
+    zones: { left: [stack('layers', 'library'), stack('knobs', 'mypanel')], right: [stack('inspector', 'audio', 'modulators')], strip: [stack('clips'), stack('perform')] },
     widths: { left: 320, right: 360 },
   },
   // Building a set: the libraries first, two stacks on the right.
@@ -79,12 +80,12 @@ const FACTORY: Record<BuiltInId, Omit<Layout, 'id' | 'name' | 'strip'>> = {
   },
   // The image on the projector: the clips get the room.
   two: {
-    zones: { left: [stack('layers', 'audio', 'modulators', 'library')], right: [stack('inspector')], strip: [stack('clips'), stack('perform', 'knobs', 'mypanel')] },
+    zones: { left: [stack('layers', 'audio', 'modulators', 'library'), stack('knobs', 'mypanel')], right: [stack('inspector')], strip: [stack('clips'), stack('perform')] },
     widths: { left: 300, right: 340 },
   },
   // One zone with every dock, for narrower screens.
   laptop: {
-    zones: { left: [stack('layers', 'inspector', 'audio', 'modulators', 'library')], right: [], strip: [stack('clips'), stack('perform', 'knobs', 'mypanel')] },
+    zones: { left: [stack('layers', 'inspector', 'audio', 'modulators', 'library', 'knobs', 'mypanel')], right: [], strip: [stack('clips'), stack('perform')] },
     widths: { left: 340, right: 340 },
   },
 }

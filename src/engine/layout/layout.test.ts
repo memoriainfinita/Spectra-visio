@@ -61,12 +61,13 @@ describe('moving docks', () => {
     expect(l.zones.left).toEqual([
       { tabs: ['layers'], active: 0 },
       { tabs: ['library'], active: 0 },
+      { tabs: ['knobs', 'mypanel'], active: 0 },
     ])
   })
 
   test('the last tab of a stack takes the stack with it', () => {
     const l = moveDock(live(), 'clips', { zone: 'right', stack: 0, mode: 'tab' })
-    expect(l.zones.strip).toEqual([{ tabs: ['perform', 'knobs', 'mypanel'], active: 0 }])
+    expect(l.zones.strip).toEqual([{ tabs: ['perform'], active: 0 }])
     expect(locate(l, 'clips')).toEqual({ zone: 'right', stack: 0, tab: 3 })
   })
 
@@ -75,7 +76,7 @@ describe('moving docks', () => {
     const l = moveDock(lap, 'inspector', { zone: 'right', mode: 'end' })
     expect(l.zones.right).toEqual([{ tabs: ['inspector'], active: 0 }])
     const m = moveDock(live(), 'layers', { zone: 'strip', mode: 'end' })
-    expect(m.zones.strip.map((s) => s.tabs)).toEqual([['clips'], ['perform', 'knobs', 'mypanel'], ['layers']])
+    expect(m.zones.strip.map((s) => s.tabs)).toEqual([['clips'], ['perform'], ['layers']])
   })
 
   test('onto its own stack it only shows; below itself only with tabs left behind', () => {
@@ -133,7 +134,7 @@ describe('heights', () => {
     const l = setZoneSizes(builtIn('live'), 'strip', [1.4, null])
     expect(l.zones.strip).toEqual([
       { tabs: ['clips'], active: 0, size: 1.4 },
-      { tabs: ['perform', 'knobs', 'mypanel'], active: 0 },
+      { tabs: ['perform'], active: 0 },
     ])
     const live = builtIn('live')
     expect(setZoneSizes(live, 'strip', [1])).toBe(live)
