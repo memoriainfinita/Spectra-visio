@@ -705,7 +705,6 @@ export const es = {
   'inspector.off': 'apagado',
   'inspector.compEffects': 'Efectos de composición',
   'inspector.transitionHint': 'Lo que tarda una capa en fundirse de una visualización a la siguiente; también la usan los botones A y B del crossfader.',
-  'inspector.visual': 'Visualización',
   'inspector.visualOf': 'Visualización de la capa {n}',
   'inspector.params': 'Parámetros',
   'inspector.paramsMeta': '{n} · {m} modulados',

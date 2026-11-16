@@ -99,6 +99,8 @@ export class Renderer {
   private readonly governor = new QualityGovernor()
   private readonly gate = new FrameGate()
   private limiter: FlashLimiter | null = null
+  // The error shown for a visualization that failed to start, to take it back later.
+  private visualError: string | null = null
   private readonly seen = new Uint32Array(BEAT_SLOTS)
   private seenValid = false
   private readonly frame: VisualFrame = { time: 0, dt: 0, analysis: null, wave: new Float32Array(WAVE_SIZE), hits: new Array(BEAT_SLOTS).fill(false) }
@@ -490,6 +492,7 @@ export class Renderer {
       this.disposeSlot(slot)
       this.slots.delete(id)
     }
+    this.clearVisualError()
   }
 
   // A change of visualization starts a fade of `duration` seconds from the current one.
@@ -514,13 +517,23 @@ export class Renderer {
     try {
       slot.layer = new Layer(this.compositor.gl, def)
       slot.failed = null
+      this.clearVisualError()
     } catch (err) {
       slot.failed = visualId
       slot.outgoing?.layer.dispose()
       slot.outgoing = null
-      this.status.set((s) => ({ ...s, error: String(err) }))
+      this.visualError = String(err)
+      this.status.set((s) => ({ ...s, error: this.visualError }))
     }
     return slot.layer
+  }
+
+  // The error of a visualization that could not start goes once no layer is stuck on one.
+  private clearVisualError(): void {
+    if (this.visualError === null) return
+    for (const slot of this.slots.values()) if (slot.failed) return
+    if (this.status.get().error === this.visualError) this.status.set((s) => ({ ...s, error: null }))
+    this.visualError = null
   }
 
   // A layer that does not show changes visualization without a fade: nobody would see it,

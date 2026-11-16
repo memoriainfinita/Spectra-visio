@@ -706,7 +706,6 @@ export const en: Messages = {
   'inspector.off': 'off',
   'inspector.compEffects': 'Composition effects',
   'inspector.transitionHint': 'How long a layer takes to fade from one visualization to the next; the crossfader A and B buttons use it too.',
-  'inspector.visual': 'Visualization',
   'inspector.visualOf': 'Visualization of layer {n}',
   'inspector.params': 'Parameters',
   'inspector.paramsMeta': '{n} · {m} modulated',

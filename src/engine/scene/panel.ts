@@ -8,8 +8,7 @@ import type { SceneState } from './scene'
 // holds an action (a button), a knob, or what a knob can set (a parameter, an effect's
 // parameter, a layer's opacity, the crossfader), as a slider.
 
-export const PANEL_COLUMNS = 8
-export const PANEL_CELLS = PANEL_COLUMNS * 2
+export const PANEL_CELLS = 16
 
 export type PanelControl = { kind: 'action'; id: ActionId } | { kind: 'knob'; ref: KnobRef } | KnobTarget
 

@@ -53,6 +53,9 @@ export class Player {
   private op = 0
   private failures = 0
   private promoteTimer: ReturnType<typeof setTimeout> | undefined
+  // Voices that gave way to the next one and are still fading out, with the timer that
+  // frees each. A pause or a stop has to silence them too.
+  private readonly fading = new Map<Voice, ReturnType<typeof setTimeout>>()
   private readonly cache = new Map<string, Promise<Source>>()
   private readonly metaJobs = new Map<string, Promise<TrackMeta | null>>()
   // What is known of a track from where it came (an online catalogue), used where its tags
@@ -421,7 +424,13 @@ export class Player {
       old.onEnded = null
       // Leave it to finish its fade-out, then free it.
       const left = Math.max(0, this.startedAt + (old.duration - this.startOffset) - getGraph().ctx.currentTime)
-      setTimeout(() => old.dispose(), (left + 0.5) * 1000)
+      this.fading.set(
+        old,
+        setTimeout(() => {
+          this.fading.delete(old)
+          old.dispose()
+        }, (left + 0.5) * 1000),
+      )
     }
     this.voice = next
     this.nextVoice = null
@@ -466,6 +475,11 @@ export class Player {
   private stopVoices(): void {
     clearTimeout(this.promoteTimer)
     this.voice?.stop()
+    for (const [voice, timer] of this.fading) {
+      clearTimeout(timer)
+      voice.dispose()
+    }
+    this.fading.clear()
     this.nextVoice?.dispose()
     this.nextVoice = null
     this.nextId = null

@@ -1,6 +1,6 @@
 ---
 created: 2026-09-29
-last_updated: 2026-11-10
+last_updated: 2026-11-16
 ---
 
 
@@ -15,7 +15,12 @@ Visualizador de audio en tiempo real para navegador, reconstruido desde cero en 
 ## Status
 
 - Revisión de proyecto del 2026-11-10 (Claude, a petición de mykl; documentos, git y código contrastados, y la app local ejecutada en Chromium a 1440, 1280, 900, 820 y 375 px, sin audio, MIDI, OBS ni Firefox). Conclusión: construida, no terminada. No entra ninguna función nueva hasta cerrar la ronda de revisión de mykl
-- Publicada por detrás de local: `main` va 4 commits por delante de `origin/main` (desde `163c1b5`, «one place per control»); la app de Pages conserva los duplicados
+- `main` y `origin/main` están en el mismo commit, `ce706d0` (comprobado con `git ls-remote` el 2026-11-16); los cambios de la auditoría del 2026-11-16 están sin commitear. Era falso desde el push: «`main` va 4 commits por delante de `origin/main`»
+- Auditoría del 2026-11-16 (Claude, a petición de mykl). Leídos enteros: reproductor, grafo de audio, entradas, análisis, renderer, compositor, limitador, escena, deshacer, directo, OBS, ventana de salida, grabación, copia de seguridad, persistencia, fuentes visuales, TV, radio y MIDI. Sin leer: `src/ui`, visualizaciones, efectos, lectores de shaders, análisis previo y muelles (solo barrido automático de claves de traducción, clases CSS y exportaciones). Typecheck, 255 tests unitarios, build y `pnpm audit --prod` (sin vulnerabilidades conocidas) en verde
+  - Arreglado, tras reproducirlo en Chrome silenciado y comprobar que ya no sale: pausar o parar durante un fundido cruzado dejaba sonando la pista saliente hasta acabar su fundido (`player.ts`: las voces en fundido quedan en `fading` y `stopVoices` las corta); elegir una emisora mientras otra aún conectaba dejaba la app sin fuente y con error (`inputs.ts`: contador de operación en `connect`, como el del reproductor); el error del escenario por una visualización que no arranca no se borraba al volver a una buena (`renderer.ts`: `clearVisualError`)
+  - Tras los arreglos: typecheck, 255 tests unitarios, build y los guiones `seek`, `levelling`, `radio`, `tv`, `shaders`, `visuals`, `undo`, `mypanel` y `settings` en verde en Firefox y Chrome (18 de 18). Las tres reproducciones se hicieron solo en Chrome, con un guion suelto que no está en `tests/e2e/`; sin batería completa
+  - Quitado por no usarse: la clave de traducción `inspector.visual`, la clase CSS `key-list`, `historyStore` (nadie lo leía) y la constante `PANEL_COLUMNS`
+  - Riesgos vistos leyendo el código, sin reproducir y sin arreglar: el análisis, el envío a OBS, el crossfader en movimiento, las variaciones, el modo automático y el control de vídeo corren con `requestAnimationFrame` de la ventana principal, así que con ella oculta o minimizada la ventana de salida deja de reaccionar al audio y OBS deja de recibir; la fuente de OBS usa la escena recibida sin `normalizeScene` (`src/source/main.ts`); `useStream` llama a `play()` antes de conectar el elemento al grafo, así que un stream puede sonar un instante sin pasar por el volumen ni el silencio; `cleanUp` de `src/app/record.ts` no desconecta `mix` del `DelayNode` de cada grabación
 - Defectos vistos el 2026-11-10:
   - A 1280 × 800 (diseño Directo) la barra Actuación se corta: el crossfader a medias y Auto fuera, tras un scroll. A 900 y 820 px, igual en Portátil
   - En Directo, Actuación comparte pila con Mandos y Mi panel y se oculta al abrirlos; lo aprobado el 2026-10-13 es «lo de directo siempre a la vista»
@@ -35,7 +40,7 @@ Visualizador de audio en tiempo real para navegador, reconstruido desde cero en 
 - Documentación desalineada:
   - `state.md`: Status es un registro fechado y TODO guarda las tareas hechas; se contradice («ronda sin resultados aún» seguido de resultados; «batería antes de publicar» abierta con la app publicada)
   - `funciones.md`: se presenta como confirmada el 2026-10-10 y lleva añadidos posteriores sin revisar y líneas caducadas («gestos para cambiar de modo», «cadena de efectos global», «MIDI mediante la modulación», Safari)
-  - `arquitectura.md`: dice 38 guiones e2e y hay 47; lista «envolvente» como fuente de modulación y el código tiene banda, golpe, oscilador y MIDI; mezcla «entrada visual» y «fuente visual»; «Universal y proyecto» es especificación de interfaz; quedan dos `[PENDIENTE]` con las fases cerradas
+  - `arquitectura.md`: lista «envolvente» como fuente de modulación y el código tiene banda, golpe, oscilador y MIDI; mezcla «entrada visual» y «fuente visual»; «Universal y proyecto» es especificación de interfaz; quedan dos `[PENDIENTE]` con las fases cerradas
   - Visualizaciones: README 21, `state.md` y `funciones.md` 22, `vision.md` 23; el registro tiene 23 entradas (21 propias, Milkdrop y la fuente visual)
   - «En verde» en e2e significa que el guion no se colgó ni imprimió `FAIL` (`tests/e2e/README.md`: no son aserciones)
   - El botón «Copiar … a tus shaders» se llama así porque cinco guiones buscan «Añadir»

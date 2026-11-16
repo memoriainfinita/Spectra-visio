@@ -62,7 +62,7 @@ Diseño técnico confirmado por mykl el 2026-10-10. Implementa la lista de `docs
 
 ## Universal y proyecto
 
-- PWA con `vite-plugin-pwa` 2.0.0 (MIT) y `workbox-window` 7.4.1: todo precacheado (unos 1,7 MB, Milkdrop incluido); versión nueva en espera hasta pulsar Recargar, que se desactiva mientras graba; comprobación de versión cada hora. Iconos PNG generados una vez desde `favicon.svg`
+- PWA con `vite-plugin-pwa` 2.0.0 (MIT) y `workbox-window` 7.4.1: todo precacheado (unos 2,2 MB en 54 entradas el 2026-11-16, Milkdrop y hls.js incluidos); versión nueva en espera hasta pulsar Recargar, que se desactiva mientras graba; comprobación de versión cada hora. Iconos PNG generados una vez desde `favicon.svg`
 - Pantalla encendida (Wake Lock) mientras suena el reproductor o una entrada, y en la ventana de salida conectada; se pide de nuevo al volver a la pestaña
 - Táctil: deslizar en horizontal sobre la imagen cambia de visualización en la capa seleccionada, un toque muestra una barra grande (visualización anterior y siguiente, reproducir, siguiente pista, apagón) y el doble toque pone pantalla completa. Con puntero grueso, controles de al menos 44 px
 - Control del vídeo de la entrada visual (`src/app/videoControl.ts`), para archivos y vídeos libres, no para cámara ni TV: reproducir y pausa, posición, tramo con inicio y fin (marcados en el punto actual o escritos), sentido adelante o atrás, al final bucle, ida y vuelta o una vez, velocidad de 0,25× a 2×. El bucle propio del navegador se desactiva y un bucle por fotograma mantiene el vídeo dentro del tramo, porque `timeupdate` llega muy de tarde en tarde para tramos cortos. Los navegadores no reproducen hacia atrás (sin velocidad negativa): el vídeo se pausa y se retrocede saltando, un salto cada vez, tan atrás como pide el tiempo pasado desde el anterior. Medido el 2026-10-12: unos 10–13 fotogramas por segundo en Firefox y 19–27 en Chrome, hacia delante 24–60 No se guarda entre visitas
@@ -90,7 +90,7 @@ Diseño técnico confirmado por mykl el 2026-10-10. Implementa la lista de `docs
 - Despliegue en GitHub Pages con GitHub Actions, ruta base relativa `./` como nona, activo desde la fase 1 (I)
 - Código anterior a la reconstrucción en `.archive/v0/`, fuera de git; en el historial hasta el commit `7a63da1`
 - Tests con Vitest de la lógica sin navegador: análisis y análisis previo, modulación, efectos, escena y presets, lista y sesión, lectores ISF y LRC, MIDI, acciones de directo, modo automático, OBS, grabación, formato de salida, calidad adaptativa, igualar volumen, idiomas y ajustes (I)
-- Comprobaciones en navegador en `tests/e2e/` (Playwright 1.63.0): 38 guiones que manejan la app compilada en Firefox y Chrome, silenciados, e imprimen lo medido; `pnpm e2e` los pasa todos y marca los que fallan o informan errores de la página
+- Comprobaciones en navegador en `tests/e2e/` (Playwright 1.63.0): 46 guiones en la batería (y `layout.mjs`, de capturas, fuera de ella) que manejan la app compilada en Firefox y Chrome, silenciados, e imprimen lo medido; `pnpm e2e` los pasa todos y marca los que fallan o informan errores de la página
 
 ## Orden de implementación
 

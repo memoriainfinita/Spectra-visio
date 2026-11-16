@@ -71,6 +71,9 @@ export class Inputs {
   private tvNode: AudioNode | null = null
   // An element gives its sound to the graph once, for good.
   private readonly tvNodes = new WeakMap<HTMLMediaElement, AudioNode>()
+  // Bumped by every source switch: a connection begun under an older value is dropped, so
+  // its late answer or its failure never touches the source chosen after it.
+  private op = 0
   private readonly player: Player
 
   constructor(player: Player) {
@@ -101,7 +104,7 @@ export class Inputs {
   }
 
   async useMic(deviceId = this.state.get().deviceId): Promise<void> {
-    await this.connect('mic', async () => {
+    await this.connect('mic', async (stale) => {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           deviceId: deviceId ? { exact: deviceId } : undefined,
@@ -111,7 +114,7 @@ export class Inputs {
           autoGainControl: false,
         },
       })
-      this.state.set((s) => ({ ...s, deviceId }))
+      if (!stale()) this.state.set((s) => ({ ...s, deviceId }))
       return stream
     })
     // Labels are only exposed after the first permission grant.
@@ -141,7 +144,7 @@ export class Inputs {
 
   async useStream(url: string, name = ''): Promise<void> {
     this.state.set((s) => ({ ...s, streamUrl: url, streamName: name || hostOf(url), tv: false }))
-    await this.connect('stream', async () => {
+    await this.connect('stream', async (stale) => {
       const graph = getGraph()
       const el = new Audio()
       // Without CORS headers the load fails here instead of feeding silence to the analysers.
@@ -157,6 +160,13 @@ export class Inputs {
         await Promise.race([el.play(), late])
       } finally {
         clearTimeout(timer)
+      }
+      // Another source was chosen meanwhile and already let go of this element.
+      if (stale()) {
+        el.pause()
+        el.removeAttribute('src')
+        el.load()
+        return null
       }
       const node = graph.ctx.createMediaElementSource(el)
       node.connect(graph.playerBus)
@@ -214,6 +224,7 @@ export class Inputs {
 
   // Back to the player as the analysed source.
   usePlayer(): void {
+    this.op++
     this.release()
     this.state.set((s) => ({ ...s, kind: 'player', status: 'idle', tv: false, error: null, switches: s.switches + 1 }))
   }
@@ -225,14 +236,22 @@ export class Inputs {
     graph.setGain(graph.inputGain.gain, value)
   }
 
-  private async connect(kind: Exclude<InputKind, 'player'>, open: () => Promise<MediaStream | null>): Promise<void> {
+  // `open` is told whether a later switch has replaced this one, to leave shared state alone.
+  private async connect(kind: Exclude<InputKind, 'player'>, open: (stale: () => boolean) => Promise<MediaStream | null>): Promise<void> {
+    const op = ++this.op
+    const stale = () => op !== this.op
     const graph = getGraph()
     await graph.resume()
+    if (stale()) return
     this.player.pause()
     this.release()
     this.state.set((s) => ({ ...s, kind, status: 'connecting', error: null, switches: s.switches + 1 }))
     try {
-      const stream = await open()
+      const stream = await open(stale)
+      if (stale()) {
+        for (const t of stream?.getTracks() ?? []) t.stop()
+        return
+      }
       if (stream) {
         this.stream = stream
         graph.setExternal(graph.ctx.createMediaStreamSource(stream))
@@ -242,6 +261,8 @@ export class Inputs {
       graph.setGain(graph.inputGain.gain, this.state.get().gain)
       this.state.set((s) => ({ ...s, status: 'active' }))
     } catch (err) {
+      // Let go by the switch that replaced it: not a failure to report.
+      if (stale()) return
       this.release()
       const name = err instanceof DOMException ? err.name : ''
       const key = name === 'NoAudio' ? 'input.error.noScreenAudio' : name === 'StreamTimeout' ? 'input.error.streamTimeout' : kind === 'stream' ? 'input.error.stream' : errorKey(err)

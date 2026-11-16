@@ -1,4 +1,3 @@
-import { createStore } from '../core/store'
 import { describeChange, type Change } from '../engine/scene/changed'
 import type { SceneState } from '../engine/scene/scene'
 import { sceneStore } from './scene'
@@ -18,13 +17,6 @@ let lastAt = -Infinity
 // Set while the scene changes by undo or redo, or by something that is not an edit.
 let quiet = false
 
-export const historyStore = createStore({ canUndo: false, canRedo: false })
-const publish = () => {
-  const next = { canUndo: past.length > 0, canRedo: future.length > 0 }
-  const now = historyStore.get()
-  if (now.canUndo !== next.canUndo || now.canRedo !== next.canRedo) historyStore.set(next)
-}
-
 export function initHistory(): void {
   last = sceneStore.get()
   sceneStore.subscribe(() => {
@@ -41,7 +33,6 @@ export function initHistory(): void {
       future = []
     }
     lastAt = t
-    publish()
   })
 }
 
@@ -80,7 +71,6 @@ function go(from: SceneState[], to: SceneState[]): Went | null {
   withoutHistory(() => sceneStore.set({ ...target, selected }))
   // The next change starts a step of its own.
   lastAt = -Infinity
-  publish()
   return { change: describeChange(now, target) }
 }
 
