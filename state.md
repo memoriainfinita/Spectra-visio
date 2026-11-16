@@ -13,7 +13,7 @@ Visualizador de audio en tiempo real para navegador, reconstruido desde cero en 
 
 ## Status
 
-**Retomar por:** lo que queda de «Antes de la ronda» del TODO (decidir la escena de arranque, probar Firefox con la ventana minimizada, batería completa) y después la ronda de revisión de mykl con música real. Mykl mira en su Firefox los arreglos del 2026-11-16 (Actuación, barra superior, Clips, escena «Espectáculo completo») antes de la ronda.
+**Retomar por:** lo que queda de «Antes de la ronda» del TODO (probar Firefox con la ventana minimizada, batería completa) y después la ronda de revisión de mykl con música real. Mykl mira en su Firefox los arreglos del 2026-11-16 (Actuación, barra superior, Clips, escena «Espectáculo completo») antes de la ronda.
 
 **Fase:** en progreso (la carpeta es `1_in-progress`; Claude lo anota así el 2026-11-16 y mykl no lo ha confirmado. La app está publicada en Pages para ir probándola, y eso no cambia la fase).
 
@@ -25,7 +25,7 @@ Visualizador de audio en tiempo real para navegador, reconstruido desde cero en 
 - Defectos vistos el 2026-11-10, arreglados el 2026-11-16 sin que mykl los haya visto en su Firefox (medidos en Chrome a 1280 × 800, 1000 y 820 px; el porqué en `state-history.md`): barra Actuación cortada y oculta tras Mandos y Mi panel; barra superior pisada a 820 px; Clips con scroll horizontal; escena «Espectáculo completo» quemada a blanco en silencio; «Importar» y «Exportar todos» sin decir que son de presets. Los diseños de fábrica nuevos solo los ve quien no ha tocado los diseños o pulsa Restablecer: el navegador guarda los cuatro de fábrica en cuanto cambia algo, y esos conservan la disposición antigua (mykl, que los tiene guardados, debe restablecer Directo y Portátil). Quedan vistos de esa lista:
   - Clips tiene scroll vertical con tres capas o con una pantalla de menos de unos 780 px de alto; Actuación en dos filas a 1280 px
   - Móvil (375 px): una columna de 16 pantallas de scroll con 444 controles y el escenario fuera de la vista; lo aprobado el 2026-10-13 (pestañas abajo, Inspector como hoja) no está hecho
-  - La app abre con dos capas (Caleidoscopio en A, Túnel en B) y el crossfader en A, así que la 2 no se ve. Es el valor de `defaultScene()`, no estado guardado. El diseño aprobado el 2026-10-13 decía «app vacía con una capa de partida»: decide mykl cuál vale
+  - Escena de arranque: decidido por mykl el 2026-11-17, dos capas (Caleidoscopio en A, Túnel en B, crossfader en A, la 2 no se ve), porque la app arrancará con una visita guiada que la presente. Sustituye al «una capa de partida» del diseño del 2026-10-13. Es el valor de `defaultScene()`
 - Rumbo decidido por mykl el 2026-11-10: app completa (reproductor con visuales, directo y fuente para OBS al mismo nivel; se corrige `0_draft/spectra-ecosystem/vision.md`, que dice «no es un motor de reproducción»); una sola ronda de revisión con los tres usos; el show lo guarda todo (hoy una escena no guarda rótulos, shaders importados, fuente visual ni MIDI) y se exporta como `.spectra`; móvil con el diseño aprobado el 2026-10-13; Safari fuera, así que el móvil es Android
 - Decisiones abiertas, de mykl:
   - La fuente visual no llega a OBS
@@ -77,7 +77,6 @@ Orden acordado el 2026-11-10.
 
 Antes de la ronda:
 - [ ] Que mykl mire en su Firefox los arreglos del 2026-11-16 y diga «bien» o qué cambiar (barra Actuación a 1280 y 820 px, Mandos y Mi panel en la zona izquierda, barra superior, Clips, «Espectáculo completo» en silencio, textos de Importar y Exportar presets)
-- [ ] Escena de arranque: dos capas con la 2 oculta, o una sola como decía el diseño aprobado; decide mykl
 - [ ] Firefox con la ventana principal minimizada y la ventana de salida abierta: comprobar a mano que la salida sigue reaccionando al audio (no medible con Playwright)
 - [ ] Subir a GitHub los commits pendientes (decidido por mykl el 2026-11-10; subir es cosa suya)
 - [ ] Batería e2e completa justo antes de la ronda (la última, 2026-11-04)
