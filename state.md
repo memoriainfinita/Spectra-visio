@@ -77,30 +77,19 @@ Visualizador de audio en tiempo real para navegador, reconstruido desde cero en 
 
 Orden acordado el 2026-11-10.
 
-Antes de la ronda:
-- [x] Mykl miró en su Firefox los arreglos del 2026-11-16, H6 y H1 el 2026-11-17: todo bien
-- [x] Firefox con la ventana principal minimizada y la salida abierta: mykl comprobó el 2026-11-17 que la salida sigue reaccionando al audio
-- [x] Batería e2e completa: 92 ejecuciones sin FAIL ni cuelgues el 2026-11-17 (commit 22b403a); repetir solo si cambia el código antes de la ronda
-
 Ronda de revisión de mykl, los tres usos a la vez, con música real:
 - [ ] Reproductor: lista, gapless, radios, Audius, letras; captura de pestaña en Chrome o Edge; stream con CORS real de otro dominio
-- [x] Directo: clips, columnas, menú de clip, ventana de muelle real, guardado al cerrar, escenas (mykl, 2026-11-17). MIDI con controlador real y dos pantallas, también
 - [ ] OBS y grabación (fase 9), también desde Pages: la conexión a OBS desde GitHub Pages pide el permiso de red local. El audio no viaja por la fuente de navegador: en OBS se captura aparte (mykl vio llegar la imagen el 2026-11-17)
 - [ ] Móvil real: la disposición de pestañas y hoja (probada por mykl el 2026-11-17, bien); instalar la app falla con «ya está instalada» (mykl, 2026-11-17: revisar por adb qué hay instalado) y falta la calidad adaptativa en su equipo (fase 10)
 - [ ] Revisar lo construido sin revisar (lista de «Sin revisar por mykl» en Status)
 - [ ] Sonido por fuente: probarlo con un canal de TV real, con dos fuentes a la vez y con la canción; ajustar a oído el volumen
-- [x] Durante la ronda, anotar qué controles se usan y cuáles no: mykl no anotó ninguno que sobre (2026-11-17)
-- [x] Decisiones de Claude pendientes: revisadas por mykl el 2026-11-17 (selector de fuente, sonido por fuente, Inspector y clips como estaba)
 
 Después de la ronda:
-- [x] Decidir qué controles sobran: por ahora ninguno (mykl, 2026-11-17)
 - [ ] Show completo: diseño de qué guarda (rótulos, shaders importados, fuentes visuales, MIDI) y de la carpeta `visio/` de `.spectra`; aprobación de mykl antes de implementar
-- [x] H6 y H1 probados por mykl el 2026-11-17
 - [ ] Decisiones abiertas de Status (fuente visual a OBS, identidad, control externo)
 
 Documentación:
-- [x] `vision.md` del ecosistema (`0_draft/spectra-ecosystem`): corregido el 2026-11-17, Visio es app completa (sin commit allí)
-- [x] `funciones.md`: revisada y reconfirmada con mykl el 2026-11-17
+- [ ] `vision.md` del ecosistema (`0_draft/spectra-ecosystem`): editado el 2026-11-17 (Visio es app completa) y sin commit en ese proyecto
 - [ ] `arquitectura.md`: resto de cifras y nombres al día; especificación de interfaz aparte
 
 ## Aparcado
