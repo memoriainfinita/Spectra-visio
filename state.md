@@ -83,15 +83,15 @@ Antes de la ronda:
 
 Ronda de revisión de mykl, los tres usos a la vez, con música real:
 - [ ] Reproductor: lista, gapless, radios, Audius, letras; captura de pestaña en Chrome o Edge; stream con CORS real de otro dominio
-- [x] Directo: clips, columnas, menú de clip, ventana de muelle real, guardado al cerrar, escenas (mykl, 2026-11-17). Sin dicho explícito: MIDI con controlador real y dos pantallas
+- [x] Directo: clips, columnas, menú de clip, ventana de muelle real, guardado al cerrar, escenas (mykl, 2026-11-17). MIDI con controlador real y dos pantallas, también
 - [ ] OBS y grabación (fase 9), también desde Pages: la conexión a OBS desde GitHub Pages pide el permiso de red local
 - [ ] Móvil real: la disposición de pestañas y hoja (2026-11-17), instalar la app y calidad adaptativa en su equipo (fase 10)
 - [ ] Revisar lo construido sin revisar (lista de «Sin revisar por mykl» en Status)
-- [ ] Durante la ronda, anotar qué controles se usan y cuáles no
+- [x] Durante la ronda, anotar qué controles se usan y cuáles no: mykl no anotó ninguno que sobre (2026-11-17)
 - [ ] Revisar las decisiones de Claude pendientes (fuente que leen los efectos de composición, sonido de TV, Inspector y clips lanzados por teclas o MIDI)
 
 Después de la ronda:
-- [ ] Decidir qué controles sobran, con lo anotado
+- [x] Decidir qué controles sobran: por ahora ninguno (mykl, 2026-11-17)
 - [ ] Show completo: diseño de qué guarda (rótulos, shaders importados, fuentes visuales, MIDI) y de la carpeta `visio/` de `.spectra`; aprobación de mykl antes de implementar
 - [x] H6 y H1 probados por mykl el 2026-11-17
 - [ ] Decisiones abiertas de Status (fuente visual a OBS, identidad, nombre, control externo)
