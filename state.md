@@ -40,7 +40,8 @@ Visualizador de audio en tiempo real para navegador, reconstruido desde cero en 
   - Visualizaciones: el registro (`src/engine/render/registry.ts`) tiene 23 entradas: 21 propias, Milkdrop y la fuente visual. El README dice 21 propias, que es correcto; `vision.md` del ecosistema dice 23; los textos de las escenas de ejemplo (`demo.gallery.hint`, `demo.show.hint`) dicen 22, sin comprobar a qué cuenta se refieren; `funciones.md` no da cifra
   - README: «Safari is untested» pasa a «Safari is not supported» (Safari fuera, decidido el 2026-11-10)
   - El botón «Copiar … a tus shaders» se llama así porque cinco guiones buscan «Añadir»
-- Sin revisar por mykl (en la ronda): menú de clip, columnas con nombre y nota MIDI, ventana de muelle real y guardado al cerrar; fases 1 a 5 del rediseño (la 1 la probó el 2026-10-14 sin confirmarla como revisada); escenas de ejemplo y cambio de la entrada visual con música real; fuente por capa (Contenido y Fuente en el Inspector); revisión de flujos (nombres, Lista en Audio, Escenas guardadas, shaders que leen la fuente); shaders de ejemplo; repaso de duplicados; descripciones cortas de Ajustes (las escribió Claude a partir de las ayudas); fases 9 y 10 (OBS real, grabación, móvil real, instalar la app, calidad adaptativa)
+- Revisados por mykl el 2026-11-17, todo bien: menú de clip, columnas con nombre y lanzables por teclas y nota MIDI, ventana de muelle real y guardado al cerrar, escenas de ejemplo con Ctrl Z, uso libre como directo.
+- Sin revisar por mykl (en la ronda): fases 1 a 5 del rediseño (la 1 la probó el 2026-10-14 sin confirmarla como revisada); cambio de la fuente visual con música real; fuente por capa (Contenido y Fuente en el Inspector); revisión de flujos (nombres, Lista en Audio, Escenas guardadas, shaders que leen la fuente); shaders de ejemplo; repaso de duplicados; descripciones cortas de Ajustes (las escribió Claude a partir de las ayudas); fases 9 y 10 (OBS real, grabación, móvil real, instalar la app, calidad adaptativa)
 - Ronda de revisión de mykl en su Firefox empezada el 2026-10-22, sin resultados aparte de lo que mykl dio por bueno (2026-11-02: opacidad modulable, cantidad arrastrable, arrastrar a Mi panel, Editar y ayudas en la barra de pestañas, ayudas con solo «?», entrada visual por capa). Probado antes por mykl: fases 2 a 8 (2026-10-10 y 2026-10-11)
 - Sin probar: escuchar a oído emisoras reales del directorio (con emisoras reales, Claude solo comprobó buscar, la comprobación en segundo plano y el arranque); Safari (nada, tampoco `outputLatency`); captura de pestaña en Chrome o Edge; referencias de archivos de Chrome; pistas largas por `<audio>`; stream de otro dominio con CORS real; MIDI con un dispositivo real y con el permiso de Firefox; dos pantallas reales; OBS real y desde GitHub Pages; grabación: sincronía a ojo, Firefox con ventana, sesiones largas; móvil real; instalar la app; calidad adaptativa con una GPU lenta real
 - La versión anterior (canvas, 8 visualizaciones) está en `.archive/v0/`, fuera de git, y en el historial hasta `7a63da1`
@@ -82,7 +83,7 @@ Antes de la ronda:
 
 Ronda de revisión de mykl, los tres usos a la vez, con música real:
 - [ ] Reproductor: lista, gapless, radios, Audius, letras; captura de pestaña en Chrome o Edge; stream con CORS real de otro dominio
-- [ ] Directo: MIDI con controlador real, dos pantallas, clips, mandos, moduladores, Mi panel, ventana de muelle real, guardado al cerrar
+- [x] Directo: clips, columnas, menú de clip, ventana de muelle real, guardado al cerrar, escenas (mykl, 2026-11-17). Sin dicho explícito: MIDI con controlador real y dos pantallas
 - [ ] OBS y grabación (fase 9), también desde Pages: la conexión a OBS desde GitHub Pages pide el permiso de red local
 - [ ] Móvil real: la disposición de pestañas y hoja (2026-11-17), instalar la app y calidad adaptativa en su equipo (fase 10)
 - [ ] Revisar lo construido sin revisar (lista de «Sin revisar por mykl» en Status)
@@ -96,8 +97,8 @@ Después de la ronda:
 - [ ] Decisiones abiertas de Status (fuente visual a OBS, identidad, nombre, control externo)
 
 Documentación:
-- [ ] `vision.md` del ecosistema (`0_draft/spectra-ecosystem`): Visio es app completa, no solo instrumento
-- [ ] `funciones.md`: Safari fuera, móvil, show `.spectra`, líneas caducadas; reconfirmar con mykl
+- [x] `vision.md` del ecosistema (`0_draft/spectra-ecosystem`): corregido el 2026-11-17, Visio es app completa (sin commit allí)
+- [x] `funciones.md`: revisada y reconfirmada con mykl el 2026-11-17
 - [ ] `arquitectura.md`: resto de cifras y nombres al día; especificación de interfaz aparte
 
 ## Aparcado
