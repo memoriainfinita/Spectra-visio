@@ -5,7 +5,7 @@ import { defaultScene, normalizeScene } from './scene'
 
 describe('saved scenes', () => {
   it('keeps a scene as it was saved', () => {
-    const scene = demoScene('mods')
+    const scene = demoScene('show')
     const [one] = normalizeSavedScenes([{ id: 'a', name: '  Mi   escena ', created: 5, scene }])
     expect(one.name).toBe('Mi escena')
     expect(one.created).toBe(5)

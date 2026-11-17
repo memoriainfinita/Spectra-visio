@@ -22,15 +22,15 @@ check('saved scene is listed', (await panel.getByRole('button', { name: /^Mi esc
 check('it says how many layers', /\b\d+ capas/.test(await panel.locator('.preset', { hasText: 'Mi escena' }).innerText()))
 
 // Another scene replaces it, and the saved one brings it back.
-await panel.getByRole('button', { name: 'Clips y directo' }).click()
+await panel.getByRole('button', { name: 'Espectáculo' }).click()
 await page.waitForTimeout(600)
-check('an example scene replaced it', (await layers()) === 2)
+check('an example scene replaced it', (await layers()) === 3)
 await panel.getByRole('button', { name: /^Mi escena/ }).click()
 await page.waitForTimeout(600)
 check('the saved scene is back', (await layers()) === mine)
 await page.keyboard.press('Control+z')
 await page.waitForTimeout(400)
-check('Ctrl Z undoes the load', (await layers()) === 2)
+check('Ctrl Z undoes the load', (await layers()) === 3)
 
 // It survives a reload.
 await page.reload()
@@ -41,7 +41,7 @@ check('still saved after a reload', (await page.locator('.panel.presets').getByR
 // And can be deleted; the examples stay.
 await page.locator('.panel.presets').getByRole('button', { name: 'Borrar la escena Mi escena' }).click()
 check('deleted', (await page.locator('.panel.presets').getByRole('button', { name: /^Mi escena/ }).count()) === 0)
-check('examples stay', (await page.locator('.panel.presets').getByRole('button', { name: 'Primeros pasos' }).count()) === 1)
+check('examples stay', (await page.locator('.panel.presets').getByRole('button', { name: 'Espectáculo' }).count()) === 1)
 
 log('page errors:', errors.length ? errors.join(' | ') : 'none')
 await browser.close()

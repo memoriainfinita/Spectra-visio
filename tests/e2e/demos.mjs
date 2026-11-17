@@ -1,5 +1,5 @@
-// Example scenes: each loads from the presets panel, draws something that moves, and Ctrl Z
-// brings the previous scene back.
+// The example scene: it loads from the presets panel, draws something that moves, every column
+// keeps drawing when launched, and Ctrl Z brings the previous scene back.
 import { open, loadTrack, grab, stats } from './lib.mjs'
 
 const kind = process.argv[2] ?? 'firefox'
@@ -21,45 +21,33 @@ log('playing:', await loadTrack(page))
 const before = await layers()
 log('layers before:', before)
 
-const expected = { 'Primeros pasos': 3, 'Fuentes de modulación': 4, 'Moduladores y mandos': 3, 'Todos los efectos': 2, 'Clips y directo': 2, 'Todas las visualizaciones': 3, 'Espectáculo completo': 3 }
-for (const [name, n] of Object.entries(expected)) {
-  await panel.getByRole('button', { name }).click()
-  // Read the toast right away: it is gone by the time the frames are measured.
-  const notice = (await page.locator('.notices p', { hasText: 'Escena cargada' }).first().textContent({ timeout: 4000 }).catch(() => '')) ?? ''
-  await page.waitForTimeout(1500)
-  const got = await layers()
-  const m = await motion()
-  log(name, '| layers', got, '|', JSON.stringify(m), '|', notice)
-  check(`${name}: ${n} layers`, got === n)
-  check(`${name}: draws something`, m.mean > 2 && m.motion > 0.3)
-  check(`${name}: notice`, /Escena cargada/.test(notice))
-  // The scene made of effects: launching columns keeps drawing.
-  if (name === 'Todos los efectos') {
-    for (const key of ['2', '4', '8']) {
-      await page.keyboard.press(key)
-      await page.waitForTimeout(1800)
-      const after = await motion()
-      check(`${name}: column ${key} draws`, after.mean > 2 && after.motion > 0.3)
-    }
-  }
+const name = 'Espectáculo'
+await panel.getByRole('button', { name }).click()
+// Read the toast right away: it is gone by the time the frames are measured.
+const notice = (await page.locator('.notices p', { hasText: 'Escena cargada' }).first().textContent({ timeout: 4000 }).catch(() => '')) ?? ''
+await page.waitForTimeout(1500)
+const got = await layers()
+const m = await motion()
+log(name, '| layers', got, '|', JSON.stringify(m), '|', notice)
+check(`${name}: 3 layers`, got === 3)
+check(`${name}: draws something`, m.mean > 2 && m.motion > 0.3)
+check(`${name}: notice`, /Escena cargada/.test(notice))
+check(`${name}: eight named columns`, (await page.locator('.clip-col-name', { hasText: 'Amanecer' }).count()) > 0)
+
+// Launching a column keeps drawing, in every one of them (a launch is one more step to undo).
+for (const key of ['1', '2', '3', '4', '5', '6', '7', '8']) {
+  await page.keyboard.press(key)
+  await page.waitForTimeout(1800)
+  const after = await motion()
+  check(`${name}: column ${key} draws`, after.mean > 2 && after.motion > 0.3)
 }
 
-// Undo goes back to the scene before the last demo: Espectáculo completo -> Todas las visualizaciones.
-await page.keyboard.press('Control+z')
-await page.waitForTimeout(500)
-check('Ctrl Z brings the previous scene back', (await layers()) === expected['Todas las visualizaciones'] && (await page.locator('.panel.clips').getByText('Intro', { exact: true }).count()) === 0)
-
-// The two scenes of clips again, now to launch columns (a launch is one more step to undo, so after the undo check).
-for (const name of ['Todas las visualizaciones', 'Espectáculo completo']) {
-  await panel.getByRole('button', { name }).click()
-  await page.waitForTimeout(1200)
-  for (const key of ['2', '4', '7']) {
-    await page.keyboard.press(key)
-    await page.waitForTimeout(1800)
-    const after = await motion()
-    check(`${name}: column ${key} draws`, after.mean > 2 && after.motion > 0.3)
-  }
+// Undo the launches and the load: the scene from before the demo comes back.
+for (let k = 0; k < 20 && (await page.locator('.clip-col-name', { hasText: 'Amanecer' }).count()) > 0; k++) {
+  await page.keyboard.press('Control+z')
+  await page.waitForTimeout(150)
 }
+check('Ctrl Z brings the previous scene back', (await layers()) === before && (await page.locator('.clip-col-name', { hasText: 'Amanecer' }).count()) === 0)
 
 log('page errors:', errors.length ? errors.join(' | ') : 'none')
 await browser.close()

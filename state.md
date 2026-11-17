@@ -1,6 +1,6 @@
 ---
 created: 2026-09-29
-last_updated: 2026-11-16
+last_updated: 2026-11-17
 ---
 
 # Spectra-visio — state
@@ -23,6 +23,7 @@ Visualizador de audio en tiempo real para navegador, reconstruido desde cero en 
 - Comprobaciones del 2026-11-17: batería completa (92 ejecuciones, sin `FAIL` ni cuelgues) sobre `22b403a`; tras shaders, selector y sonido por fuente: typecheck, 305 tests unitarios, build y e2e de lo tocado en Firefox y Chrome en verde (un `FAIL` intermitente de `settings` en Firefox pasó al repetirlo); `source-sound.mjs` mide el audio con un vídeo con tono. Batería completa sobre esa versión (`04f1d75`): 90 de 92 ejecuciones `ok`; `settings` y `visuals` en Firefox fallaron por un tiempo de espera (evento `load` y selector de archivos) y pasaron al repetirlos solos, así que son intermitentes con la máquina cargada, no de la versión.
 - Auditoría del 2026-11-16 (Claude, a petición de mykl): arreglados tres fallos y cuatro riesgos, cada uno reproducido antes en Chrome silenciado. Sin leer: `src/ui`, visualizaciones, efectos, lectores de shaders, análisis previo y muelles (solo barrido automático de claves de traducción, clases CSS y exportaciones). Firefox con la ventana principal oculta no se pudo medir (sin CDP en el Playwright de Firefox). Detalle en `state-history.md`
 
+- Escenas de ejemplo (2026-11-17, a petición de mykl): las siete se sustituyeron por una sola, «Espectáculo» (`src/engine/scene/demos.ts`), con una paleta por columna. Mirada en Chrome silenciado y sin música: en silencio varias columnas se ven oscuras, y cómo queda con sonido real no se ha visto. Sin revisar por mykl. `DEMOS` sigue siendo una lista, por si se añade otra. Los presets de Milkdrop no se han tocado
 - Defectos vistos el 2026-11-10, arreglados el 2026-11-16 sin que mykl los haya visto en su Firefox (medidos en Chrome a 1280 × 800, 1000 y 820 px; el porqué en `state-history.md`): barra Actuación cortada y oculta tras Mandos y Mi panel; barra superior pisada a 820 px; Clips con scroll horizontal; escena «Espectáculo completo» quemada a blanco en silencio; «Importar» y «Exportar todos» sin decir que son de presets. Los diseños de fábrica nuevos solo los ve quien no ha tocado los diseños o pulsa Restablecer: el navegador guarda los cuatro de fábrica en cuanto cambia algo, y esos conservan la disposición antigua (mykl, que los tiene guardados, debe restablecer Directo y Portátil). Quedan vistos de esa lista:
   - Clips: con tres capas ya no hace scroll vertical a 1280 × 800 (celdas de 30 px); sigue con cuatro capas o pantallas más bajas. Actuación en dos filas a 1280 px
   - Móvil (<800 px): hecho el 2026-11-17 con la opción A del lienzo que mykl eligió (cinco pestañas abajo, Inspector como hoja, escenario y reproductor siempre a la vista); medido en Chrome emulado a 375 × 812, 360 × 640 y 740 × 360 y en los guiones e2e `touch`, `inspector` y `docks`. No visto en un Android real ni por mykl
@@ -38,7 +39,7 @@ Visualizador de audio en tiempo real para navegador, reconstruido desde cero en 
 - Documentación desalineada (puesta al día en parte el 2026-11-16):
   - `funciones.md`: revisada con mykl el 2026-11-17 (líneas caducadas corregidas)
   - `arquitectura.md`: corregidos el 2026-11-16 «envolvente» como fuente de modulación (el código tiene banda, golpe, oscilador y MIDI) y el `[PENDIENTE]` de Safari (fuera del alcance, decidido el 2026-11-10). El 2026-11-17 se unificó «entrada visual» en «fuente visual», el término de la interfaz. Quedan: «Universal y proyecto» es especificación de interfaz; un `[PENDIENTE]` (OBS desde GitHub Pages)
-  - Visualizaciones: el registro (`src/engine/render/registry.ts`) tiene 23 entradas: 21 propias, Milkdrop y la fuente visual. El README dice 21 propias, que es correcto; `vision.md` del ecosistema dice 23; los textos de las escenas de ejemplo (`demo.gallery.hint`, `demo.show.hint`) dicen 22, sin comprobar a qué cuenta se refieren; `funciones.md` no da cifra
+  - Visualizaciones: el registro (`src/engine/render/registry.ts`) tiene 23 entradas: 21 propias, Milkdrop y la fuente visual. El README dice 21 propias, que es correcto; `vision.md` del ecosistema dice 23; el texto de la escena de ejemplo (`demo.show.hint`) y `funciones.md` dicen 22, que es la cuenta de las visualizaciones sin la fuente visual (21 propias más Milkdrop)
   - README: «Safari is untested» pasa a «Safari is not supported» (Safari fuera, decidido el 2026-11-10)
   - El botón «Copiar … a tus shaders» se llama así porque cinco guiones buscan «Añadir»
 - Revisados por mykl el 2026-11-17, todo bien: menú de clip, columnas con nombre y lanzables por teclas y nota MIDI, ventana de muelle real y guardado al cerrar, escenas de ejemplo con Ctrl Z, uso libre como directo.
@@ -94,4 +95,4 @@ Documentación:
 
 ## Aparcado
 
-Nada por ahora.
+- Más de 9 columnas de clips (preguntado por mykl el 2026-11-17). Hoy el límite es de diseño: `CLIP_COLUMNS = 9` en `src/engine/scene/limits.ts`, porque cada columna se lanza con una tecla del 1 al 9 y tiene su nota MIDI. Esquema pensado: páginas de nueve columnas, con las teclas 1 a 9 y el MIDI siempre sobre la página activa y un control para cambiar de página. Hay que decidir teclas, MIDI, rejilla y migración de escenas guardadas. Sin funciones nuevas hasta cerrar la ronda de revisión
