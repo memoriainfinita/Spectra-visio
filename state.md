@@ -13,7 +13,7 @@ Visualizador de audio en tiempo real para navegador, reconstruido desde cero en 
 
 ## Status
 
-**Retomar por:** lo que queda de «Antes de la ronda» del TODO (Firefox con la ventana minimizada) y después la ronda de revisión de mykl con música real. Mykl revisó en su Firefox los arreglos del 2026-11-16, H6 y H1 el 2026-11-17: todo bien.
+**Retomar por:** la ronda de revisión de mykl con música real. Mykl revisó en su Firefox los arreglos del 2026-11-16, H6 y H1 el 2026-11-17: todo bien.
 
 **Fase:** en progreso (confirmada por mykl el 2026-11-17; la carpeta es `1_in-progress`. La app está publicada en Pages para ir probándola, y eso no cambia la fase).
 
@@ -77,7 +77,7 @@ Orden acordado el 2026-11-10.
 
 Antes de la ronda:
 - [x] Mykl miró en su Firefox los arreglos del 2026-11-16, H6 y H1 el 2026-11-17: todo bien
-- [ ] Firefox con la ventana principal minimizada y la ventana de salida abierta: comprobar a mano que la salida sigue reaccionando al audio (no medible con Playwright)
+- [x] Firefox con la ventana principal minimizada y la salida abierta: mykl comprobó el 2026-11-17 que la salida sigue reaccionando al audio
 - [x] Batería e2e completa: 92 ejecuciones sin FAIL ni cuelgues el 2026-11-17 (commit 22b403a); repetir solo si cambia el código antes de la ronda
 
 Ronda de revisión de mykl, los tres usos a la vez, con música real:
