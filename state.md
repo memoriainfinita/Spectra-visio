@@ -13,7 +13,7 @@ Visualizador de audio en tiempo real para navegador, reconstruido desde cero en 
 
 ## Status
 
-**Retomar por:** lo que queda de «Antes de la ronda» del TODO (probar Firefox con la ventana minimizada, batería completa) y después la ronda de revisión de mykl con música real. Mykl mira en su Firefox los arreglos del 2026-11-16 (Actuación, barra superior, Clips, escena «Espectáculo completo») antes de la ronda.
+**Retomar por:** lo que queda de «Antes de la ronda» del TODO (Firefox con la ventana minimizada) y después la ronda de revisión de mykl con música real. Mykl revisó en su Firefox los arreglos del 2026-11-16, H6 y H1 el 2026-11-17: todo bien.
 
 **Fase:** en progreso (confirmada por mykl el 2026-11-17; la carpeta es `1_in-progress`. La app está publicada en Pages para ir probándola, y eso no cambia la fase).
 
@@ -76,9 +76,9 @@ Visualizador de audio en tiempo real para navegador, reconstruido desde cero en 
 Orden acordado el 2026-11-10.
 
 Antes de la ronda:
-- [ ] Que mykl mire en su Firefox los arreglos del 2026-11-16 y diga «bien» o qué cambiar (barra Actuación a 1280 y 820 px, Mandos y Mi panel en la zona izquierda, barra superior, Clips, «Espectáculo completo» en silencio, textos de Importar y Exportar presets)
+- [x] Mykl miró en su Firefox los arreglos del 2026-11-16, H6 y H1 el 2026-11-17: todo bien
 - [ ] Firefox con la ventana principal minimizada y la ventana de salida abierta: comprobar a mano que la salida sigue reaccionando al audio (no medible con Playwright)
-- [ ] Batería e2e completa justo antes de la ronda (la última, 2026-11-04)
+- [x] Batería e2e completa: 92 ejecuciones sin FAIL ni cuelgues el 2026-11-17 (commit 22b403a); repetir solo si cambia el código antes de la ronda
 
 Ronda de revisión de mykl, los tres usos a la vez, con música real:
 - [ ] Reproductor: lista, gapless, radios, Audius, letras; captura de pestaña en Chrome o Edge; stream con CORS real de otro dominio
@@ -92,7 +92,7 @@ Ronda de revisión de mykl, los tres usos a la vez, con música real:
 Después de la ronda:
 - [ ] Decidir qué controles sobran, con lo anotado
 - [ ] Show completo: diseño de qué guarda (rótulos, shaders importados, fuentes visuales, MIDI) y de la carpeta `visio/` de `.spectra`; aprobación de mykl antes de implementar
-- [ ] Que mykl pruebe H6 (Ajustes › Accesibilidad › Reducir destellos, las subidas de brillo son lentas a propósito) y H1 (micrófono silenciado o pestaña sin sonido)
+- [x] H6 y H1 probados por mykl el 2026-11-17
 - [ ] Decisiones abiertas de Status (fuente visual a OBS, identidad, nombre, control externo)
 
 Documentación:
