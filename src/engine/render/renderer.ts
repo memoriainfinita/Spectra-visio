@@ -10,7 +10,7 @@ import { setInputLayer, visualSourceOf } from './visualInput'
 import { COMP } from '../scene/knobs'
 import { fixedRatio, type PixelSize } from '../output/format'
 import { OverlayRenderer, anyOverlay, type OverlayData } from '../overlay/overlay'
-import { layerAmount, visualSettings, type EffectState, type LayerState, type SceneState, type VisualSettings } from '../scene/scene'
+import { effectsSourceLayer, layerAmount, visualSettings, type EffectState, type LayerState, type SceneState, type VisualSettings } from '../scene/scene'
 import { Compositor, Layer, type LayerImage } from './compositor'
 import { Target } from './gl'
 import { FlashLimiter } from './limiter'
@@ -369,7 +369,7 @@ export class Renderer {
     if (chain && steps.length) {
       chain.resize(this.surface)
       // The composition's effects read the input of the topmost layer that has one.
-      setInputLayer(scene.layers.findLast((l) => visualSourceOf(l.id))?.id ?? null)
+      setInputLayer(effectsSourceLayer(scene, (id) => !!visualSourceOf(id)))
       try {
         base = chain.run(base ?? compositor.black, steps, f, this.surface)
       } finally {

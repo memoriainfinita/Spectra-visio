@@ -90,6 +90,8 @@ export interface SceneState {
   selected: number
   // Composition effects, applied in order after the layers are blended.
   effects: EffectState[]
+  // The layer whose visual source the composition effects read; '' is the topmost layer that has one.
+  effectsSource: string
   // Seconds a layer takes to fade from one visualization to the next; 0 cuts.
   transition: number
   overlays: OverlaySettings
@@ -127,6 +129,7 @@ export function defaultScene(): SceneState {
     crossfade: 0,
     selected: 0,
     effects: [],
+    effectsSource: '',
     transition: 1.5,
     overlays: defaultOverlays(),
     knobs: emptyKnobs(PANEL_KNOBS),
@@ -291,6 +294,13 @@ function legacyLayers(raw: Record<string, unknown>): LayerState[] {
   return [a, b]
 }
 
+// The layer the composition effects read: the one chosen if it has a source, none when the
+// chosen one has lost it, and with no choice the topmost layer that has one.
+export function effectsSourceLayer(scene: SceneState, hasSource: (layer: string) => boolean): string | null {
+  if (scene.effectsSource) return scene.layers.some((l) => l.id === scene.effectsSource) && hasSource(scene.effectsSource) ? scene.effectsSource : null
+  return scene.layers.findLast((l) => hasSource(l.id))?.id ?? null
+}
+
 export function normalizeScene(raw: unknown): SceneState {
   const d = defaultScene()
   if (!isObj(raw)) return d
@@ -325,6 +335,7 @@ export function normalizeScene(raw: unknown): SceneState {
     crossfade: num(raw.crossfade, 0, 1, d.crossfade),
     selected,
     effects: normalizeEffects(raw.effects),
+    effectsSource: typeof raw.effectsSource === 'string' && ids.has(raw.effectsSource) ? raw.effectsSource : '',
     transition: num(raw.transition, 0, TRANSITION_MAX, d.transition),
     overlays: normalizeOverlays(raw.overlays),
     knobs: normalizeKnobs(raw.knobs, PANEL_KNOBS, ids),

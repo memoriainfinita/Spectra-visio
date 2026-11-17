@@ -2,7 +2,6 @@ import { Pause, Play, Radio, Repeat, Repeat1, Shuffle, SkipBack, SkipForward, Vo
 import { useEffect, useRef, useState } from 'react'
 import { inputs, player } from '../app/engine'
 import { radioFavoritesStore } from '../app/radio'
-import { tvFavoritesStore } from '../app/tv'
 import { transport } from '../app/transport'
 import type { Repeat as RepeatMode } from '../engine/player/queue'
 import { trackTitle } from '../engine/player/types'
@@ -59,11 +58,8 @@ function SeekBar({ position, duration, label }: { position: number; duration: nu
 function useLive() {
   const s = useStore(inputs.state)
   const stations = useStore(radioFavoritesStore)
-  const channels = useStore(tvFavoritesStore)
   const source = s.kind === 'stream' && s.status !== 'idle'
-  const prev = s.tv ? 'tv.previous' : 'radio.previous'
-  const next = s.tv ? 'tv.next' : 'radio.next'
-  return { source, playing: source && s.status !== 'paused', status: s.status, name: s.streamName, canStep: (s.tv ? channels : stations).length > 0, prev, next } as const
+  return { source, playing: source && s.status !== 'paused', status: s.status, name: s.streamName, canStep: stations.length > 0, prev: 'radio.previous', next: 'radio.next' } as const
 }
 
 function liveSub(status: string, t: ReturnType<typeof useT>): string {

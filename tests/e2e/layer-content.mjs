@@ -45,7 +45,7 @@ check('source kept while showing a visualization', /^Vídeo/.test(await kept.get
 // A shader reads the kept source without changing the content.
 const sh = page.locator('.panel.shaders')
 await sh.getByRole('button', { name: 'Copiar Aberración sobre la entrada a tus shaders' }).click()
-await sh.getByRole('button', { name: 'Poner Aberración sobre la entrada en la capa 1' }).click()
+await page.locator('.panel.browser').getByRole('button', { name: 'Poner Aberración sobre la entrada en la capa 1' }).click()
 await page.waitForTimeout(1500)
 check('shader keeps the content as a visualization', (await pressed('Visualización')) === 'true')
 check('shader draws the source', stats(await grab(page)).mean > 2)

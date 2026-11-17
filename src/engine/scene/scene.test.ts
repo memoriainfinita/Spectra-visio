@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { VISUALS, clampParam, defaultParams, fromUnit, getVisual, paramsOf, toUnit } from '../render/registry'
-import { CLIP_COLUMNS, MAX_LAYERS, SCENE_VERSION, applyClip, clipOf, defaultScene, layerAmount, newLayer, normalizeScene, visualSettings } from './scene'
+import { CLIP_COLUMNS, MAX_LAYERS, SCENE_VERSION, applyClip, clipOf, defaultScene, effectsSourceLayer, layerAmount, newLayer, normalizeScene, visualSettings } from './scene'
 
 describe('registry', () => {
   test('unique ids, defaults inside their ranges, a name for every option', () => {
@@ -24,6 +24,25 @@ describe('registry', () => {
     expect(fromUnit(rows, 0.5)).toBe(7)
     expect(toUnit(rows, 12)).toBe(1)
     expect(fromUnit(rows, 1.7)).toBe(12)
+  })
+})
+
+describe('effects source', () => {
+  const scene = (effectsSource: string) => normalizeScene({ version: SCENE_VERSION, effectsSource, layers: [{ id: 'a' }, { id: 'b' }, { id: 'c' }] })
+  const has = (...ids: string[]) => (id: string) => ids.includes(id)
+
+  test('with no choice, the topmost layer that has a source', () => {
+    expect(effectsSourceLayer(scene(''), has('a', 'b'))).toBe('b')
+    expect(effectsSourceLayer(scene(''), has())).toBeNull()
+  })
+  test('a chosen layer is read while it has a source, and nothing when it lost it', () => {
+    expect(effectsSourceLayer(scene('a'), has('a', 'b', 'c'))).toBe('a')
+    expect(effectsSourceLayer(scene('a'), has('b', 'c'))).toBeNull()
+  })
+  test('a choice that is not a layer is dropped; old scenes load with none', () => {
+    expect(scene('gone').effectsSource).toBe('')
+    expect(scene('b').effectsSource).toBe('b')
+    expect(normalizeScene({ version: SCENE_VERSION, layers: [{ id: 'a' }] }).effectsSource).toBe('')
   })
 })
 

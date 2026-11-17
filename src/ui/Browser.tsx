@@ -1,9 +1,14 @@
 import { Star } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { favoritesStore, loadThumbnails, thumbsStore, toggleFavorite } from '../app/library'
+import { notify } from '../app/notices'
 import { sceneStore, setVisual } from '../app/scene'
+import { shadersStore } from '../app/shaders'
+import { visualInputStore } from '../app/visualInput'
 import { visualsStore } from '../engine/render/registry'
 import { INPUT_VISUAL } from '../engine/scene/scene'
+import { readsSource } from '../engine/shaders/readsSource'
+import { USER_PREFIX } from '../engine/shaders/userVisual'
 import { CATEGORIES, nameOf, type VisualCategory } from '../engine/render/visual'
 import { LANGS, translate, type MessageKey } from '../i18n'
 import { useStore } from './useStore'
@@ -31,6 +36,13 @@ export function Browser() {
   useEffect(() => {
     void loadThumbnails()
   }, [])
+
+  // A shader that reads the visual source says so when the layer it goes on has none.
+  const pick = (id: string) => {
+    setVisual(selected, id)
+    const shader = id.startsWith(USER_PREFIX) ? shadersStore.get().find((s) => USER_PREFIX + s.id === id) : undefined
+    if (shader && readsSource(shader.format, shader.source) && visualInputStore.get().kind === 'none') notify(t('shaders.needsSource', { n: selected + 1 }))
+  }
 
   // Names in every language, so a search in either finds it.
   const searchText = useMemo(() => new Map(visuals.map((v) => [v.id, fold([v.id, ...LANGS.map((l) => nameOf(v, (k) => translate(l, k)))].join(' '))])), [visuals])
@@ -65,7 +77,7 @@ export function Browser() {
             const fav = favorites.includes(v.id)
             return (
               <li key={v.id} className={`visual-card${v.id === current ? ' current' : ''}`}>
-                <button className="visual-pick" title={t('browser.pick', { name, n: selected + 1 })} aria-label={t('browser.pick', { name, n: selected + 1 })} onClick={() => setVisual(selected, v.id)}>
+                <button className="visual-pick" title={t('browser.pick', { name, n: selected + 1 })} aria-label={t('browser.pick', { name, n: selected + 1 })} onClick={() => pick(v.id)}>
                   {thumbs[v.id] ? <img src={thumbs[v.id]} alt="" width={192} height={108} /> : <span className="thumb-placeholder" />}
                   <span className="visual-card-name">{name}</span>
                   <span className="visual-card-cat">{t(`browser.${v.category}` as MessageKey)}</span>

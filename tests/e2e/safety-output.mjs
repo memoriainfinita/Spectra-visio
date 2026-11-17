@@ -11,7 +11,7 @@ await sh.getByLabel('Nombre', { exact: true }).fill('Blink')
 await sh.getByLabel('Código ISF o Shadertoy').fill('void mainImage(out vec4 c, in vec2 p) { c = vec4(vec3(step(0.5, fract(iTime * 10.0))), 1.0); }')
 await sh.getByRole('button', { name: 'Añadir' }).click()
 await page.waitForTimeout(500)
-await sh.getByRole('button', { name: /^Poner Blink en la capa/ }).first().click()
+await page.locator('.panel.browser').getByRole('button', { name: /^Poner Blink en la capa/ }).first().click()
 
 const panel = page.locator('.panel.output')
 const [out] = await Promise.all([page.waitForEvent('popup'), panel.getByRole('button', { name: 'Abrir ventana de salida' }).click()])

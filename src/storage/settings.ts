@@ -49,7 +49,6 @@ export interface Settings {
   // The photosensitivity notice was shown and answered.
   flashNotice: boolean
   // A TV channel in the visual input is also the audio source.
-  tvSound: boolean
   // Look up what a playing track lacks: synced lyrics (LRCLIB), cover (MusicBrainz).
   online: { lyrics: boolean; covers: boolean }
 }
@@ -70,7 +69,6 @@ export function defaultSettings(lang: Lang, reduceFlashes = false): Settings {
     performance: DEFAULT_PERFORMANCE,
     reduceFlashes,
     flashNotice: false,
-    tvSound: false,
     online: { lyrics: false, covers: false },
   }
 }
@@ -121,7 +119,6 @@ export function normalizeSettings(raw: unknown, defaults: Settings): Settings {
     performance: r.performance === undefined ? defaults.performance : normalizePerformance(r.performance),
     reduceFlashes: bool(r.reduceFlashes, defaults.reduceFlashes),
     flashNotice: bool(r.flashNotice, defaults.flashNotice),
-    tvSound: bool(r.tvSound, defaults.tvSound),
     online: normalizeOnline(r.online, defaults.online),
   }
 }

@@ -32,7 +32,7 @@ Visualizador de audio en tiempo real para navegador, reconstruido desde cero en 
   - Identidad del ecosistema (Roboto, `#1C2932`, verde) sin aplicar en la app
   - Nombre: decidido por mykl el 2026-11-17, «SpectraVisio» (ya lo es en la app, el manifiesto y los documentos); «Spectra-visio» queda solo como nombre del repositorio y de la carpeta
   - Control externo: `funciones.md` deja fuera OSC y control remoto y la visión del ecosistema prevé que Cue, Core y Remote manejen Visio
-  - Decisiones de Claude sin revisar: los efectos de composición leen la fuente de la capa más alta; el sonido de TV es el del último canal; el Inspector no sigue a los clips lanzados por teclas o MIDI
+  - Decisiones de Claude, revisadas por mykl el 2026-11-17: los efectos de composición leen la fuente de la capa que se elija (selector, por defecto la más alta con fuente); el sonido de cada vídeo o canal es propio y se mezcla (ya no hay un solo sonido de TV); el Inspector sigue sin saltar a los clips lanzados por teclas o MIDI
   - De `a-estudiar.md`, H6 (limitador de destellos) y H1 (aviso de silencio): hechos el 2026-11-17; ver `state-history.md`
 - Documentación desalineada (puesta al día en parte el 2026-11-16):
   - `funciones.md`: revisada con mykl el 2026-11-17 (líneas caducadas corregidas)
@@ -88,7 +88,7 @@ Ronda de revisión de mykl, los tres usos a la vez, con música real:
 - [ ] Móvil real: la disposición de pestañas y hoja (2026-11-17), instalar la app y calidad adaptativa en su equipo (fase 10)
 - [ ] Revisar lo construido sin revisar (lista de «Sin revisar por mykl» en Status)
 - [x] Durante la ronda, anotar qué controles se usan y cuáles no: mykl no anotó ninguno que sobre (2026-11-17)
-- [ ] Revisar las decisiones de Claude pendientes (fuente que leen los efectos de composición, sonido de TV, Inspector y clips lanzados por teclas o MIDI)
+- [x] Decisiones de Claude pendientes: revisadas por mykl el 2026-11-17 (selector de fuente, sonido por fuente, Inspector y clips como estaba)
 
 Después de la ronda:
 - [x] Decidir qué controles sobran: por ahora ninguno (mykl, 2026-11-17)

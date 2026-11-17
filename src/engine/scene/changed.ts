@@ -28,6 +28,7 @@ export function changedAreas(a: SceneState, b: SceneState): Set<string> {
   const top: [keyof SceneState, ChangeArea][] = [
     ['crossfade', 'crossfade'],
     ['effects', 'compEffects'],
+    ['effectsSource', 'compEffects'],
     ['transition', 'transition'],
     ['overlays', 'overlays'],
     ['knobs', 'knobs'],

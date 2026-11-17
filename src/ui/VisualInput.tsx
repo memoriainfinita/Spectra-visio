@@ -1,6 +1,6 @@
 import { Camera, Globe, ImagePlus, Tv, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { cameraDevices, openVisualFile, previewStore, startCamera, stopVisualInput, visualInputStore } from '../app/visualInput'
+import { cameraDevices, openVisualFile, previewStore, setSourceSound, setSourceVolume, startCamera, stopVisualInput, visualInputStore } from '../app/visualInput'
 import type { MessageKey } from '../i18n'
 import { useStore } from './useStore'
 import { useT } from './useT'
@@ -74,6 +74,15 @@ export function Source() {
             ))}
           </select>
         </label>
+      )}
+      {(state.kind === 'video' || state.kind === 'tv') && (
+        <div className="live-row">
+          <label className="check">
+            <input type="checkbox" checked={state.sound} onChange={(e) => setSourceSound(e.target.checked)} />
+            <span>{t('vinput.sound')}</span>
+          </label>
+          <input type="range" min={0} max={1} step={0.01} value={state.volume} aria-label={t('vinput.volume')} onChange={(e) => setSourceVolume(Number(e.target.value))} />
+        </div>
       )}
       <p className="small muted" role="status">
         {state.kind === 'none' ? t('vinput.none') : t(`vinput.status.${state.kind}` as MessageKey, size)}

@@ -178,6 +178,11 @@ export function setTransition(seconds: number): void {
   sceneStore.set((s) => ({ ...s, transition: Math.max(0, Math.min(TRANSITION_MAX, seconds)) }))
 }
 
+// The layer the composition effects read; '' for the topmost one that has a source.
+export function setEffectsSource(layer: string): void {
+  sceneStore.set((s) => (s.effectsSource === layer ? s : { ...s, effectsSource: layer }))
+}
+
 export function selectLayer(layer: number): void {
   sceneStore.set((s) => (s.layers[layer] && s.selected !== layer ? { ...s, selected: layer } : s))
 }

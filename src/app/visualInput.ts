@@ -7,9 +7,10 @@ import { attachHls } from '../engine/tv/hls'
 import { notify } from './notices'
 import { sceneStore, setLayerContent } from './scene'
 import { settingsStore } from './settings'
+import { applySourceSound, dropSourceSound } from './layerSound'
 
-// The visual input of each layer: a camera, a video file (looped, silent), an image or a live
-// TV channel (silent). Not kept between visits: the camera asks for permission again and
+// The visual input of each layer: a camera, a video file (looped), an image or a live TV
+// channel. Videos and channels are silent until the layer's sound is switched on. Not kept between visits: the camera asks for permission again and
 // files have to be chosen again. What the panels open goes to the selected layer, and what
 // they show is the selected layer's.
 
@@ -27,11 +28,14 @@ export interface VisualInputState {
   width: number
   height: number
   error: InputError
+  // A video or channel heard, and how loud: for the visit, like the input itself.
+  sound: boolean
+  volume: number
 }
 
 type InputElement = HTMLVideoElement | HTMLImageElement
 
-const EMPTY: VisualInputState = { kind: 'none', name: '', url: '', page: '', width: 0, height: 0, error: null }
+const EMPTY: VisualInputState = { kind: 'none', name: '', url: '', page: '', width: 0, height: 0, error: null, sound: false, volume: 1 }
 
 // Every layer that has an input, or a failed try at one, by layer id.
 export const inputsStore = createStore<Readonly<Record<string, VisualInputState>>>({})
@@ -50,12 +54,6 @@ interface Slot {
 }
 
 const slots = new Map<string, Slot>()
-// The TV channel's video while one is an input, for its sound.
-let tvVideo: HTMLVideoElement | null = null
-let tvLayer: string | null = null
-
-export const currentTvVideo = () => tvVideo
-
 const slotOf = (layer: string): Slot => {
   let s = slots.get(layer)
   if (!s) slots.set(layer, (s = { op: 0, stream: null, objectUrl: null, stopHls: null }))
@@ -105,6 +103,8 @@ sceneStore.subscribe(() => {
 })
 
 function release(layer: string): void {
+  const playing = elementsStore.get().get(layer)
+  if (playing instanceof HTMLVideoElement) dropSourceSound(playing)
   const s = slots.get(layer)
   if (s) {
     s.stream?.getTracks().forEach((t) => t.stop())
@@ -114,12 +114,26 @@ function release(layer: string): void {
     s.stopHls?.()
     s.stopHls = null
   }
-  if (tvLayer === layer) {
-    tvVideo = null
-    tvLayer = null
-  }
   setVisualSource(layer, null)
   setElement(layer, null)
+}
+
+// Switches the sound of the layer's video or channel, and sets how loud it is.
+export function setSourceSound(on: boolean, layer = selectedLayer()): void {
+  const s = inputOf(layer)
+  const el = elementsStore.get().get(layer)
+  if (!(el instanceof HTMLVideoElement) || (s.kind !== 'video' && s.kind !== 'tv')) return
+  setState(layer, { ...s, sound: on })
+  applySourceSound(el, on, s.volume)
+}
+
+export function setSourceVolume(volume: number, layer = selectedLayer()): void {
+  const s = inputOf(layer)
+  const el = elementsStore.get().get(layer)
+  if (!(el instanceof HTMLVideoElement) || (s.kind !== 'video' && s.kind !== 'tv')) return
+  const v = Math.max(0, Math.min(1, volume))
+  setState(layer, { ...s, volume: v })
+  applySourceSound(el, s.sound, v)
 }
 
 function forget(layer: string): void {
@@ -204,7 +218,7 @@ export async function startCamera(deviceId?: string, layer = selectedLayer()): P
     })
     setVisualSource(layer, { element: v, width: v.videoWidth, height: v.videoHeight, live: true })
     setElement(layer, v)
-    setState(layer, { kind: 'camera', name: track?.label ?? '', url: '', page: '', width: v.videoWidth, height: v.videoHeight, error: null })
+    setState(layer, { kind: 'camera', name: track?.label ?? '', url: '', page: '', width: v.videoWidth, height: v.videoHeight, error: null, sound: false, volume: 1 })
     surface(layer)
   } catch (err) {
     if (mine !== slot.op) return
@@ -229,7 +243,7 @@ export async function openVisualFile(file: File, layer = selectedLayer()): Promi
       if (mine !== slot.op) return
       setVisualSource(layer, { element: v, width: v.videoWidth, height: v.videoHeight, live: true })
       setElement(layer, v)
-      setState(layer, { kind: 'video', name: file.name, url: '', page: '', width: v.videoWidth, height: v.videoHeight, error: null })
+      setState(layer, { kind: 'video', name: file.name, url: '', page: '', width: v.videoWidth, height: v.videoHeight, error: null, sound: false, volume: 1 })
       surface(layer)
     } else {
       const img = new Image()
@@ -238,7 +252,7 @@ export async function openVisualFile(file: File, layer = selectedLayer()): Promi
       if (mine !== slot.op) return
       setVisualSource(layer, { element: img, width: img.naturalWidth, height: img.naturalHeight, live: false })
       setElement(layer, img)
-      setState(layer, { kind: 'image', name: file.name, url: '', page: '', width: img.naturalWidth, height: img.naturalHeight, error: null })
+      setState(layer, { kind: 'image', name: file.name, url: '', page: '', width: img.naturalWidth, height: img.naturalHeight, error: null, sound: false, volume: 1 })
       surface(layer)
     }
   } catch {
@@ -271,9 +285,7 @@ export async function startTv(url: string, name: string, layer = selectedLayer()
     if (mine !== slot.op) return
     setVisualSource(layer, { element: v, width: v.videoWidth, height: v.videoHeight, live: true })
     setElement(layer, v)
-    tvVideo = v
-    tvLayer = layer
-    setState(layer, { kind: 'tv', name, url, page: '', width: v.videoWidth, height: v.videoHeight, error: null })
+    setState(layer, { kind: 'tv', name, url, page: '', width: v.videoWidth, height: v.videoHeight, error: null, sound: false, volume: 1 })
     surface(layer)
     // A channel that stops for good leaves the input instead of freezing on its last frame.
     v.addEventListener('error', () => {
@@ -308,7 +320,7 @@ export async function openVisualUrl(url: string, type: 'video' | 'image', name: 
       if (mine !== slot.op) return
       setVisualSource(layer, { element: v, width: v.videoWidth, height: v.videoHeight, live: true })
       setElement(layer, v)
-      setState(layer, { kind: 'video', name, url, page, width: v.videoWidth, height: v.videoHeight, error: null })
+      setState(layer, { kind: 'video', name, url, page, width: v.videoWidth, height: v.videoHeight, error: null, sound: false, volume: 1 })
       surface(layer)
     } else {
       const img = new Image()
@@ -318,7 +330,7 @@ export async function openVisualUrl(url: string, type: 'video' | 'image', name: 
       if (mine !== slot.op) return
       setVisualSource(layer, { element: img, width: img.naturalWidth, height: img.naturalHeight, live: false })
       setElement(layer, img)
-      setState(layer, { kind: 'image', name, url, page, width: img.naturalWidth, height: img.naturalHeight, error: null })
+      setState(layer, { kind: 'image', name, url, page, width: img.naturalWidth, height: img.naturalHeight, error: null, sound: false, volume: 1 })
       surface(layer)
     }
   } catch {

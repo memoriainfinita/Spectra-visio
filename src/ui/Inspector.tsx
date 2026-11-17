@@ -17,6 +17,7 @@ import {
   setClipLaunch,
   setClipParam,
   setParam,
+  setEffectsSource,
   setLayerContent,
   setTransition,
   setVisual,
@@ -24,7 +25,7 @@ import {
   updateModulation,
 } from '../app/scene'
 import { videoControlStore } from '../app/videoControl'
-import { visualInputStore } from '../app/visualInput'
+import { inputsStore, visualInputStore } from '../app/visualInput'
 import { getEffect } from '../engine/effects/registry'
 import { getVisual, paramsOf, visualsStore } from '../engine/render/registry'
 import { nameOf } from '../engine/render/visual'
@@ -144,6 +145,37 @@ export function effectNames(t: T, list: EffectState[], none = t('inspector.none'
   return on.length ? on.join(', ') : none
 }
 
+// Which layer's visual source the composition effects read.
+function EffectsSource() {
+  const t = useT()
+  const layers = useStore(sceneStore, (s) => s.layers)
+  const chosen = useStore(sceneStore, (s) => s.effectsSource)
+  const inputs = useStore(inputsStore)
+  const withSource = layers.flatMap((l, i) => (inputs[l.id] && inputs[l.id].kind !== 'none' ? [{ id: l.id, n: i + 1, name: inputs[l.id].name }] : []))
+  const lost = chosen !== '' && !withSource.some((l) => l.id === chosen)
+  return (
+    <>
+      <label className="field">
+        <span>{t('inspector.effectsSource')}</span>
+        <select value={chosen} onChange={(e) => setEffectsSource(e.target.value)}>
+          <option value="">{t('inspector.effectsSource.auto')}</option>
+          {withSource.map((l) => (
+            <option key={l.id} value={l.id}>
+              {t('inspector.effectsSource.layer', { n: l.n, name: l.name })}
+            </option>
+          ))}
+          {lost && <option value={chosen}>{t('inspector.effectsSource.none')}</option>}
+        </select>
+      </label>
+      {lost && (
+        <p className="small muted" role="status">
+          {t('inspector.effectsSource.lost')}
+        </p>
+      )}
+    </>
+  )
+}
+
 function CompLevel() {
   const t = useT()
   const effects = useStore(sceneStore, (s) => s.effects)
@@ -154,6 +186,7 @@ function CompLevel() {
     <>
       <KnobRow refs={LEVEL.map((i) => ({ bank: 'comp', i }))} midi="compKnob" label={t('inspector.knobsOf', { name: t('inspector.comp') })} />
       <Fold id="comp.effects" title={t('inspector.compEffects')} meta={effectNames(t, effects)}>
+        <EffectsSource />
         <EffectChain target="comp" />
       </Fold>
       <Fold id="comp.transition" title={t('visuals.transition')} meta={time}>

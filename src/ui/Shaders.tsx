@@ -1,14 +1,10 @@
-import { ClipboardPaste, Play, Plus, Trash2, Upload } from 'lucide-react'
+import { ClipboardPaste, Plus, Trash2, Upload } from 'lucide-react'
 import { useRef, useState } from 'react'
-import { notify } from '../app/notices'
-import { sceneStore, setVisual } from '../app/scene'
-import { visualInputStore } from '../app/visualInput'
 import { SHADER_NAME_MAX, addShader, deleteShader, importShaderFiles, shadersStore } from '../app/shaders'
 import { settingsStore } from '../app/settings'
-import { getVisual } from '../engine/render/registry'
 import { SHADER_EXAMPLES, type ShaderExample } from '../engine/shaders/examples'
 import { readsSource } from '../engine/shaders/readsSource'
-import { USER_PREFIX, type ShaderFormat } from '../engine/shaders/userVisual'
+import type { ShaderFormat } from '../engine/shaders/userVisual'
 import { useStore } from './useStore'
 import { useT } from './useT'
 import { Hint } from './Hint'
@@ -20,7 +16,6 @@ export function Shaders() {
   const t = useT()
   const lang = useStore(settingsStore, (s) => s.lang)
   const shaders = useStore(shadersStore)
-  const selected = useStore(sceneStore, (s) => s.selected)
   const [pasting, setPasting] = useState(false)
   const [name, setName] = useState('')
   const [code, setCode] = useState('')
@@ -34,19 +29,12 @@ export function Shaders() {
     setMessage({ text: lines.join('\n'), error: r.errors.length > 0 })
   }
 
-  // A shader in use on the selected layer; one that reads the visual source says so when the layer has none.
-  const put = (id: string, reads: boolean) => {
-    setVisual(selected, id)
-    if (reads && visualInputStore.get().kind === 'none') notify(t('shaders.needsSource', { n: selected + 1 }))
-  }
   const sub = (format: ShaderFormat, source: string) => [FORMAT[format], ...(readsSource(format, source) ? [t('shaders.usesSource')] : [])].join(' · ')
 
-  // The example goes to the list and onto the selected layer in one step.
+  // The example goes to the list; it is put on a layer from the visualization browser, like any other.
   const onAddExample = (ex: ShaderExample) => {
     const error = addShader(ex.name, ex.source, lang)
     setMessage(error ? { text: error, error: true } : { text: t('shaders.added', { n: 1 }), error: false })
-    const added = shadersStore.get().find((s) => s.name === ex.name)
-    if (!error && added && getVisual(USER_PREFIX + added.id)) put(USER_PREFIX + added.id, readsSource(ex.format, ex.source))
   }
 
   const onAdd = () => {
@@ -135,29 +123,17 @@ export function Shaders() {
         <p className="empty">{t('shaders.empty')}</p>
       ) : (
         <ul className="preset-list">
-          {shaders.map((s) => {
-            const usable = !!getVisual(USER_PREFIX + s.id)
-            return (
-              <li key={s.id} className="preset">
-                <div className="preset-main static">
-                  <span className="preset-name">{s.name}</span>
-                  <span className="preset-sub">{sub(s.format, s.source)}</span>
-                </div>
-                <button
-                  className="icon-btn small"
-                  disabled={!usable}
-                  title={t('shaders.use', { name: s.name, n: selected + 1 })}
-                  aria-label={t('shaders.use', { name: s.name, n: selected + 1 })}
-                  onClick={() => put(USER_PREFIX + s.id, readsSource(s.format, s.source))}
-                >
-                  <Play size={15} />
-                </button>
-                <button className="icon-btn small" title={t('shaders.delete', { name: s.name })} aria-label={t('shaders.delete', { name: s.name })} onClick={() => deleteShader(s.id)}>
-                  <Trash2 size={15} />
-                </button>
-              </li>
-            )
-          })}
+          {shaders.map((s) => (
+            <li key={s.id} className="preset">
+              <div className="preset-main static">
+                <span className="preset-name">{s.name}</span>
+                <span className="preset-sub">{sub(s.format, s.source)}</span>
+              </div>
+              <button className="icon-btn small" title={t('shaders.delete', { name: s.name })} aria-label={t('shaders.delete', { name: s.name })} onClick={() => deleteShader(s.id)}>
+                <Trash2 size={15} />
+              </button>
+            </li>
+          ))}
         </ul>
       )}
     </section>
