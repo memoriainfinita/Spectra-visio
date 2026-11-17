@@ -35,7 +35,7 @@ Visualizador de audio en tiempo real para navegador, reconstruido desde cero en 
   - Decisiones de Claude sin revisar: los efectos de composición leen la fuente de la capa más alta; el sonido de TV es el del último canal; el Inspector no sigue a los clips lanzados por teclas o MIDI
   - De `a-estudiar.md`, H6 (limitador de destellos) y H1 (aviso de silencio): hechos el 2026-11-17; ver `state-history.md`
 - Documentación desalineada (puesta al día en parte el 2026-11-16):
-  - `funciones.md`: se presenta como confirmada el 2026-10-10 y lleva añadidos posteriores sin revisar y líneas caducadas («gestos para cambiar de modo», «cadena de efectos global», «MIDI mediante la modulación», Safari); reconfirmar con mykl
+  - `funciones.md`: revisada con mykl el 2026-11-17 (líneas caducadas corregidas)
   - `arquitectura.md`: corregidos el 2026-11-16 «envolvente» como fuente de modulación (el código tiene banda, golpe, oscilador y MIDI) y el `[PENDIENTE]` de Safari (fuera del alcance, decidido el 2026-11-10). El 2026-11-17 se unificó «entrada visual» en «fuente visual», el término de la interfaz. Quedan: «Universal y proyecto» es especificación de interfaz; un `[PENDIENTE]` (OBS desde GitHub Pages)
   - Visualizaciones: el registro (`src/engine/render/registry.ts`) tiene 23 entradas: 21 propias, Milkdrop y la fuente visual. El README dice 21 propias, que es correcto; `vision.md` del ecosistema dice 23; los textos de las escenas de ejemplo (`demo.gallery.hint`, `demo.show.hint`) dicen 22, sin comprobar a qué cuenta se refieren; `funciones.md` no da cifra
   - README: «Safari is untested» pasa a «Safari is not supported» (Safari fuera, decidido el 2026-11-10)

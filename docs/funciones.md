@@ -1,10 +1,10 @@
 # SpectraVisio — funciones
 
-Lista de funciones confirmada por mykl el 2026-10-10. Es el contrato del rediseño: lo que no está aquí no entra sin pasar antes por revisión.
+Lista de funciones confirmada por mykl el 2026-10-10 y revisada con él el 2026-11-17. Es el contrato del rediseño: lo que no está aquí no entra sin pasar antes por revisión.
 
 ## Alcance
 
-- Usos: reproductor con visuales, directo / VJ y fuente para OBS / streaming. Ninguno excluye a otro
+- Usos: reproductor con visuales, directo / VJ y fuente para OBS / streaming. Los tres están al mismo nivel (2026-11-10) y ninguno excluye a otro
 - Objetivo: app profesional, universal y que merezca la pena usar
 - Carencias señaladas por mykl tras probar la versión del 2026-10-10: sin control de volumen ni de reproducción; hacen falta muchas más visualizaciones
 - Publicación en GitHub Pages
@@ -55,8 +55,8 @@ Lista de funciones confirmada por mykl el 2026-10-10. Es el contrato del redise�
 - Shaders importados: ISF como formato principal; pegar código al estilo Shadertoy con sus variables habituales. No se incluyen shaders de Shadertoy en la app. Sí cuatro de ejemplo escritos para ella, con la licencia del proyecto (dos Shadertoy y dos ISF), que se copian a la lista y se ponen en la capa con un clic en Bibliotecas › Shaders. La lista dice cuáles leen la fuente visual de la capa y un aviso salta si se ponen en una capa que no tiene ninguna
 - Parámetros por visualización (paleta, velocidad, sensibilidad, intensidad) con panel
 - Paletas de color globales
-- Cadena de efectos global sobre cualquier visualización: brillo difuso, realimentación, espejo o caleidoscopio, corrección de color, estelas
-- Entradas visuales: webcam, vídeo, imagen, canal de TV en directo (iptv-org) o vídeo e imagen libres de Wikimedia Commons y la NASA, para shaders y efectos; los vídeos con pausa, posición, recorte, sentido (adelante o atrás), bucle, ida y vuelta o una vez, y velocidad
+- Efectos por capa y de composición sobre cualquier visualización: brillo difuso, realimentación, espejo o caleidoscopio, paleta, corrección de color, estelas, mezcla con la fuente
+- Fuente visual: webcam, vídeo, imagen, canal de TV en directo (iptv-org) o vídeo e imagen libres de Wikimedia Commons y la NASA, para shaders y efectos; los vídeos con pausa, posición, recorte, sentido (adelante o atrás), bucle, ida y vuelta o una vez, y velocidad
 - Transiciones con fundido entre visualizaciones
 - Modo automático: cambio por tiempo, por golpe o al cambiar de canción. En pantalla ancha se enciende en Actuación (o con A, Mi panel, MIDI) y los ajustes están en Inspector › Composición; en móvil el interruptor está en ese panel
 - Navegador de visualizaciones: miniaturas, categorías, búsqueda y favoritos
@@ -66,7 +66,7 @@ Lista de funciones confirmada por mykl el 2026-10-10. Es el contrato del redise�
 
 ## F. Directo / VJ
 
-- Aprendizaje de controles MIDI, mediante la modulación
+- Aprendizaje de controles MIDI con clic derecho sobre cualquier control
 - Sincronía con reloj MIDI externo (caja de ritmos, DAW)
 - Atajos configurables; teclas numéricas para lanzar columnas de clips
 - Cada control de la interfaz tiene un solo sitio; solo se repite en Mi panel, el buscador Ctrl K, los atajos y MIDI. Excepciones: el reproductor (barra superior y Audio) y Visualizaciones (navegador e Inspector)
@@ -76,9 +76,9 @@ Lista de funciones confirmada por mykl el 2026-10-10. Es el contrato del redise�
 - Columnas de clips con nombre y lanzables con una nota MIDI, además de las teclas numéricas; las columnas se lanzan también desde la cabecera de la rejilla de Clips, no desde Actuación
 - Mi panel: los controles de la app se arrastran a sus celdas desde el modo Editar
 - El aviso de deshacer dice qué se deshizo cuando fue una sola cosa
-- Fuente visual por capa: cada capa tiene su cámara, archivo, TV o vídeo en línea. El contenido de una capa y el de un clip es Visualización o Fuente visual, y se elige y se configura en el Inspector (Contenido y Fuente, con su vista previa y los controles del vídeo). La fuente sigue en la capa cuando esta muestra una visualización, y la leen los shaders y el efecto Mezcla con la fuente. «Entrada visual» no sale como una visualización más en el navegador. La fuente se configura solo en el Inspector, también los catálogos de TV y de vídeo e imagen libres, que cargan en la capa seleccionada; Bibliotecas no tiene pestaña de fuentes. Al abrir una fuente, la capa pasa a mostrarla (salvo que ya corra un shader), y un aviso dice si el crossfader oculta el lado de esa capa
+- Fuente visual por capa: cada capa tiene su cámara, archivo, TV o vídeo en línea. El contenido de una capa y el de un clip es Visualización o Fuente visual, y se elige y se configura en el Inspector (Contenido y Fuente, con su vista previa y los controles del vídeo). La fuente sigue en la capa cuando esta muestra una visualización, y la leen los shaders y el efecto Mezcla con la fuente. «Fuente visual» no sale como una visualización más en el navegador. La fuente se configura solo en el Inspector, también los catálogos de TV y de vídeo e imagen libres, que cargan en la capa seleccionada; Bibliotecas no tiene pestaña de fuentes. Al abrir una fuente, la capa pasa a mostrarla (salvo que ya corra un shader), y un aviso dice si el crossfader oculta el lado de esa capa
 - Salida en segunda ventana para proyector, controlada desde la principal
-- Apagón, congelar imagen y estrobo con límite fotosensible global
+- Apagón, congelar imagen y estrobo. Con «Reducir destellos» el estrobo se desactiva y la imagen se limita por zonas para no pasar de tres destellos por segundo (WCAG 2.3.1, no certificado)
 
 ## G. OBS / streaming
 
@@ -95,12 +95,17 @@ Lista de funciones confirmada por mykl el 2026-10-10. Es el contrato del redise�
 - Calidad adaptativa según fps, con medidor de fps opcional
 - Límite de fps y modo de bajo consumo
 - Evitar que la pantalla se apague durante la visualización
-- Firefox, Chrome y Safari, con alternativas donde falte soporte
+- Firefox, Chrome y Edge, con alternativas donde falte soporte. Safari queda fuera del alcance (2026-11-10); el móvil es Android
 
 ## I. Proyecto
 
 - Despliegue en GitHub Pages con GitHub Actions; ruta base relativa en Vite
 - Tests de la lógica de audio y análisis
+
+## Decidido, pendiente de diseño
+
+- Show completo: guardar y exportar todo el espectáculo como `.spectra`; su contenido y su carpeta se diseñan con mykl antes de implementar
+- Fuente visual hacia OBS: se decide tras la ronda de revisión y con un OBS real
 
 ## Fuera de alcance
 
@@ -114,7 +119,7 @@ Lista de funciones confirmada por mykl el 2026-10-10. Es el contrato del redise�
 
 ## Soporte de navegadores
 
-Consultado el 2026-10-10.
+Consultado el 2026-10-10. La columna de Safari queda como referencia: Safari está fuera del alcance desde el 2026-11-10.
 
 | Función | Chrome / Edge | Firefox | Safari | Fuente |
 |---|---|---|---|---|
