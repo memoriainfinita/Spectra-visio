@@ -13,13 +13,14 @@ Visualizador de audio en tiempo real para navegador, reconstruido desde cero en 
 
 ## Status
 
-**Retomar por:** la ronda de revisión de mykl con música real. Mykl revisó en su Firefox los arreglos del 2026-11-16, H6 y H1 el 2026-11-17: todo bien.
+**Retomar por:** el resto de la ronda de revisión de mykl con música real (reproductor, OBS y grabación, móvil real, fuente por capa, fases 1 a 5) y la prueba del sonido por fuente con un canal de TV real. Mykl revisó el 2026-11-17: Firefox (arreglos del 11-16, H6, H1, ventana minimizada), uso libre como directo, MIDI y dos pantallas: todo bien.
 
 **Fase:** en progreso (confirmada por mykl el 2026-11-17; la carpeta es `1_in-progress`. La app está publicada en Pages para ir probándola, y eso no cambia la fase).
 
 - Construida, no terminada (revisión del 2026-11-10). No entra ninguna función nueva hasta cerrar la ronda de revisión de mykl. Las 10 fases de `docs/arquitectura.md`, el rediseño de la interfaz (5 fases) y todas las funciones de `docs/funciones.md` están hechos. Base: TypeScript 7, React 19, Vite 8, Vitest 5, store propio, español e inglés, ajustes en IndexedDB, disposición con muelles, CI con despliegue a Pages
-- Repo público `memoriainfinita/Spectra-visio`; Pages en https://memoriainfinita.github.io/Spectra-visio/. Subido el 2026-11-17 a petición de mykl: `origin/main` y `main` coinciden (hasta la decisión de la escena de arranque); los arreglos de la auditoría, de los defectos de diseño y el estado ya están en GitHub y Pages los despliega por CI
+- Repo público `memoriainfinita/Spectra-visio`; Pages en https://memoriainfinita.github.io/Spectra-visio/. Subido el 2026-11-17 a petición de mykl: `origin/main` y `main` coinciden (hasta la decisión de la escena de arranque); los arreglos de la auditoría, de los defectos de diseño y el estado ya están en GitHub y Pages los despliega por CI El 2026-11-17 se subió hasta `22b403a` (H6, H1, `funciones.md`); lo posterior (shaders en un solo sitio, selector de fuente de efectos, sonido por fuente) está en local hasta que mykl pida subirlo.
 - Comprobaciones del 2026-11-16: typecheck, 260 tests unitarios, build y `pnpm audit --prod` (sin vulnerabilidades conocidas) en verde; guiones e2e de lo tocado en Firefox y Chrome, 30 de 30. «En verde» significa que el guion no se colgó ni imprimió `FAIL` (`tests/e2e/README.md`: no son aserciones). Tras los arreglos de diseño del mismo día: typecheck, 260 tests unitarios, build y e2e de `docks`, `clips`, `live`, `mypanel`, `knobs`, `demos`, `presets`, `scenes`, `settings`, `inspector` y `layers` en Firefox y Chrome: 21 de 22 a la primera. El `FAIL` intermitente de `demos` en Chrome se identificó el 2026-11-17: el guion leía el aviso «Escena cargada» después de medir fotogramas y en la primera escena ya se había retirado; ahora lo lee al pulsar y pasó 3 de 3 en Chrome y 1 en Firefox. Tras ello: typecheck, 260 tests y build en verde. Última batería completa: 2026-11-04, 90 de 91 (`pwa` en Firefox falló una vez y pasó sola)
+- Comprobaciones del 2026-11-17: batería completa (92 ejecuciones, sin `FAIL` ni cuelgues) sobre `22b403a`; tras shaders, selector y sonido por fuente: typecheck, 305 tests unitarios, build y e2e de lo tocado en Firefox y Chrome en verde (un `FAIL` intermitente de `settings` en Firefox pasó al repetirlo); `source-sound.mjs` mide el audio con un vídeo con tono. Batería completa sobre esa versión lanzada el mismo día.
 - Auditoría del 2026-11-16 (Claude, a petición de mykl): arreglados tres fallos y cuatro riesgos, cada uno reproducido antes en Chrome silenciado. Sin leer: `src/ui`, visualizaciones, efectos, lectores de shaders, análisis previo y muelles (solo barrido automático de claves de traducción, clases CSS y exportaciones). Firefox con la ventana principal oculta no se pudo medir (sin CDP en el Playwright de Firefox). Detalle en `state-history.md`
 
 - Defectos vistos el 2026-11-10, arreglados el 2026-11-16 sin que mykl los haya visto en su Firefox (medidos en Chrome a 1280 × 800, 1000 y 820 px; el porqué en `state-history.md`): barra Actuación cortada y oculta tras Mandos y Mi panel; barra superior pisada a 820 px; Clips con scroll horizontal; escena «Espectáculo completo» quemada a blanco en silencio; «Importar» y «Exportar todos» sin decir que son de presets. Los diseños de fábrica nuevos solo los ve quien no ha tocado los diseños o pulsa Restablecer: el navegador guarda los cuatro de fábrica en cuanto cambia algo, y esos conservan la disposición antigua (mykl, que los tiene guardados, debe restablecer Directo y Portátil). Quedan vistos de esa lista:
@@ -84,9 +85,10 @@ Antes de la ronda:
 Ronda de revisión de mykl, los tres usos a la vez, con música real:
 - [ ] Reproductor: lista, gapless, radios, Audius, letras; captura de pestaña en Chrome o Edge; stream con CORS real de otro dominio
 - [x] Directo: clips, columnas, menú de clip, ventana de muelle real, guardado al cerrar, escenas (mykl, 2026-11-17). MIDI con controlador real y dos pantallas, también
-- [ ] OBS y grabación (fase 9), también desde Pages: la conexión a OBS desde GitHub Pages pide el permiso de red local
-- [ ] Móvil real: la disposición de pestañas y hoja (2026-11-17), instalar la app y calidad adaptativa en su equipo (fase 10)
+- [ ] OBS y grabación (fase 9), también desde Pages: la conexión a OBS desde GitHub Pages pide el permiso de red local. El audio no viaja por la fuente de navegador: en OBS se captura aparte (mykl vio llegar la imagen el 2026-11-17)
+- [ ] Móvil real: la disposición de pestañas y hoja (probada por mykl el 2026-11-17, bien); instalar la app falla con «ya está instalada» (mykl, 2026-11-17: revisar por adb qué hay instalado) y falta la calidad adaptativa en su equipo (fase 10)
 - [ ] Revisar lo construido sin revisar (lista de «Sin revisar por mykl» en Status)
+- [ ] Sonido por fuente: probarlo con un canal de TV real, con dos fuentes a la vez y con la canción; ajustar a oído el volumen
 - [x] Durante la ronda, anotar qué controles se usan y cuáles no: mykl no anotó ninguno que sobre (2026-11-17)
 - [x] Decisiones de Claude pendientes: revisadas por mykl el 2026-11-17 (selector de fuente, sonido por fuente, Inspector y clips como estaba)
 
@@ -94,7 +96,7 @@ Después de la ronda:
 - [x] Decidir qué controles sobran: por ahora ninguno (mykl, 2026-11-17)
 - [ ] Show completo: diseño de qué guarda (rótulos, shaders importados, fuentes visuales, MIDI) y de la carpeta `visio/` de `.spectra`; aprobación de mykl antes de implementar
 - [x] H6 y H1 probados por mykl el 2026-11-17
-- [ ] Decisiones abiertas de Status (fuente visual a OBS, identidad, nombre, control externo)
+- [ ] Decisiones abiertas de Status (fuente visual a OBS, identidad, control externo)
 
 Documentación:
 - [x] `vision.md` del ecosistema (`0_draft/spectra-ecosystem`): corregido el 2026-11-17, Visio es app completa (sin commit allí)
