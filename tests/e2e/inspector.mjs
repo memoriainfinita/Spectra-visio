@@ -134,11 +134,13 @@ await clips.getByRole('button', { name: /^Lanzar .* en la capa 1$/ }).first().cl
 log('laptop, clip clicked: left shows', await shownTab('left'), '| level', await shown())
 await page.screenshot({ path: `${OUT}/inspector-laptop-${kind}.png` })
 
-// Narrow: the Inspector in the column of panels; picking a layer leaves the layouts alone.
+// Narrow: the Inspector is a sheet, closed until a layer is picked in the Mix tab; picking a layer leaves the layouts alone.
 await page.setViewportSize({ width: 700, height: 900 })
 await page.waitForTimeout(400)
-log('700: inspector', await insp.count(), '| visible', await insp.isVisible())
+log('700: inspector', await insp.count(), '| sheet closed', !(await insp.isVisible()))
+await page.locator('.mobile-nav').getByRole('button', { name: 'Mezcla' }).click()
 await page.locator('.panel.visuals .layer-pick').filter({ hasText: /^1 / }).click()
+log('700: picking a layer opens the sheet:', await insp.isVisible())
 await page.setViewportSize({ width: 1024, height: 768 })
 await page.waitForTimeout(400)
 log('back to laptop after a pick at 700: left shows', await shownTab('left'))

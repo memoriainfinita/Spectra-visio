@@ -89,7 +89,7 @@ Lista de funciones confirmada por mykl el 2026-10-10. Es el contrato del redise�
 ## H. Universal
 
 - App instalable (PWA) y uso sin conexión
-- Móvil y táctil: gestos para cambiar de modo y controles grandes
+- Móvil y táctil: escenario y reproductor siempre a la vista, cinco pestañas abajo e Inspector como hoja; gestos para cambiar de modo y controles grandes
 - Interfaz en español e inglés
 - Accesibilidad: todo manejable con teclado, preferencia de movimiento reducido, aviso de fotosensibilidad
 - Calidad adaptativa según fps, con medidor de fps opcional

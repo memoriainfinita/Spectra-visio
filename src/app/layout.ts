@@ -1,5 +1,7 @@
 import { get, set } from 'idb-keyval'
 import { createStore } from '../core/store'
+import type { PanelId } from '../ui/dock/panels'
+import { revealOnMobile } from './mobile'
 import {
   CUSTOM_MAX,
   activeLayout,
@@ -84,10 +86,27 @@ export const setStripHeight = (px: number | null): void => edit((l) => setStripI
 export const setZoneSizes = (zone: ZoneId, sizes: number[], strip?: number): void =>
   edit((l) => setZoneIn(strip === undefined ? l : setStripIn(l, strip), zone, sizes))
 
-// Shows `dock`'s tab, wherever it is in the layout. Not below 800 px, where every panel is
-// in one column, nor while the dock is in a window of its own.
+// The panel that stands for each dock in the narrow layout.
+const DOCK_PANEL: Record<DockId, PanelId> = {
+  layers: 'visuals',
+  inspector: 'inspector',
+  library: 'browser',
+  clips: 'clips',
+  audio: 'player',
+  perform: 'perform',
+  knobs: 'knobs',
+  modulators: 'modulators',
+  mypanel: 'mypanel',
+}
+
+// Shows `dock`'s tab, wherever it is in the layout. Below 800 px it is the tab or the sheet
+// that holds it; not while the dock is in a window of its own.
 export function revealDock(dock: DockId): void {
-  if (!docked || dockUi.get().windows.includes(dock)) return
+  if (!docked) {
+    revealOnMobile(DOCK_PANEL[dock])
+    return
+  }
+  if (dockUi.get().windows.includes(dock)) return
   edit((l) => {
     for (const zone of ['left', 'right', 'strip'] as const) {
       const i = l.zones[zone].findIndex((s) => s.tabs.includes(dock))

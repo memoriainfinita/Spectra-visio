@@ -70,6 +70,25 @@ await page.waitForTimeout(600)
 log('double tap: fullscreen', await page.evaluate(() => !!document.fullscreenElement), '| bar', await page.locator('.touch-bar').count())
 await page.evaluate(() => document.exitFullscreen?.().catch(() => {}))
 
+// The narrow layout: stage and player always in view, five tabs, the Inspector as a sheet.
+const nav = page.locator('.mobile-nav')
+const tabs = await nav.getByRole('button').allTextContents()
+log('tabs:', tabs.join(' | '), '| current:', await nav.locator('[aria-current=page]').textContent())
+const boxOf = async (sel) => page.locator(sel).boundingBox()
+await nav.getByRole('button', { name: 'Directo' }).tap()
+const [st, pl, body] = [await boxOf('.stage'), await boxOf('.mobile-player'), await boxOf('.mobile-body')]
+log('Directo: clips shown', await page.locator('.panel.clips').isVisible(), '| music hidden', !(await page.locator('.panel.player').isVisible()), '| stage then player then panels', st.y + st.height <= pl.y + 1 && pl.y + pl.height <= body.y + 1)
+await page.locator('.mobile-inspector').tap()
+const sheet = await boxOf('.mobile-sheet')
+log('sheet open:', await page.locator('.mobile-sheet').isVisible(), '| starts under the player', Math.abs(sheet.y - (pl.y + pl.height)) <= 1, [sheet.y, pl.y, pl.height], '| inspector in it', await page.locator('.mobile-sheet .panel.inspector').count())
+await page.keyboard.press('Escape')
+log('Escape closes the sheet:', !(await page.locator('.mobile-sheet').isVisible()))
+await nav.getByRole('button', { name: 'Mezcla' }).tap()
+await page.locator('#mobile-tab-mix .layer-pick').first().tap()
+log('picking a layer opens the sheet:', await page.locator('.mobile-sheet').isVisible())
+await page.locator('.mobile-sheet').getByRole('button', { name: 'Cerrar el Inspector' }).tap()
+await nav.getByRole('button', { name: 'Directo' }).tap()
+
 // Long help: a tap shows its bubble, another one hides it.
 const hint = page.locator('.panel.clips .hint')
 // Taps at the button's place: the locator's own tap scrolls first, and a scroll closes it.

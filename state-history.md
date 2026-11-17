@@ -247,3 +247,12 @@ Status se había vuelto un diario fechado. Se copia aquí tal cual (revisión y 
 - Clips: a 1280 × 800 el cuerpo de la pila medía 182 px y el panel pedía 198 con tres capas. Celdas de 36 a 30 px de alto; ya no hay scroll vertical con tres capas.
 - Textos de las demos: «22 visualizaciones» es correcto (siete, siete y ocho por familia; `media` es una fuente, no una visualización).
 - `demos.mjs`: leía el aviso «Escena cargada» tras 1,5 s y la medición de fotogramas; en la primera escena ya se había retirado y daba un `FAIL` intermitente. Ahora lo lee nada más pulsar.
+
+### 2026-11-17 — Disposición móvil
+
+- Elegida por mykl entre dos opciones dibujadas en un lienzo: A, cinco pestañas por lo que se hace (Música, Directo, Mezcla, Salida, Más) frente a B, cuatro pestañas más largas. Reparto de paneles en `src/app/mobile.ts`; `src/ui/MobileShell.tsx` pinta el reproductor reducido con el botón Inspector, las pestañas y la hoja.
+- Los paneles de las pestañas ocultas siguen montados (`hidden`), así que la búsqueda los encuentra; `revealDock` y la búsqueda abren la pestaña o la hoja con `revealOnMobile`. `inspectLayer` e `inspectComposition` abren la hoja; `inspectClip` no, para no tapar Clips en directo.
+- La hoja arranca bajo el reproductor, que se mueve cuando el escenario cambia de alto: se mide al abrir y se vigilan el reproductor y el escenario.
+- Controles táctiles por debajo de 44 px (52 en `touch`): corregidos con reglas `pointer: coarse` (botones pequeños, etiquetas de mando, selector de capas del Inspector, filas de pliegue, botón de ayuda). Auto ya solo está en Actuación en móvil; el BPM sigue en Análisis.
+- Los guiones e2e corren contra `dist`: tras cambiar código hace falta `pnpm build` antes de `pnpm e2e`. Lo comprobé tarde: la primera pasada de esta tarea fue contra una build vieja.
+- `touch.mjs` e `inspector.mjs` actualizados a la disposición nueva; `touch.mjs` comprueba pestañas, orden escenario-reproductor-paneles, apertura y cierre de la hoja.

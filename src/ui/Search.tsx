@@ -1,6 +1,7 @@
 import { Search as SearchIcon } from 'lucide-react'
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import { revealDock } from '../app/layout'
+import { revealOnMobile } from '../app/mobile'
 import { runAction } from '../app/live'
 import { settingsStore } from '../app/settings'
 import { openSettings, searchStore, shelfRequest } from '../app/ui'
@@ -42,11 +43,15 @@ function accessibleName(el: HTMLElement): string {
 // Takes the user to a control: shows its dock, shelf, settings section or menu, then
 // focuses it and marks it for a moment.
 function goTo(el: HTMLElement, panel: PanelId | null, section: string | null): void {
-  if (section) openSettings(section)
-  else if (panel) {
+  if (section) {
+    openSettings(section)
+    revealOnMobile('settings')
+  } else if (panel) {
     const dock = dockOfPanel(panel)
     if (dock) revealDock(dock)
     if (dock === 'library') shelfRequest.set(panel)
+    // Narrow screens: the tab that holds the panel itself (the shelves are in different ones).
+    revealOnMobile(panel)
     // The top bar's menus hold the sources and the output.
     if (panel === 'sources' || panel === 'output') {
       const pop = document.querySelector<HTMLElement>(panel === 'sources' ? '.bar-source .pop-button' : '.bar-end .pop .pop-button')

@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react'
 import { dockUi, layoutsStore, resetLayout, setWidthClass } from './app/layout'
+import { setMobile } from './app/mobile'
 import { settingsStore } from './app/settings'
 import { closeSettings, openSettings, settingsUi } from './app/ui'
 import { activeLayout, isBuiltIn, type WidthClass } from './engine/layout/layout'
 import { DockWindows } from './ui/dock/DockWindows'
 import { EditBar, Splitter, StripSplitter, Zone, zoneGrid } from './ui/dock/Docks'
-import { PanelPortals, PanelSlot, type PanelId } from './ui/dock/panels'
+import { PanelPortals } from './ui/dock/panels'
 import { SettingsWindow } from './ui/dock/SettingsWindow'
 import { FlashNotice } from './ui/FlashNotice'
 import { ClipMenu } from './ui/ClipMenu'
 import { KnobMenu } from './ui/KnobMenu'
+import { MobileShell } from './ui/MobileShell'
 import { PanelDrag } from './ui/PanelDrag'
 import { Notices } from './ui/Notices'
 import { SearchDialog } from './ui/Search'
@@ -44,9 +46,6 @@ function useWidth(): Width {
   return width
 }
 
-// The narrow column, in the order the panels were always shown.
-const COLUMN: PanelId[] = ['player', 'queue', 'browser', 'clips', 'mypanel', 'knobs', 'modulators', 'midi', 'output', 'visuals', 'inspector', 'presets', 'shaders', 'sources', 'analysis', 'settings']
-
 export function App() {
   const t = useT()
   const lang = useStore(settingsStore, (s) => s.lang)
@@ -61,6 +60,7 @@ export function App() {
   const [live, setLive] = useState<{ left: number | null; right: number | null }>({ left: null, right: null })
   usePlayerShortcuts()
   setWidthClass(wide ? width : null)
+  setMobile(!wide)
 
   useEffect(() => {
     document.documentElement.lang = lang
@@ -70,7 +70,7 @@ export function App() {
   const sides = (['left', 'right'] as const).filter((s) => layout.zones[s].length > 0 && !layouts.locked)
 
   return (
-    <div className={`app${wide ? ' wide' : ''}`}>
+    <div className={`app${wide ? ' wide' : ' mobile'}`}>
       <PanelPortals />
       {wide ? (
         <>
@@ -78,19 +78,14 @@ export function App() {
           {editing && <EditBar layout={layout} name={layoutName(t, layout)} canReset={isBuiltIn(layout.id)} onReset={resetLayout} />}
         </>
       ) : (
-        <header className="topbar">
-          <div>
-            <h1>{t('app.title')}</h1>
-            <p className="muted small">{t('app.tagline')}</p>
-          </div>
-        </header>
+        <h1 className="visually-hidden">{t('app.title')}</h1>
       )}
 
       <UpdateBanner />
 
       {/* The stage keeps its place in the tree in every layout: going fullscreen resizes
           the window across the breakpoint, and a remounted stage would leave fullscreen. */}
-      <main className={wide ? 'layout-docks' : 'layout'} style={wide ? zoneGrid(layout, editing, widths) : undefined}>
+      <main className={wide ? 'layout-docks' : 'layout-mobile'} style={wide ? zoneGrid(layout, editing, widths) : undefined}>
         <div className="main-col">
           <Stage />
           {wide && layout.zones.strip.length > 0 && !layouts.locked && <StripSplitter height={layout.strip} />}
@@ -105,7 +100,7 @@ export function App() {
             ))}
           </>
         ) : (
-          COLUMN.map((id) => <PanelSlot key={id} id={id} />)
+          <MobileShell />
         )}
       </main>
 
