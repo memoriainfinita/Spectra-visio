@@ -19,7 +19,8 @@ await page.waitForTimeout(500)
 log('after reload: shown', await dialog.count())
 
 // Mean brightness of the stage at every frame for `ms`.
-const trace = (ms) => page.evaluate((ms) => new Promise((resolve) => {
+// `left` reads the left half only.
+const trace = (ms, left = false) => page.evaluate(([ms, left]) => new Promise((resolve) => {
   const src = document.querySelector('.stage canvas')
   const c = document.createElement('canvas')
   c.width = 16; c.height = 9
@@ -27,7 +28,8 @@ const trace = (ms) => page.evaluate((ms) => new Promise((resolve) => {
   const out = []
   const t0 = performance.now()
   const step = () => {
-    ctx.drawImage(src, 0, 0, 16, 9)
+    if (left) ctx.drawImage(src, 0, 0, src.width / 2, src.height, 0, 0, 16, 9)
+    else ctx.drawImage(src, 0, 0, 16, 9)
     const d = ctx.getImageData(0, 0, 16, 9).data
     let s = 0
     for (let i = 0; i < d.length; i += 4) s += (d[i] + d[i + 1] + d[i + 2]) / 3
@@ -36,7 +38,7 @@ const trace = (ms) => page.evaluate((ms) => new Promise((resolve) => {
     else resolve(out)
   }
   requestAnimationFrame(step)
-}), ms)
+}), [ms, left])
 const summary = (v) => ({ frames: v.length, min: Math.min(...v), max: Math.max(...v), jumps: v.slice(1).filter((x, i) => Math.abs(x - v[i]) > 40).length })
 
 log('playing:', await loadTrack(page))
@@ -56,6 +58,20 @@ await page.locator('#settingspanel-access').getByLabel('Reducir destellos').chec
 await page.waitForTimeout(500)
 log('blink, reduced:', JSON.stringify(summary(await trace(1500))), '| strobe disabled', await live.getByRole('button', { name: 'Estrobo', exact: true }).isDisabled())
 
+// Only the left half blinks: the whole image barely moves, that half must still be limited.
+await sh.getByRole('button', { name: 'Pegar código' }).click()
+await sh.getByLabel('Nombre', { exact: true }).fill('Half')
+await sh.getByLabel('Código ISF o Shadertoy').fill('void mainImage(out vec4 c, in vec2 p) { c = vec4(vec3(p.x < iResolution.x * 0.5 ? step(0.5, fract(iTime * 10.0)) : 0.0), 1.0); }')
+await sh.getByRole('button', { name: 'Añadir' }).click()
+await page.waitForTimeout(500)
+await sh.getByRole('button', { name: /^Poner Half en la capa/ }).first().click()
+await page.locator('#settingspanel-access').getByLabel('Reducir destellos').uncheck()
+await page.waitForTimeout(2500)
+log('half blink, normal, left half:', JSON.stringify(summary(await trace(1500, true))))
+await page.locator('#settingspanel-access').getByLabel('Reducir destellos').check()
+await page.waitForTimeout(500)
+log('half blink, reduced, left half:', JSON.stringify(summary(await trace(1500, true))))
+
 // A steady white image reaches full brightness, slowly.
 await sh.getByRole('button', { name: 'Pegar código' }).click()
 await sh.getByLabel('Nombre', { exact: true }).fill('White')
@@ -63,7 +79,7 @@ await sh.getByLabel('Código ISF o Shadertoy').fill('void mainImage(out vec4 c, 
 await sh.getByRole('button', { name: 'Añadir' }).click()
 await page.waitForTimeout(500)
 await sh.getByRole('button', { name: /^Poner White en la capa/ }).first().click()
-const rise = await trace(2500)
+const rise = await trace(6000)
 // The layer fades in over the transition too; report when it gets near white.
 log('white, reduced: frames to 240+', rise.findIndex((x) => x >= 240), 'of', rise.length, '| first 10', rise.slice(0, 10).join(','))
 await page.locator('#settingspanel-access').getByLabel('Reducir destellos').uncheck()
@@ -89,5 +105,6 @@ log('after reload: cap', await out.getByLabel('Límite de fps').inputValue(), '|
 
 await sh.getByRole('button', { name: 'Borrar Blink' }).click()
 await sh.getByRole('button', { name: 'Borrar White' }).click()
+await sh.getByRole('button', { name: 'Borrar Half' }).click()
 log('errors:', errors.length ? errors.join('\n  ') : 'none')
 await browser.close()

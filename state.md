@@ -33,7 +33,7 @@ Visualizador de audio en tiempo real para navegador, reconstruido desde cero en 
   - Nombre: decidido por mykl el 2026-11-17, «SpectraVisio» (ya lo es en la app, el manifiesto y los documentos); «Spectra-visio» queda solo como nombre del repositorio y de la carpeta
   - Control externo: `funciones.md` deja fuera OSC y control remoto y la visión del ecosistema prevé que Cue, Core y Remote manejen Visio
   - Decisiones de Claude sin revisar: los efectos de composición leen la fuente de la capa más alta; el sonido de TV es el del último canal; el Inspector no sigue a los clips lanzados por teclas o MIDI
-  - De `a-estudiar.md`, dos que son calidad y no ideas: H6 (el limitador de destellos no cumple WCAG 2.3.1) y H1 (aviso de silencio)
+  - De `a-estudiar.md`, H6 (limitador de destellos) y H1 (aviso de silencio): hechos el 2026-11-17; ver `state-history.md`
 - Documentación desalineada (puesta al día en parte el 2026-11-16):
   - `funciones.md`: se presenta como confirmada el 2026-10-10 y lleva añadidos posteriores sin revisar y líneas caducadas («gestos para cambiar de modo», «cadena de efectos global», «MIDI mediante la modulación», Safari); reconfirmar con mykl
   - `arquitectura.md`: corregidos el 2026-11-16 «envolvente» como fuente de modulación (el código tiene banda, golpe, oscilador y MIDI) y el `[PENDIENTE]` de Safari (fuera del alcance, decidido el 2026-11-10). El 2026-11-17 se unificó «entrada visual» en «fuente visual», el término de la interfaz. Quedan: «Universal y proyecto» es especificación de interfaz; un `[PENDIENTE]` (OBS desde GitHub Pages)
@@ -92,7 +92,7 @@ Ronda de revisión de mykl, los tres usos a la vez, con música real:
 Después de la ronda:
 - [ ] Decidir qué controles sobran, con lo anotado
 - [ ] Show completo: diseño de qué guarda (rótulos, shaders importados, fuentes visuales, MIDI) y de la carpeta `visio/` de `.spectra`; aprobación de mykl antes de implementar
-- [ ] Limitador de destellos según WCAG 2.3.1 (H6) y aviso de silencio (H1)
+- [ ] Que mykl pruebe H6 (Ajustes › Accesibilidad › Reducir destellos, las subidas de brillo son lentas a propósito) y H1 (micrófono silenciado o pestaña sin sonido)
 - [ ] Decisiones abiertas de Status (fuente visual a OBS, identidad, nombre, control externo)
 
 Documentación:

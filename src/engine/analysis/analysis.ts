@@ -1,6 +1,7 @@
 import { createStore } from '../../core/store'
 import type { AnalysisSettings } from '../../storage/settings'
 import { peekGraph } from '../audio/graph'
+import { isDigitalSilence } from '../audio/silence'
 import { Analyzer, FFT_SIZE, createFrame, type AnalysisFrame, type ExternalClock, type TempoMode, type TrackClock } from './analyzer'
 import { DelayLine } from './delay'
 import { requestFrame, cancelFrame } from '../../core/frames'
@@ -40,6 +41,8 @@ export class Analysis {
   private readonly waveR = new Float32Array(FFT_SIZE)
   private readonly settings: () => AnalysisSettings
   private raf = 0
+  // The last frame of both channels was exact zeros.
+  silent = false
   private lastPublish = -Infinity
   // The file playing with what its analysis beforehand found; set by the app.
   trackSource: (() => TrackClock | null) | null = null
@@ -71,6 +74,7 @@ export class Analysis {
     graph.analyserR.getFloatFrequencyData(this.specR)
     graph.analyserL.getFloatTimeDomainData(this.waveL)
     graph.analyserR.getFloatTimeDomainData(this.waveR)
+    this.silent = isDigitalSilence(this.waveL, this.waveR)
     const input = {
       specL: this.specL,
       specR: this.specR,

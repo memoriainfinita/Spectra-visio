@@ -5,6 +5,7 @@ import type { Picked } from '../engine/player/pick'
 import { Player } from '../engine/player/player'
 import { Renderer } from '../engine/render/renderer'
 import { attachLyrics } from './lyrics'
+import { initSilenceWatch } from './silence'
 import { sceneStore } from './scene'
 import { settingsStore } from './settings'
 
@@ -17,6 +18,7 @@ export const renderer = new Renderer(() => sceneStore.get(), (now) => analysis.f
 export async function initEngine(): Promise<void> {
   await persistence.start()
   analysis.start()
+  initSilenceWatch()
   // Playing a track takes the analysis back from the mic, screen or stream.
   player.state.subscribe(() => {
     const status = player.state.get().status
