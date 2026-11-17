@@ -82,7 +82,7 @@ Lista de funciones confirmada por mykl el 2026-10-10 y revisada con él el 2026-
 
 ## G. OBS / streaming
 
-- Fuente para OBS por URL, sin interfaz, con fondo transparente o negro; la imagen, el audio y el análisis los da la app abierta en el navegador, por obs-websocket
+- Fuente para OBS por URL, sin interfaz, con fondo transparente o negro; la imagen la dibuja la fuente de navegador de OBS; el análisis y los controles llegan de la app abierta en el navegador, por obs-websocket. El audio no viaja por ahí: se captura en OBS aparte (por ejemplo, captura de salida de aplicación del navegador)
 - Resolución fija y perfiles de calidad
 - Grabación de la salida a vídeo con audio
 
