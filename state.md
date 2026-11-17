@@ -15,7 +15,7 @@ Visualizador de audio en tiempo real para navegador, reconstruido desde cero en 
 
 **Retomar por:** lo que queda de «Antes de la ronda» del TODO (probar Firefox con la ventana minimizada, batería completa) y después la ronda de revisión de mykl con música real. Mykl mira en su Firefox los arreglos del 2026-11-16 (Actuación, barra superior, Clips, escena «Espectáculo completo») antes de la ronda.
 
-**Fase:** en progreso (la carpeta es `1_in-progress`; Claude lo anota así el 2026-11-16 y mykl no lo ha confirmado. La app está publicada en Pages para ir probándola, y eso no cambia la fase).
+**Fase:** en progreso (confirmada por mykl el 2026-11-17; la carpeta es `1_in-progress`. La app está publicada en Pages para ir probándola, y eso no cambia la fase).
 
 - Construida, no terminada (revisión del 2026-11-10). No entra ninguna función nueva hasta cerrar la ronda de revisión de mykl. Las 10 fases de `docs/arquitectura.md`, el rediseño de la interfaz (5 fases) y todas las funciones de `docs/funciones.md` están hechos. Base: TypeScript 7, React 19, Vite 8, Vitest 5, store propio, español e inglés, ajustes en IndexedDB, disposición con muelles, CI con despliegue a Pages
 - Repo público `memoriainfinita/Spectra-visio`; Pages en https://memoriainfinita.github.io/Spectra-visio/. Subido el 2026-11-17 a petición de mykl: `origin/main` y `main` coinciden (hasta la decisión de la escena de arranque); los arreglos de la auditoría, de los defectos de diseño y el estado ya están en GitHub y Pages los despliega por CI
@@ -30,13 +30,13 @@ Visualizador de audio en tiempo real para navegador, reconstruido desde cero en 
 - Decisiones abiertas, de mykl:
   - La fuente visual no llega a OBS
   - Identidad del ecosistema (Roboto, `#1C2932`, verde) sin aplicar en la app
-  - Nombre: «Spectra-visio» o «SpectraVisio»
+  - Nombre: decidido por mykl el 2026-11-17, «SpectraVisio» (ya lo es en la app, el manifiesto y los documentos); «Spectra-visio» queda solo como nombre del repositorio y de la carpeta
   - Control externo: `funciones.md` deja fuera OSC y control remoto y la visión del ecosistema prevé que Cue, Core y Remote manejen Visio
   - Decisiones de Claude sin revisar: los efectos de composición leen la fuente de la capa más alta; el sonido de TV es el del último canal; el Inspector no sigue a los clips lanzados por teclas o MIDI
   - De `a-estudiar.md`, dos que son calidad y no ideas: H6 (el limitador de destellos no cumple WCAG 2.3.1) y H1 (aviso de silencio)
 - Documentación desalineada (puesta al día en parte el 2026-11-16):
   - `funciones.md`: se presenta como confirmada el 2026-10-10 y lleva añadidos posteriores sin revisar y líneas caducadas («gestos para cambiar de modo», «cadena de efectos global», «MIDI mediante la modulación», Safari); reconfirmar con mykl
-  - `arquitectura.md`: corregidos el 2026-11-16 «envolvente» como fuente de modulación (el código tiene banda, golpe, oscilador y MIDI) y el `[PENDIENTE]` de Safari (fuera del alcance, decidido el 2026-11-10). Quedan: mezcla «entrada visual» y «fuente visual»; «Universal y proyecto» es especificación de interfaz; un `[PENDIENTE]` (OBS desde GitHub Pages)
+  - `arquitectura.md`: corregidos el 2026-11-16 «envolvente» como fuente de modulación (el código tiene banda, golpe, oscilador y MIDI) y el `[PENDIENTE]` de Safari (fuera del alcance, decidido el 2026-11-10). El 2026-11-17 se unificó «entrada visual» en «fuente visual», el término de la interfaz. Quedan: «Universal y proyecto» es especificación de interfaz; un `[PENDIENTE]` (OBS desde GitHub Pages)
   - Visualizaciones: el registro (`src/engine/render/registry.ts`) tiene 23 entradas: 21 propias, Milkdrop y la fuente visual. El README dice 21 propias, que es correcto; `vision.md` del ecosistema dice 23; los textos de las escenas de ejemplo (`demo.gallery.hint`, `demo.show.hint`) dicen 22, sin comprobar a qué cuenta se refieren; `funciones.md` no da cifra
   - README: «Safari is untested» pasa a «Safari is not supported» (Safari fuera, decidido el 2026-11-10)
   - El botón «Copiar … a tus shaders» se llama así porque cinco guiones buscan «Añadir»
