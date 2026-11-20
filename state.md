@@ -1,6 +1,6 @@
 ---
 created: 2026-09-29
-last_updated: 2026-11-17
+last_updated: 2026-11-20
 ---
 
 # Spectra-visio — state
@@ -13,14 +13,14 @@ Visualizador de audio en tiempo real para navegador, reconstruido desde cero en 
 
 ## Status
 
-**Retomar por:** el resto de la ronda de revisión de mykl con música real (reproductor, OBS y grabación, móvil real, fuente por capa, fases 1 a 5) y la prueba del sonido por fuente con un canal de TV real. Mykl revisó el 2026-11-17: Firefox (arreglos del 11-16, H6, H1, ventana minimizada), uso libre como directo, MIDI y dos pantallas: todo bien.
+**Retomar por:** esperar lo que digan los usuarios y arreglar lo que salga. Lo que mykl no llegó a probar está en «Sin probar» (reproductor con música real, OBS y grabación, móvil real, sonido por fuente con un canal de TV real). Mykl revisó el 2026-11-17: Firefox (arreglos del 11-16, H6, H1, ventana minimizada), uso libre como directo, MIDI y dos pantallas: todo bien.
 
-**Fase:** en progreso (confirmada por mykl el 2026-11-17; la carpeta es `1_in-progress`. La app está publicada en Pages para ir probándola, y eso no cambia la fase).
+**Fase:** terminado por ahora (dicho por mykl el 2026-11-20: queda publicada y se espera a ver qué dicen los usuarios; antes, en progreso). Las funciones nuevas, las decisiones abiertas y el «show completo» esperan a ese uso real.
 
-- Construida, no terminada (revisión del 2026-11-10). No entra ninguna función nueva hasta cerrar la ronda de revisión de mykl. Las 10 fases de `docs/arquitectura.md`, el rediseño de la interfaz (5 fases) y todas las funciones de `docs/funciones.md` están hechos. Base: TypeScript 7, React 19, Vite 8, Vitest 5, store propio, español e inglés, ajustes en IndexedDB, disposición con muelles, CI con despliegue a Pages
+- Las 10 fases de `docs/arquitectura.md`, el rediseño de la interfaz (5 fases) y todas las funciones de `docs/funciones.md` están hechos. Base: TypeScript 7, React 19, Vite 8, Vitest 5, store propio, español e inglés, ajustes en IndexedDB, disposición con muelles, CI con despliegue a Pages
 - Repo público `memoriainfinita/Spectra-visio`; Pages en https://memoriainfinita.github.io/Spectra-visio/. Subido el 2026-11-17 a petición de mykl: `origin/main` y `main` coinciden (hasta la decisión de la escena de arranque); los arreglos de la auditoría, de los defectos de diseño y el estado ya están en GitHub y Pages los despliega por CI El 2026-11-17 se subió hasta `f80cf89` a petición de mykl, con la escena de ejemplo única; antes de ese push, GitHub estaba en `c8c38f0`.
-- Comprobaciones del 2026-11-16: typecheck, 260 tests unitarios, build y `pnpm audit --prod` (sin vulnerabilidades conocidas) en verde; guiones e2e de lo tocado en Firefox y Chrome, 30 de 30. «En verde» significa que el guion no se colgó ni imprimió `FAIL` (`tests/e2e/README.md`: no son aserciones). Tras los arreglos de diseño del mismo día: typecheck, 260 tests unitarios, build y e2e de `docks`, `clips`, `live`, `mypanel`, `knobs`, `demos`, `presets`, `scenes`, `settings`, `inspector` y `layers` en Firefox y Chrome: 21 de 22 a la primera. El `FAIL` intermitente de `demos` en Chrome se identificó el 2026-11-17: el guion leía el aviso «Escena cargada» después de medir fotogramas y en la primera escena ya se había retirado; ahora lo lee al pulsar y pasó 3 de 3 en Chrome y 1 en Firefox. Tras ello: typecheck, 260 tests y build en verde. Última batería completa: 2026-11-04, 90 de 91 (`pwa` en Firefox falló una vez y pasó sola)
-- Comprobaciones del 2026-11-17: batería completa (92 ejecuciones, sin `FAIL` ni cuelgues) sobre `22b403a`; tras shaders, selector y sonido por fuente: typecheck, 305 tests unitarios, build y e2e de lo tocado en Firefox y Chrome en verde (un `FAIL` intermitente de `settings` en Firefox pasó al repetirlo); `source-sound.mjs` mide el audio con un vídeo con tono. Batería completa sobre esa versión (`04f1d75`): 90 de 92 ejecuciones `ok`; `settings` y `visuals` en Firefox fallaron por un tiempo de espera (evento `load` y selector de archivos) y pasaron al repetirlos solos, así que son intermitentes con la máquina cargada, no de la versión.
+- Guía de uso en inglés: `docs/guide/` (índice «quiero… → página» y seis páginas), con capturas en `docs/guide/img/` y la principal en `docs/Spectra-visio-demo.png`, hechas por `scripts/screenshots.mjs` (Playwright, Firefox, inglés, silenciado, pista sintética; `pnpm build`, `pnpm exec vite preview --port 4181` y `node scripts/screenshots.mjs`). Si cambia la interfaz, relanzarlo. Escrita a partir de `funciones.md` y de la interfaz; sin revisar por mykl
+- Comprobaciones del 2026-11-20, sobre `b472d67` (cierre): typecheck, 288 tests unitarios, build y `pnpm audit --prod` (sin vulnerabilidades conocidas) en verde. Batería completa de e2e en Firefox y Chrome: 90 de 92 ejecuciones `ok`; `layers` en Firefox (400 s, `SIGTERM`) y `obs` en Firefox (todas sus comprobaciones pasaron y el guion se quedó colgado cerrando el servidor falso) fallaron, y pasaron los dos al repetirlos solos: intermitentes con la máquina cargada, no de la versión. «En verde» significa que el guion no se colgó ni imprimió `FAIL` (`tests/e2e/README.md`: no son aserciones). Los e2e corren contra `dist`: `pnpm build` antes. Historial de comprobaciones anteriores en `state-history.md`
 - Auditoría del 2026-11-16 (Claude, a petición de mykl): arreglados tres fallos y cuatro riesgos, cada uno reproducido antes en Chrome silenciado. Sin leer: `src/ui`, visualizaciones, efectos, lectores de shaders, análisis previo y muelles (solo barrido automático de claves de traducción, clases CSS y exportaciones). Firefox con la ventana principal oculta no se pudo medir (sin CDP en el Playwright de Firefox). Detalle en `state-history.md`
 
 - Escenas de ejemplo (2026-11-17, a petición de mykl): las siete se sustituyeron por una sola, «Espectáculo» (`src/engine/scene/demos.ts`), con una paleta por columna. Mirada en Chrome silenciado y sin música: en silencio varias columnas se ven oscuras, y cómo queda con sonido real no se ha visto. Sin revisar por mykl. `DEMOS` sigue siendo una lista, por si se añade otra. Los presets de Milkdrop no se han tocado
@@ -36,11 +36,10 @@ Visualizador de audio en tiempo real para navegador, reconstruido desde cero en 
   - Control externo: `funciones.md` deja fuera OSC y control remoto y la visión del ecosistema prevé que Cue, Core y Remote manejen Visio
   - Decisiones de Claude, revisadas por mykl el 2026-11-17: los efectos de composición leen la fuente de la capa que se elija (selector, por defecto la más alta con fuente); el sonido de cada vídeo o canal es propio y se mezcla (ya no hay un solo sonido de TV); el Inspector sigue sin saltar a los clips lanzados por teclas o MIDI
   - De `a-estudiar.md`, H6 (limitador de destellos) y H1 (aviso de silencio): hechos el 2026-11-17; ver `state-history.md`
-- Documentación desalineada (puesta al día en parte el 2026-11-16):
+- Documentación desalineada (puesta al día en parte el 2026-11-16 y el 2026-11-20):
   - `funciones.md`: revisada con mykl el 2026-11-17 (líneas caducadas corregidas)
   - `arquitectura.md`: corregidos el 2026-11-16 «envolvente» como fuente de modulación (el código tiene banda, golpe, oscilador y MIDI) y el `[PENDIENTE]` de Safari (fuera del alcance, decidido el 2026-11-10). El 2026-11-17 se unificó «entrada visual» en «fuente visual», el término de la interfaz. Quedan: «Universal y proyecto» es especificación de interfaz; un `[PENDIENTE]` (OBS desde GitHub Pages)
   - Visualizaciones: el registro (`src/engine/render/registry.ts`) tiene 23 entradas: 21 propias, Milkdrop y la fuente visual. El README dice 21 propias, que es correcto; `vision.md` del ecosistema dice 23; el texto de la escena de ejemplo (`demo.show.hint`) y `funciones.md` dicen 22, que es la cuenta de las visualizaciones sin la fuente visual (21 propias más Milkdrop)
-  - README: «Safari is untested» pasa a «Safari is not supported» (Safari fuera, decidido el 2026-11-10)
   - El botón «Copiar … a tus shaders» se llama así porque cinco guiones buscan «Añadir»
 - Revisados por mykl el 2026-11-17, todo bien: menú de clip, columnas con nombre y lanzables por teclas y nota MIDI, ventana de muelle real y guardado al cerrar, escenas de ejemplo con Ctrl Z, uso libre como directo.
 - Sin revisar por mykl (en la ronda): fases 1 a 5 del rediseño (la 1 la probó el 2026-10-14 sin confirmarla como revisada); cambio de la fuente visual con música real; fuente por capa (Contenido y Fuente en el Inspector); revisión de flujos (nombres, Lista en Audio, Escenas guardadas, shaders que leen la fuente); shaders de ejemplo; repaso de duplicados; descripciones cortas de Ajustes (las escribió Claude a partir de las ayudas); fases 9 y 10 (OBS real, grabación, móvil real, instalar la app, calidad adaptativa)
@@ -71,28 +70,18 @@ Visualizador de audio en tiempo real para navegador, reconstruido desde cero en 
 
 ## Preferences
 
-- Las revisiones y pruebas manuales pendientes se hacen todas juntas, en una sola ronda, cuando mykl lo diga. Pedido el 2026-10-12.
-- Sin funciones nuevas hasta cerrar la ronda de revisión. Dicho el 2026-11-10.
+- Las revisiones y pruebas manuales que queden se hacen todas juntas, en una sola ronda, cuando mykl lo diga. Pedido el 2026-10-12.
+- Funciones nuevas solo tras ver qué dicen los usuarios. Dicho el 2026-11-10 («sin funciones nuevas hasta cerrar la ronda») y el 2026-11-20 («terminada por ahora»).
 
 ## TODO
 
-Orden acordado el 2026-11-10.
-
-Ronda de revisión de mykl, los tres usos a la vez, con música real:
-- [ ] Reproductor: lista, gapless, radios, Audius, letras; captura de pestaña en Chrome o Edge; stream con CORS real de otro dominio
-- [ ] OBS y grabación (fase 9), también desde Pages: la conexión a OBS desde GitHub Pages pide el permiso de red local. El audio no viaja por la fuente de navegador: en OBS se captura aparte (mykl vio llegar la imagen el 2026-11-17)
-- [ ] Móvil real: la disposición de pestañas y hoja (probada por mykl el 2026-11-17, bien); instalar la app falla con «ya está instalada» (mykl, 2026-11-17: revisar por adb qué hay instalado) y falta la calidad adaptativa en su equipo (fase 10)
-- [ ] Revisar lo construido sin revisar (lista de «Sin revisar por mykl» en Status)
-- [ ] Sonido por fuente: probarlo con un canal de TV real, con dos fuentes a la vez y con la canción; ajustar a oído el volumen
-
-Después de la ronda:
-- [ ] Show completo: diseño de qué guarda (rótulos, shaders importados, fuentes visuales, MIDI) y de la carpeta `visio/` de `.spectra`; aprobación de mykl antes de implementar
-- [ ] Decisiones abiertas de Status (fuente visual a OBS, identidad, control externo)
-
-Documentación:
+- [ ] Atender lo que salga del uso real: issues de GitHub y lo que mykl vea al usarla
 - [ ] `vision.md` del ecosistema (`0_draft/spectra-ecosystem`): editado el 2026-11-17 (Visio es app completa) y sin commit en ese proyecto
 - [ ] `arquitectura.md`: resto de cifras y nombres al día; especificación de interfaz aparte
 
 ## Aparcado
 
-- Más de 9 columnas de clips (preguntado por mykl el 2026-11-17). Hoy el límite es de diseño: `CLIP_COLUMNS = 9` en `src/engine/scene/limits.ts`, porque cada columna se lanza con una tecla del 1 al 9 y tiene su nota MIDI. Esquema pensado: páginas de nueve columnas, con las teclas 1 a 9 y el MIDI siempre sobre la página activa y un control para cambiar de página. Hay que decidir teclas, MIDI, rejilla y migración de escenas guardadas. Sin funciones nuevas hasta cerrar la ronda de revisión
+- Resto de la ronda de revisión de mykl con música real: reproductor (lista, gapless, radios, Audius, letras), OBS y grabación también desde Pages (pide el permiso de red local; mykl vio llegar la imagen a OBS el 2026-11-17), móvil real (instalar la app falla con «ya está instalada»: revisar por adb qué hay instalado; falta la calidad adaptativa en su equipo), lo de «Sin revisar por mykl» y el sonido por fuente con un canal de TV real. Aparcado el 2026-11-20 al dar la app por terminada por ahora
+- Show completo: diseño de qué guarda (rótulos, shaders importados, fuentes visuales, MIDI) y de la carpeta `visio/` de `.spectra`; aprobación de mykl antes de implementar
+- Decisiones abiertas de Status (fuente visual a OBS, identidad del ecosistema, control externo)
+- Más de 9 columnas de clips (preguntado por mykl el 2026-11-17). Hoy el límite es de diseño: `CLIP_COLUMNS = 9` en `src/engine/scene/limits.ts`, porque cada columna se lanza con una tecla del 1 al 9 y tiene su nota MIDI. Esquema pensado: páginas de nueve columnas, con las teclas 1 a 9 y el MIDI siempre sobre la página activa y un control para cambiar de página. Hay que decidir teclas, MIDI, rejilla y migración de escenas guardadas

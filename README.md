@@ -4,7 +4,11 @@ Real-time audio visualizer for the browser: a music player with visuals, a VJ to
 
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
 
+![SpectraVisio playing the example scene](docs/Spectra-visio-demo.png)
+
 **Try it:** https://memoriainfinita.github.io/Spectra-visio/
+
+**Guide:** [docs/guide](docs/guide/README.md), by what you want to do: play music, try the example scene, compose, modulate, perform live, and OBS and recording.
 
 ## Features
 
@@ -14,7 +18,7 @@ Real-time audio visualizer for the browser: a music player with visuals, a VJ to
 - **Visuals:** 21 built-in visualizations on a WebGL2 compositor, Milkdrop presets through Butterchurn, and imported ISF or Shadertoy shaders, with four examples written for the app. Camera, video, image, a live TV channel from the iptv-org lists, or free videos and images from Wikimedia Commons and NASA as the source of a layer, set up in the inspector
 - **Modulation:** any parameter of a visualization or effect can follow a band, a beat, an oscillator or a MIDI control; up to 8 shared modulators with a Map mode that highlights the targets
 - **Control:** an inspector at composition, layer and clip level; macro knobs with several targets each, range and invert, and launchable variations; a My panel grid for any control of the app; MIDI learn from the right-click menu; undo and redo; a Ctrl K search for controls and actions
-- **Effects, presets and browser:** effect chains per layer and on the composition, colour palettes, saved and exported presets, seven example scenes that show everything the app does, the last with all of it together and scenes of your own (the whole composition under a name), thumbnails with categories, search and favourites
+- **Effects, presets and browser:** effect chains per layer and on the composition, colour palettes, saved and exported presets, an example scene that shows everything the app does, in eight columns with a palette each, and scenes of your own (the whole composition under a name), thumbnails with categories, search and favourites
 - **Live:** up to 8 layers with blend modes, an A/B crossfader, a clip grid with launchable columns, a performance bar with blackout, freeze, strobe and auto mode, configurable shortcuts, MIDI learn and MIDI clock, and an output window for a projector
 - **Overlays:** track title, synced lyrics (LRC, or looked up on LRCLIB if turned on), text and logo
 - **Output:** fixed resolutions up to 4K, recording to video with sound, and a transparent source for OBS through obs-websocket
